@@ -8,9 +8,8 @@ import { fileURLToPath } from 'url'
 import recursive_read_dir from 'recursive-readdir'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-console.log(__dirname)
 
-const action_target = (pkg) => join(__dirname, '.github', pkg)
+const action_target = (pkg) => join(__dirname, 'actions', pkg)
 const action_src = (pkg) => join(__dirname, 'packages', pkg)
 
 async function copy_dist(pkg) {
@@ -33,13 +32,9 @@ async function copy_dist(pkg) {
         join(pkg_dest, 'action.yml')
     )
 
-    console.log(files, meta, target_dir)
-
     await Promise.all(
         files.map((f) => {
-            console.log(f)
             const dest_file = f.replace(pkg_src, pkg_dest)
-
             return copyFile(f, dest_file)
         })
     )
@@ -54,8 +49,6 @@ async function handle_packages() {
         'node_modules',
         'dist',
     ])
-
-    console.log(pkgs.filter((f) => f.endsWith('package.json')))
 
     const meta = (
         await Promise.all(
@@ -72,7 +65,6 @@ async function handle_packages() {
     )
         .filter(([_, name]) => name.startsWith('@gradio-action/'))
         .map(([f, pkg]) => [f, pkg.replace('@gradio-action/', '')])
-    console.log(meta)
 
     await Promise.all(meta.map((v) => copy_dist(v[1])))
 }
