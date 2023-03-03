@@ -1,4 +1,10 @@
+import { join } from 'path'
+import { readFile } from 'fs/promises'
+//@ts-ignore
+import recursive_read_dir from 'recursive-readdir'
+
 import * as core from '@actions/core'
+import * as artifact from '@actions/artifact'
 
 import { createRepo, commit } from '@huggingface/hub'
 import type { RepoId, Credentials } from '@huggingface/hub'
@@ -19,16 +25,32 @@ const src = `<!DOCTYPE html>
 </html>`
 
 async function run() {
+    const { hf_token, user_name, space_name, space_type, is_artifact, path } =
+        handle_inputs()
+
+    const cwd = process.env.GITHUB_WORKSPACE as string
+    let _path = join(cwd, path)
+
+    if (is_artifact) {
+        const artifact_client = artifact.create()
+        await artifact_client.downloadArtifact(path, path)
+    }
+
+    const files: string[] = await recursive_read_dir(_path)
+    const file_data: Array<[string, string]> = await Promise.all(
+        files.map(read_files(_path))
+    )
+
     const repo: RepoId = {
-        name: 'pngwn/test-repo',
+        name: `${user_name}/${space_name}`,
         type: 'space',
     }
 
     const credentials: Credentials = {
-        accessToken: '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',
+        accessToken: hf_token,
     }
     try {
-        const res = await createRepo({ repo, credentials })
+        await createRepo({ repo, credentials })
     } catch (e) {
         console.log(e)
     }
@@ -38,17 +60,70 @@ async function run() {
         repo,
         credentials,
         title: 'Add model file',
-        operations: [
-            {
-                operation: 'addOrUpdate',
-                path: 'index.html',
-                content: new Blob([src]), // Can work with native File in browsers
-            },
-        ],
+        operations: file_data.map(([filename, data]) => ({
+            operation: 'addOrUpdate',
+            path: filename,
+            content: new Blob([data]),
+        })),
     })
 
-    // const r2 = res.json()
+    core.info('Space successfully updated.')
 }
 
-console.log('hello')
+function read_files(path: string) {
+    return function (file: string): Promise<[string, string]> {
+        return new Promise((res, rej) => {
+            readFile(file, { encoding: 'utf-8' }).then((data) =>
+                res([file.replace(`${path}/`, ''), data])
+            )
+        })
+    }
+}
+
+function handle_inputs() {
+    const _hf_token = core.getInput('hf_token', {
+        required: true,
+        trimWhitespace: true,
+    })
+
+    let hf_token: `hf_${string}`
+
+    if (_hf_token.startsWith('hf_')) {
+        hf_token = _hf_token as `hf_${string}`
+    } else {
+        core.setFailed("Not a valid Hugging face token. Must start with 'hf_'.")
+        throw new Error()
+    }
+
+    const user_name = core.getInput('user_name', {
+        required: true,
+        trimWhitespace: true,
+    })
+    const space_name = core.getInput('space_name', {
+        required: true,
+        trimWhitespace: true,
+    })
+    const space_type = core.getInput('space_type', { trimWhitespace: true })
+    const path = core.getInput('path', { required: true, trimWhitespace: true })
+    const is_artifact = core.getBooleanInput('is_artifact', {
+        trimWhitespace: true,
+    })
+
+    if (!['static', 'gradio'].includes(space_type)) {
+        core.setFailed(
+            `'${space_type}' is not a supported space type. Only 'gradio' and 'static' are supported.`
+        )
+        throw new Error()
+    }
+
+    return {
+        hf_token,
+        user_name,
+        space_name,
+        space_type,
+        is_artifact,
+        path,
+    }
+}
+
 run()

@@ -16,6 +16,9 @@ inputs:
     path:
         description: 'The path to the directory containing the app.'
         required: true
+    is_artifact:
+        description: 'The path to the directory containing the app.'
+        required: true
 
 runs:
     using: 'node18'

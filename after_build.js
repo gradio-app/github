@@ -24,7 +24,7 @@ async function copy_dist(pkg) {
         console.error(e)
     }
 
-    const target_dir = await mkdir(join(pkg_dest, 'dist'), {
+    await mkdir(join(pkg_dest, 'dist'), {
         recursive: true,
     })
     const meta = await copyFile(
@@ -42,7 +42,13 @@ async function copy_dist(pkg) {
     console.log(`"${pkg}" action folder created."`)
 }
 
-// copy_dist('test')
+function read_file(f) {
+    return new Promise((res) => {
+        readFile(f, { encoding: 'utf-8' }).then((d) =>
+            res([f, JSON.parse(d).name])
+        )
+    })
+}
 
 async function handle_packages() {
     const pkgs = await recursive_read_dir(join(__dirname, 'packages'), [
@@ -52,15 +58,7 @@ async function handle_packages() {
 
     const meta = (
         await Promise.all(
-            pkgs
-                .filter((f) => f.endsWith('package.json'))
-                .map((f) => {
-                    return new Promise((res) => {
-                        readFile(f, { encoding: 'utf-8' }).then((d) =>
-                            res([f, JSON.parse(d).name])
-                        )
-                    })
-                })
+            pkgs.filter((f) => f.endsWith('package.json')).map(read_file)
         )
     )
         .filter(([_, name]) => name.startsWith('@gradio-action/'))
