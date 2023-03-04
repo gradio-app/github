@@ -1,5 +1,7 @@
 import { join } from 'path'
 import { readFile } from 'fs/promises'
+import './fetch'
+import { Blob } from 'node:buffer'
 //@ts-ignore
 import recursive_read_dir from 'recursive-readdir'
 
@@ -8,24 +10,6 @@ import * as artifact from '@actions/artifact'
 
 import { createRepo, commit } from '@huggingface/hub'
 import type { RepoId, Credentials } from '@huggingface/hub'
-
-import './fetch'
-import { Blob } from 'node:buffer'
-
-const src = `<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<title>My static Space</title>
-		<link rel="stylesheet" href="style.css" />
-	</head>
-	<body>
-		<div class="card">
-			<h1>Hello from @huggingface/hub!</h1>
-		</div>
-	</body>
-</html>`
 
 async function run() {
     const { hf_token, user_name, space_name, space_type, is_artifact, path } =
@@ -63,6 +47,7 @@ async function run() {
         repo,
         credentials,
         title: 'Add model file',
+        //@ts-ignore
         operations: file_data.map(([filename, data]) => ({
             operation: 'addOrUpdate',
             path: filename,
