@@ -56,7 +56,7 @@ async function run() {
 
   const readme = make_readme({ title: space_name, sdk: space_type });
 
-  file_data.push(["readme.md", Buffer.from(readme)]);
+  file_data.push(["README.md", Buffer.from(readme)]);
 
   core.info(
     `Committing ${file_data.length} file${
