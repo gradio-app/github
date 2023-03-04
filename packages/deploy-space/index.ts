@@ -42,7 +42,7 @@ async function run() {
         console.log(e)
     }
 
-    // console.log(res)
+    console.log(res)
     await commit({
         repo,
         credentials,
