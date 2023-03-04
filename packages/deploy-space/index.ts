@@ -6,6 +6,7 @@ import { Blob } from "node:buffer";
 import recursive_read_dir from "recursive-readdir";
 
 import * as core from "@actions/core";
+import * as github from "@actions/github";
 import * as artifact from "@actions/artifact";
 
 import { createRepo, commit } from "@huggingface/hub";
@@ -14,8 +15,16 @@ import type { RepoId, Credentials } from "@huggingface/hub";
 import k from "kleur";
 
 async function run() {
-  const { hf_token, user_name, space_name, space_type, is_artifact, path } =
-    handle_inputs();
+  const {
+    hf_token,
+    user_name,
+    space_name,
+    space_type,
+    is_artifact,
+    path,
+    comment,
+    gh_token,
+  } = handle_inputs();
 
   const cwd = process.env.GITHUB_WORKSPACE as string;
   let _path = join(cwd, path);
@@ -81,6 +90,10 @@ async function run() {
     core.setFailed(`Commit failed.\n${e.message}`);
   }
 
+  try {
+    create_comment(gh_token, comment, repo.name);
+  } catch (e) {}
+
   core.info("Space successfully updated.");
 }
 
@@ -131,6 +144,10 @@ function handle_inputs() {
     _space_type = space_type as "gradio" | "static";
   }
 
+  const comment = core.getBooleanInput("comment", { required: true });
+
+  const gh_token = core.getInput("gh_token") || "";
+
   return {
     hf_token,
     user_name,
@@ -138,6 +155,8 @@ function handle_inputs() {
     space_type: _space_type,
     is_artifact,
     path,
+    gh_token,
+    comment,
   };
 }
 
@@ -173,4 +192,56 @@ pinned: false
 ${content}
 ---
 `;
+}
+import { GetResponseDataTypeFromEndpointMethod } from "@octokit/types";
+
+async function create_comment(
+  gh_token: string,
+  comment: boolean,
+  repo: string
+) {
+  if (!comment || (comment && !gh_token)) {
+    return;
+  }
+
+  const pr_number = github.context.payload.pull_request?.number;
+  if (!pr_number) return;
+
+  const comment_tag_pattern = `<!-- gradio-app/deploy-space -->`;
+  const message = `Preview space has been deployed to https://huggingface.co/spaces/${repo}`;
+  const body = `${message}\n${comment_tag_pattern}`;
+
+  const octokit = github.getOctokit(gh_token);
+
+  type ListCommentsResponseDataType = GetResponseDataTypeFromEndpointMethod<
+    typeof octokit.rest.issues.listComments
+  >;
+  let _comment: ListCommentsResponseDataType[0] | undefined;
+
+  for await (const { data: comments } of octokit.paginate.iterator(
+    octokit.rest.issues.listComments,
+    {
+      ...github.context.repo,
+      issue_number: pr_number,
+    }
+  )) {
+    _comment = comments.find((comment) =>
+      comment?.body?.includes(comment_tag_pattern)
+    );
+    if (comment) break;
+  }
+
+  if (_comment) {
+    await octokit.rest.issues.updateComment({
+      ...github.context.repo,
+      comment_id: _comment.id,
+      body,
+    });
+  } else {
+    await octokit.rest.issues.createComment({
+      ...github.context.repo,
+      issue_number: pr_number,
+      body,
+    });
+  }
 }
