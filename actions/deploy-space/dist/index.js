@@ -17413,6 +17413,7 @@ if (!globalThis.fetch) {
 
 
 
+
 const src = (/* unused pure expression or super */ null && (`<!DOCTYPE html>
 <html>
 	<head>
@@ -17458,7 +17459,7 @@ async function run() {
         operations: file_data.map(([filename, data]) => ({
             operation: 'addOrUpdate',
             path: filename,
-            content: new Blob([data]),
+            content: new external_node_buffer_namespaceObject.Blob([data]),
         })),
     });
     core.info('Space successfully updated.');

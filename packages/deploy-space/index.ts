@@ -10,6 +10,7 @@ import { createRepo, commit } from '@huggingface/hub'
 import type { RepoId, Credentials } from '@huggingface/hub'
 
 import './fetch'
+import { Blob } from 'node:buffer'
 
 const src = `<!DOCTYPE html>
 <html>
