@@ -17404,6 +17404,118 @@ async function* listFiles(params) {
 }
 
 
+;// CONCATENATED MODULE: ../../node_modules/.pnpm/kleur@4.1.5/node_modules/kleur/index.mjs
+
+
+let FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM, isTTY=true;
+if (typeof process !== 'undefined') {
+	({ FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM } = process.env || {});
+	isTTY = process.stdout && process.stdout.isTTY;
+}
+
+const $ = {
+	enabled: !NODE_DISABLE_COLORS && NO_COLOR == null && TERM !== 'dumb' && (
+		FORCE_COLOR != null && FORCE_COLOR !== '0' || isTTY
+	),
+
+	// modifiers
+	reset: init(0, 0),
+	bold: init(1, 22),
+	dim: init(2, 22),
+	italic: init(3, 23),
+	underline: init(4, 24),
+	inverse: init(7, 27),
+	hidden: init(8, 28),
+	strikethrough: init(9, 29),
+
+	// colors
+	black: init(30, 39),
+	red: init(31, 39),
+	green: init(32, 39),
+	yellow: init(33, 39),
+	blue: init(34, 39),
+	magenta: init(35, 39),
+	cyan: init(36, 39),
+	white: init(37, 39),
+	gray: init(90, 39),
+	grey: init(90, 39),
+
+	// background colors
+	bgBlack: init(40, 49),
+	bgRed: init(41, 49),
+	bgGreen: init(42, 49),
+	bgYellow: init(43, 49),
+	bgBlue: init(44, 49),
+	bgMagenta: init(45, 49),
+	bgCyan: init(46, 49),
+	bgWhite: init(47, 49)
+};
+
+function run(arr, str) {
+	let i=0, tmp, beg='', end='';
+	for (; i < arr.length; i++) {
+		tmp = arr[i];
+		beg += tmp.open;
+		end += tmp.close;
+		if (!!~str.indexOf(tmp.close)) {
+			str = str.replace(tmp.rgx, tmp.close + tmp.open);
+		}
+	}
+	return beg + str + end;
+}
+
+function chain(has, keys) {
+	let ctx = { has, keys };
+
+	ctx.reset = $.reset.bind(ctx);
+	ctx.bold = $.bold.bind(ctx);
+	ctx.dim = $.dim.bind(ctx);
+	ctx.italic = $.italic.bind(ctx);
+	ctx.underline = $.underline.bind(ctx);
+	ctx.inverse = $.inverse.bind(ctx);
+	ctx.hidden = $.hidden.bind(ctx);
+	ctx.strikethrough = $.strikethrough.bind(ctx);
+
+	ctx.black = $.black.bind(ctx);
+	ctx.red = $.red.bind(ctx);
+	ctx.green = $.green.bind(ctx);
+	ctx.yellow = $.yellow.bind(ctx);
+	ctx.blue = $.blue.bind(ctx);
+	ctx.magenta = $.magenta.bind(ctx);
+	ctx.cyan = $.cyan.bind(ctx);
+	ctx.white = $.white.bind(ctx);
+	ctx.gray = $.gray.bind(ctx);
+	ctx.grey = $.grey.bind(ctx);
+
+	ctx.bgBlack = $.bgBlack.bind(ctx);
+	ctx.bgRed = $.bgRed.bind(ctx);
+	ctx.bgGreen = $.bgGreen.bind(ctx);
+	ctx.bgYellow = $.bgYellow.bind(ctx);
+	ctx.bgBlue = $.bgBlue.bind(ctx);
+	ctx.bgMagenta = $.bgMagenta.bind(ctx);
+	ctx.bgCyan = $.bgCyan.bind(ctx);
+	ctx.bgWhite = $.bgWhite.bind(ctx);
+
+	return ctx;
+}
+
+function init(open, close) {
+	let blk = {
+		open: `\x1b[${open}m`,
+		close: `\x1b[${close}m`,
+		rgx: new RegExp(`\\x1b\\[${close}m`, 'g')
+	};
+	return function (txt) {
+		if (this !== void 0 && this.has !== void 0) {
+			!!~this.has.indexOf(open) || (this.has.push(open),this.keys.push(blk));
+			return txt === void 0 ? this : $.enabled ? run(this.keys, txt+'') : txt+'';
+		}
+		return txt === void 0 ? chain([open], [blk]) : $.enabled ? run([blk], txt+'') : txt+'';
+	};
+}
+
+/* harmony default export */ const kleur = ($);
+
 ;// CONCATENATED MODULE: ./index.ts
 
 
@@ -17414,7 +17526,8 @@ async function* listFiles(params) {
 
 
 
-async function run() {
+
+async function index_run() {
     const { hf_token, user_name, space_name, space_type, is_artifact, path } = handle_inputs();
     const cwd = process.env.GITHUB_WORKSPACE;
     let _path = (0,external_path_.join)(cwd, path);
@@ -17431,15 +17544,22 @@ async function run() {
     const credentials = {
         accessToken: hf_token,
     };
+    const x = kleur.cyan('owner');
+    const y = kleur.cyan('repo');
+    const formatted_repo = `${x}${kleur.dim('/')}${y}`;
     try {
-        core.info(`Trying to create ${repo.name}.`);
+        core.info(`Trying to create ${formatted_repo}.`);
         await createRepo({ repo, credentials });
     }
     catch (e) {
-        core.info(`${repo.name} already exists. Skipping.`);
-        console.log(e);
+        if (e.statusCode === 409) {
+            core.info(`${formatted_repo} already exists. Skipping.`);
+        }
+        else {
+            core.setFailed(`Could not create ${formatted_repo}.\n${e.data.message}`);
+        }
     }
-    core.info(`Committing ${file_data.length} file${file_data.length === 1 ? '' : 's'} to ${repo.name}.`);
+    core.info(`Committing ${file_data.length} file${file_data.length === 1 ? '' : 's'} to ${formatted_repo}.`);
     let commits;
     try {
         commits = await commit({
@@ -17456,6 +17576,7 @@ async function run() {
     }
     catch (e) {
         console.log(e);
+        core.setFailed(`Commit failed.\n${e.message}`);
     }
     console.log(JSON.stringify(commits, null, 2));
     core.info('Space successfully updated.');
@@ -17506,7 +17627,7 @@ function handle_inputs() {
         path,
     };
 }
-run();
+index_run();
 
 })();
 
