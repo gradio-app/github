@@ -17559,6 +17559,8 @@ async function index_run() {
             core.setFailed(`Could not create ${formatted_repo}.\n${e.data.message}`);
         }
     }
+    const readme = make_readme({ title: space_name, sdk: space_type });
+    file_data.push(["readme.md", Buffer.from(readme)]);
     core.info(`Committing ${file_data.length} file${file_data.length === 1 ? "" : "s"} to ${formatted_repo}.`);
     let commits;
     try {
@@ -17613,20 +17615,42 @@ function handle_inputs() {
     const is_artifact = core.getBooleanInput("is_artifact", {
         trimWhitespace: true,
     });
+    let _space_type;
     if (!["static", "gradio"].includes(space_type)) {
         core.setFailed(`'${space_type}' is not a supported space type. Only 'gradio' and 'static' are supported.`);
         throw new Error();
+    }
+    else {
+        _space_type = space_type;
     }
     return {
         hf_token,
         user_name,
         space_name,
-        space_type,
+        space_type: _space_type,
         is_artifact,
         path,
     };
 }
 index_run();
+function make_readme({ title, sdk, version, app_file = "app.py", }) {
+    let content = `title: ${title} 
+  emoji: 💩
+  colorFrom: indigo
+  colorTo: indigo
+  sdk: ${sdk}
+  pinned: false
+`;
+    if (sdk === "gradio") {
+        content += `app_file: ${app_file}`;
+        if (version) {
+            content += `sdk_version: ${version}`;
+        }
+    }
+    return `---
+${content}
+---`;
+}
 
 })();
 
