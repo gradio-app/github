@@ -78,8 +78,6 @@ async function run() {
     core.setFailed(`Commit failed.\n${e.message}`);
   }
 
-  console.log(JSON.stringify(commits, null, 2));
-
   core.info("Space successfully updated.");
 }
 
