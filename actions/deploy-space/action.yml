@@ -4,6 +4,8 @@ inputs:
   hf_token:
     description: "Your Hugging Face access token."
     required: true
+  gh_token:
+    description: "Your github token, required for commenting on PRs"
   user_name:
     description: "The user name to create a space for."
     required: true
@@ -16,6 +18,9 @@ inputs:
   path:
     description: "The path to the directory containing the app or the name of the artifact."
     required: true
+  comment:
+    description: "Whether or not to comment on the PR. true | false"
+    default: true
   is_artifact:
     description: "The path to the directory containing the app."
     default: false
