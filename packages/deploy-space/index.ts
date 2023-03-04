@@ -64,12 +64,11 @@ async function run() {
     } to ${formatted_repo}.`
   );
 
-  let commits;
   try {
-    commits = await commit({
+    await commit({
       repo,
       credentials,
-      title: "Add model file",
+      title: "Upload space from github action",
       //@ts-ignore
       operations: file_data.map(([filename, data]) => ({
         operation: "addOrUpdate",
@@ -156,11 +155,11 @@ function make_readme({
   app_file?: string;
 }) {
   let content = `title: ${title} 
-  emoji: 💩
-  colorFrom: indigo
-  colorTo: indigo
-  sdk: ${sdk}
-  pinned: false
+emoji: 💩
+colorFrom: indigo
+colorTo: indigo
+sdk: ${sdk}
+pinned: false
 `;
 
   if (sdk === "gradio") {
@@ -172,5 +171,6 @@ function make_readme({
 
   return `---
 ${content}
----`;
+---
+`;
 }
