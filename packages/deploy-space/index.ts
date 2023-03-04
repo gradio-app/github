@@ -11,6 +11,8 @@ import * as artifact from '@actions/artifact'
 import { createRepo, commit } from '@huggingface/hub'
 import type { RepoId, Credentials } from '@huggingface/hub'
 
+import k from 'kleur'
+
 async function run() {
     const { hf_token, user_name, space_name, space_type, is_artifact, path } =
         handle_inputs()
@@ -36,18 +38,28 @@ async function run() {
     const credentials: Credentials = {
         accessToken: hf_token,
     }
+
+    const x = k.cyan('owner')
+    const y = k.cyan('repo')
+    const formatted_repo = `${x}${k.dim('/')}${y}`
+
     try {
-        core.info(`Trying to create ${repo.name}.`)
+        core.info(`Trying to create ${formatted_repo}.`)
         await createRepo({ repo, credentials })
-    } catch (e) {
-        core.info(`${repo.name} already exists. Skipping.`)
-        console.log(e)
+    } catch (e: any) {
+        if (e.statusCode === 409) {
+            core.info(`${formatted_repo} already exists. Skipping.`)
+        } else {
+            core.setFailed(
+                `Could not create ${formatted_repo}.\n${e.data.message}`
+            )
+        }
     }
 
     core.info(
         `Committing ${file_data.length} file${
             file_data.length === 1 ? '' : 's'
-        } to ${repo.name}.`
+        } to ${formatted_repo}.`
     )
 
     let commits
@@ -63,8 +75,9 @@ async function run() {
                 content: new Blob([data], {}),
             })),
         })
-    } catch (e) {
+    } catch (e: any) {
         console.log(e)
+        core.setFailed(`Commit failed.\n${e.message}`)
     }
 
     console.log(JSON.stringify(commits, null, 2))
