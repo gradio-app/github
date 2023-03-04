@@ -1,22 +1,22 @@
 name: Deploy hugging face space
 description: Creates and deploys a gradio or static hugging face space. If the space already exists, it will be updated.
 inputs:
-    hf_token:
-        description: 'Your Hugging Face access token.'
-        required: true
-    user_name:
-        description: 'The user name to create a space for.'
-        required: true
-    space_name:
-        description: 'The name of the space to create.'
-        required: true
-    space_type:
-        description: "The type of space to create. Can be 'gradio' or 'static'."
-        default: 'gradio'
-    path:
-        description: 'The path to the directory containing the app.'
-        required: true
+  hf_token:
+    description: "Your Hugging Face access token."
+    required: true
+  user_name:
+    description: "The user name to create a space for."
+    required: true
+  space_name:
+    description: "The name of the space to create."
+    required: true
+  space_type:
+    description: "The type of space to create. Can be 'gradio' or 'static'."
+    default: "gradio"
+  path:
+    description: "The path to the directory containing the app."
+    required: true
 
 runs:
-    using: 'node18'
-    main: 'dist/index.js'
+  using: "node18"
+  main: "dist/index.js"
