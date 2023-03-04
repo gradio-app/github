@@ -17539,14 +17539,14 @@ async function index_run() {
     const file_data = await Promise.all(files.map(read_files(_path)));
     const repo = {
         name: `${user_name}/${space_name}`,
-        type: 'space',
+        type: "space",
     };
     const credentials = {
         accessToken: hf_token,
     };
-    const x = kleur.cyan('owner');
-    const y = kleur.cyan('repo');
-    const formatted_repo = `${x}${kleur.dim('/')}${y}`;
+    const x = kleur.cyan(user_name);
+    const y = kleur.cyan(space_name);
+    const formatted_repo = x + kleur.dim("/") + y;
     try {
         core.info(`Trying to create ${formatted_repo}.`);
         await createRepo({ repo, credentials });
@@ -17559,16 +17559,16 @@ async function index_run() {
             core.setFailed(`Could not create ${formatted_repo}.\n${e.data.message}`);
         }
     }
-    core.info(`Committing ${file_data.length} file${file_data.length === 1 ? '' : 's'} to ${formatted_repo}.`);
+    core.info(`Committing ${file_data.length} file${file_data.length === 1 ? "" : "s"} to ${formatted_repo}.`);
     let commits;
     try {
         commits = await commit({
             repo,
             credentials,
-            title: 'Add model file',
+            title: "Add model file",
             //@ts-ignore
             operations: file_data.map(([filename, data]) => ({
-                operation: 'addOrUpdate',
+                operation: "addOrUpdate",
                 path: filename,
                 content: new external_node_buffer_namespaceObject.Blob([data], {}),
             })),
@@ -17578,43 +17578,42 @@ async function index_run() {
         console.log(e);
         core.setFailed(`Commit failed.\n${e.message}`);
     }
-    console.log(JSON.stringify(commits, null, 2));
-    core.info('Space successfully updated.');
+    core.info("Space successfully updated.");
 }
 function read_files(path) {
     return function (file) {
         return new Promise((res, rej) => {
-            (0,promises_namespaceObject.readFile)(file).then((data) => res([file.replace(`${path}/`, ''), data]));
+            (0,promises_namespaceObject.readFile)(file).then((data) => res([file.replace(`${path}/`, ""), data]));
         });
     };
 }
 function handle_inputs() {
-    const _hf_token = core.getInput('hf_token', {
+    const _hf_token = core.getInput("hf_token", {
         required: true,
         trimWhitespace: true,
     });
     let hf_token;
-    if (_hf_token.startsWith('hf_')) {
+    if (_hf_token.startsWith("hf_")) {
         hf_token = _hf_token;
     }
     else {
         core.setFailed("Not a valid Hugging face token. Must start with 'hf_'.");
         throw new Error();
     }
-    const user_name = core.getInput('user_name', {
+    const user_name = core.getInput("user_name", {
         required: true,
         trimWhitespace: true,
     });
-    const space_name = core.getInput('space_name', {
+    const space_name = core.getInput("space_name", {
         required: true,
         trimWhitespace: true,
     });
-    const space_type = core.getInput('space_type', { trimWhitespace: true });
-    const path = core.getInput('path', { required: true, trimWhitespace: true });
-    const is_artifact = core.getBooleanInput('is_artifact', {
+    const space_type = core.getInput("space_type", { trimWhitespace: true });
+    const path = core.getInput("path", { required: true, trimWhitespace: true });
+    const is_artifact = core.getBooleanInput("is_artifact", {
         trimWhitespace: true,
     });
-    if (!['static', 'gradio'].includes(space_type)) {
+    if (!["static", "gradio"].includes(space_type)) {
         core.setFailed(`'${space_type}' is not a supported space type. Only 'gradio' and 'static' are supported.`);
         throw new Error();
     }
