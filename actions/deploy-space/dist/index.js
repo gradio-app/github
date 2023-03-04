@@ -17432,29 +17432,38 @@ async function run() {
         accessToken: hf_token,
     };
     try {
+        core.info(`Trying to create ${repo.name}.`);
         await createRepo({ repo, credentials });
+    }
+    catch (e) {
+        core.info(`${repo.name} already exists. Skipping.`);
+        console.log(e);
+    }
+    core.info(`Committing ${file_data.length} file${file_data.length === 1 ? '' : 's'} to ${repo.name}.`);
+    let commits;
+    try {
+        commits = await commit({
+            repo,
+            credentials,
+            title: 'Add model file',
+            //@ts-ignore
+            operations: file_data.map(([filename, data]) => ({
+                operation: 'addOrUpdate',
+                path: filename,
+                content: new external_node_buffer_namespaceObject.Blob([data], {}),
+            })),
+        });
     }
     catch (e) {
         console.log(e);
     }
-    console.log(res);
-    await commit({
-        repo,
-        credentials,
-        title: 'Add model file',
-        //@ts-ignore
-        operations: file_data.map(([filename, data]) => ({
-            operation: 'addOrUpdate',
-            path: filename,
-            content: new external_node_buffer_namespaceObject.Blob([data]),
-        })),
-    });
+    console.log(JSON.stringify(commits, null, 2));
     core.info('Space successfully updated.');
 }
 function read_files(path) {
     return function (file) {
         return new Promise((res, rej) => {
-            (0,promises_namespaceObject.readFile)(file, { encoding: 'utf-8' }).then((data) => res([file.replace(`${path}/`, ''), data]));
+            (0,promises_namespaceObject.readFile)(file).then((data) => res([file.replace(`${path}/`, ''), data]));
         });
     };
 }
