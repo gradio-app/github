@@ -54,6 +54,10 @@ async function run() {
     }
   }
 
+  const readme = make_readme({ title: space_name, sdk: space_type });
+
+  file_data.push(["readme.md", Buffer.from(readme)]);
+
   core.info(
     `Committing ${file_data.length} file${
       file_data.length === 1 ? "" : "s"
@@ -118,21 +122,55 @@ function handle_inputs() {
     trimWhitespace: true,
   });
 
+  let _space_type;
   if (!["static", "gradio"].includes(space_type)) {
     core.setFailed(
       `'${space_type}' is not a supported space type. Only 'gradio' and 'static' are supported.`
     );
     throw new Error();
+  } else {
+    _space_type = space_type as "gradio" | "static";
   }
 
   return {
     hf_token,
     user_name,
     space_name,
-    space_type,
+    space_type: _space_type,
     is_artifact,
     path,
   };
 }
 
 run();
+
+function make_readme({
+  title,
+  sdk,
+  version,
+  app_file = "app.py",
+}: {
+  title: string;
+  sdk: "gradio" | "static";
+  version?: string;
+  app_file?: string;
+}) {
+  let content = `title: ${title} 
+  emoji: 💩
+  colorFrom: indigo
+  colorTo: indigo
+  sdk: ${sdk}
+  pinned: false
+`;
+
+  if (sdk === "gradio") {
+    content += `app_file: ${app_file}`;
+    if (version) {
+      content += `sdk_version: ${version}`;
+    }
+  }
+
+  return `---
+${content}
+---`;
+}
