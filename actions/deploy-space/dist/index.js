@@ -17437,7 +17437,7 @@ async function run() {
     catch (e) {
         console.log(e);
     }
-    // console.log(res)
+    console.log(res);
     await commit({
         repo,
         credentials,
