@@ -9,6 +9,8 @@ import * as artifact from '@actions/artifact'
 import { createRepo, commit } from '@huggingface/hub'
 import type { RepoId, Credentials } from '@huggingface/hub'
 
+import './fetch'
+
 const src = `<!DOCTYPE html>
 <html>
 	<head>
