@@ -24,6 +24,12 @@ importers:
       recursive-readdir: 2.2.3
       typescript: 4.9.5
 
+  packages/action-two:
+    specifiers:
+      '@huggingface/hub': ^0.1.3
+    dependencies:
+      '@huggingface/hub': 0.1.3
+
   packages/deploy-space:
     specifiers:
       '@huggingface/hub': ^0.1.3
@@ -31,6 +37,12 @@ importers:
     dependencies:
       '@huggingface/hub': 0.1.3
       node-fetch: 3.3.0
+
+  packages/util:
+    specifiers:
+      '@huggingface/hub': ^0.1.3
+    dependencies:
+      '@huggingface/hub': 0.1.3
 
 packages:
 
