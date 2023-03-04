@@ -17560,14 +17560,13 @@ async function index_run() {
         }
     }
     const readme = make_readme({ title: space_name, sdk: space_type });
-    file_data.push(["readme.md", Buffer.from(readme)]);
+    file_data.push(["README.md", Buffer.from(readme)]);
     core.info(`Committing ${file_data.length} file${file_data.length === 1 ? "" : "s"} to ${formatted_repo}.`);
-    let commits;
     try {
-        commits = await commit({
+        await commit({
             repo,
             credentials,
-            title: "Add model file",
+            title: "Upload space from github action",
             //@ts-ignore
             operations: file_data.map(([filename, data]) => ({
                 operation: "addOrUpdate",
@@ -17635,11 +17634,11 @@ function handle_inputs() {
 index_run();
 function make_readme({ title, sdk, version, app_file = "app.py", }) {
     let content = `title: ${title} 
-  emoji: 💩
-  colorFrom: indigo
-  colorTo: indigo
-  sdk: ${sdk}
-  pinned: false
+emoji: 💩
+colorFrom: indigo
+colorTo: indigo
+sdk: ${sdk}
+pinned: false
 `;
     if (sdk === "gradio") {
         content += `app_file: ${app_file}`;
@@ -17649,7 +17648,8 @@ function make_readme({ title, sdk, version, app_file = "app.py", }) {
     }
     return `---
 ${content}
----`;
+---
+`;
 }
 
 })();
