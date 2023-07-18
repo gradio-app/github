@@ -292,7 +292,7 @@ export function get_version_from_linked_issues(closes: ClosesLink[]) {
 }
 
 export function get_type_from_linked_issues(closes: ClosesLink[]) {
-	let type = "fix";
+	let type = "";
 	closes.forEach((c) => {
 		const labels = c.labels.nodes.map((l) => l.name);
 		if (labels.includes("bug") && type !== "feat") {
@@ -302,7 +302,7 @@ export function get_type_from_linked_issues(closes: ClosesLink[]) {
 		}
 	});
 
-	return type;
+	return type || "feat";
 }
 
 export function get_client(token: string, owner: string, repo: string) {
