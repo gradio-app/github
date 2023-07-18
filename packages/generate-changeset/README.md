@@ -38,4 +38,4 @@ jobs:
           main_pkg: gradio
 ```
 
-`main_pkg` allows you to set a default main package, for which changelog entries will _also_ be generated if the package(s) with changes include `"main_pkg": true` in their `package.json`.
+`main_pkg` allows you to set a default main package, for which changelog entries will _also_ be generated if the package(s) with changes include `"main_changeset": true` in their `package.json`.

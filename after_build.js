@@ -1,4 +1,4 @@
-import { mkdir, readFile, copyFile } from "fs/promises";
+import { mkdir, copyFile } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -40,7 +40,6 @@ async function copy_dist(pkg_name, pkg_dir) {
 async function handle_packages() {
 	const { packages: pkgs } = getPackagesSync(process.cwd());
 
-	console.log(pkgs);
 	const action_packages = pkgs
 		.filter((p) => p.packageJson.name.startsWith("@gradio-action/"))
 		.map((p) => ({
