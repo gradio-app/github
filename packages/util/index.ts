@@ -19,35 +19,35 @@ const src = `<!DOCTYPE html>
 </html>`;
 
 async function run() {
-  const repo: RepoId = {
-    name: "pngwn/test-repo",
-    type: "space",
-  };
+	const repo: RepoId = {
+		name: "pngwn/test-repo",
+		type: "space",
+	};
 
-  const credentials: Credentials = {
-    accessToken: "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",
-  };
-  try {
-    const res = await createRepo({ repo, credentials });
-  } catch (e) {
-    console.log(e);
-  }
+	const credentials: Credentials = {
+		accessToken: "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",
+	};
+	try {
+		const res = await createRepo({ repo, credentials });
+	} catch (e) {
+		console.log(e);
+	}
 
-  // console.log(res)
-  await commit({
-    repo,
-    credentials,
-    title: "Add model file",
-    operations: [
-      {
-        operation: "addOrUpdate",
-        path: "index.html",
-        content: new Blob([src]), // Can work with native File in browsers
-      },
-    ],
-  });
+	// console.log(res)
+	await commit({
+		repo,
+		credentials,
+		title: "Add model file",
+		operations: [
+			{
+				operation: "addOrUpdate",
+				path: "index.html",
+				content: new Blob([src]), // Can work with native File in browsers
+			},
+		],
+	});
 
-  // const r2 = res.json()
+	// const r2 = res.json()
 }
 
 console.log("hello");
