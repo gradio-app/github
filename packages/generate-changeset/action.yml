@@ -1,0 +1,15 @@
+name: "Generate changeset"
+
+description: "Generate changeset from history and labels"
+
+inputs:
+  github_token:
+    description: Github token"
+    required: true
+  main_pkg:
+    description: "the name of package to which changes should be added to if `main_changeset` is set in a package's package.json"
+    required: true
+
+runs:
+  using: "node16"
+  main: "dist/index.cjs"
