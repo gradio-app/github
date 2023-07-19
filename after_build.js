@@ -34,6 +34,8 @@ async function copy_dist(pkg_name, pkg_dir) {
 		})
 	);
 
+	console.log({ pkg_name, pkg_src, pkg_dest, files });
+
 	console.log(`"${pkg_name}" action folder created."`);
 }
 
@@ -46,6 +48,8 @@ async function handle_packages() {
 			name: p.packageJson.name.replace("@gradio-action/", ""),
 			path: p.dir,
 		}));
+
+	console.log(action_packages);
 
 	await Promise.all(
 		action_packages.map(({ name, path }) => copy_dist(name, path))
