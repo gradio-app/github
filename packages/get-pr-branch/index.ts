@@ -49,7 +49,10 @@ async function run() {
 
 		console.log("source_repo", source_repo);
 		console.log("source_branch", source_branch);
-		console.log("open_pull_requests", open_pull_requests);
+		console.log(
+			"open_pull_requests",
+			JSON.stringify(open_pull_requests, null, 2)
+		);
 
 		if (!source_repo || !source_branch) {
 			setFailed("Could not determine source repository and branch.");
