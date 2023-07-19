@@ -9748,6 +9748,24 @@ async function run() {
     const octokit = (0,_actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit)((0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)("github_token"));
     const pr = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)("pr");
     const { repo, owner } = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo;
+    const artifact = await octokit.rest.actions.listWorkflowRunArtifacts({
+        owner,
+        repo,
+        run_id: _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.runId,
+    });
+    const pr_artifact = artifact.data.artifacts.find((a) => a.name === "pr");
+    if (!pr_artifact) {
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed)("Could not find PR artifact.");
+        return;
+    }
+    const pr_number = (await octokit.rest.actions.downloadArtifact({
+        owner: owner,
+        repo: repo,
+        artifact_id: pr_artifact.id,
+        archive_format: "zip",
+    })).data;
+    console.log(pr_number);
+    throw new Error("test");
     try {
         const { repository: { pullRequest: { headRefName: pr_head_branch, headRepositoryOwner: { login: pr_repo_owner }, headRepository: { name: pr_repo_name }, }, }, } = (await octokit.graphql(`{
 			repository(name: "${repo}", owner: "${owner}") {
