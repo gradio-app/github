@@ -65211,7 +65211,7 @@ async function run() {
     const token = (0,core.getInput)("github_token");
     const main_pkg = (0,core.getInput)("main_pkg");
     const client = get_client(token, github.context.repo.owner, github.context.repo.repo);
-    const pull_request_number = github.context?.payload?.number || github.context?.issue?.number;
+    const pull_request_number = parseInt((0,core.getInput)("pull_request_number"));
     let { base_branch_name, current_branch_name, base_sha, head_sha, closes, labels, title, comments, } = await client.get_pr(pull_request_number);
     const changed_files = await get_changed_files(base_sha);
     const comment = find_comment(comments);
