@@ -1,64 +1,71 @@
 import { getInput, setOutput, setFailed, warning } from "@actions/core";
 import { context, getOctokit } from "@actions/github";
 
+interface PullRequestResponse {
+	repository: {
+		pullRequests: {
+			edges: {
+				node: {
+					number: number;
+					headRepository: {
+						nameWithOwner: string;
+					};
+					headRefName: string;
+				};
+			}[];
+		};
+	};
+}
+
 async function run() {
 	const octokit = getOctokit(getInput("github_token"));
-	const pr = getInput("pr");
 	const { repo, owner } = context.repo;
 
-	const artifact = await octokit.rest.actions.listWorkflowRunArtifacts({
-		owner,
-		repo,
-		run_id: context.runId,
-	});
-
-	const pr_artifact = artifact.data.artifacts.find((a) => a.name === "pr");
-
-	if (!pr_artifact) {
-		setFailed("Could not find PR artifact.");
-		return;
-	}
-
-	const pr_number = (
-		await octokit.rest.actions.downloadArtifact({
-			owner: owner,
-			repo: repo,
-			artifact_id: pr_artifact.id,
-			archive_format: "zip",
-		})
-	).data;
-
-	console.log(pr_number);
-
-	throw new Error("test");
 	try {
 		const {
 			repository: {
-				pullRequest: {
-					headRefName: pr_head_branch,
-					headRepositoryOwner: { login: pr_repo_owner },
-					headRepository: { name: pr_repo_name },
-				},
+				pullRequests: { edges: open_pull_requests },
 			},
-		} = (await octokit.graphql(`{
-			repository(name: "${repo}", owner: "${owner}") {
-				pullRequest(number: ${pr}) {
-					id
-					headRefName
-					headRepositoryOwner {
-						login
-					}
-					headRepository {
-						name
-					}
+		}: PullRequestResponse = await octokit.graphql(`{
+repository(name: "${repo}", owner: "${owner}") {
+	pullRequests(first: 50, states: OPEN) {
+		edges {
+			node {
+				number
+				headRepository {
+					nameWithOwner
 				}
+				headRefName
 			}
-		}`)) as any;
+		}
+	}
+}`);
 
-		setOutput("repo", `${pr_repo_owner}/${pr_repo_name}`);
-		setOutput("branch", pr_head_branch);
+		const source_repo =
+			context.payload.workflow_run?.head_repository?.full_name;
+		const source_branch = context.payload.workflow_run?.head_branch;
+
+		if (!source_repo || !source_branch) {
+			setFailed("Could not determine source repository and branch.");
+		}
+
+		const [, , pr_number] = (
+			open_pull_requests.map((pr) => [
+				pr.node.headRepository.nameWithOwner,
+				pr.node.headRefName,
+				pr.node.number,
+			]) as [string, string, number][]
+		).find(
+			([repo, branch]) => source_repo === repo && source_branch === branch
+		) || [null, null, null];
+
+		if (!pr_number) {
+			setFailed("Could not determine PR number.");
+		}
+
+		setOutput("pr_number", pr_number);
 	} catch (e: any) {
-		warning("Could not determine PR branch and repository.");
+		warning("Could not determine PR number branch and repository.");
 		setFailed(e.message);
 	}
 }
