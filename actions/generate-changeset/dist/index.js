@@ -65081,7 +65081,7 @@ function get_version_from_linked_issues(closes) {
     return version;
 }
 function get_type_from_linked_issues(closes) {
-    let type = "fix";
+    let type = "";
     closes.forEach((c) => {
         const labels = c.labels.nodes.map((l) => l.name);
         if (labels.includes("bug") && type !== "feat") {
@@ -65091,7 +65091,7 @@ function get_type_from_linked_issues(closes) {
             type = "feat";
         }
     });
-    return type;
+    return type || "feat";
 }
 function get_client(token, owner, repo) {
     const octokit = (0,github.getOctokit)(token);
