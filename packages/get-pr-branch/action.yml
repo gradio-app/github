@@ -1,0 +1,12 @@
+name: "Get PR branch"
+
+description: "Get PR repository and branch, and set them as outputs"
+
+inputs:
+  github_token:
+    description: Github token"
+    required: true
+
+runs:
+  using: "node16"
+  main: "dist/index.js"
