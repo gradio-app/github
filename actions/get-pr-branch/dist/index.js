@@ -9768,7 +9768,7 @@ async function run() {
         const source_branch = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.payload.workflow_run?.head_branch;
         console.log("source_repo", source_repo);
         console.log("source_branch", source_branch);
-        console.log("open_pull_requests", open_pull_requests);
+        console.log("open_pull_requests", JSON.stringify(open_pull_requests, null, 2));
         if (!source_repo || !source_branch) {
             (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed)("Could not determine source repository and branch.");
         }
