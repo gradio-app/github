@@ -7,7 +7,7 @@ inputs:
     description: Github token"
     required: true
 outputs:
-  pr:
+  pr_number:
     description: PR number"
 
 runs:
