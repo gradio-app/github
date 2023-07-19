@@ -6,14 +6,10 @@ inputs:
   github_token:
     description: Github token"
     required: true
+outputs:
   pr:
     description: PR number"
     required: true
-outputs:
-  repo:
-    description: "The repository of the PR"
-  branch:
-    description: "The branch of the PR"
 
 runs:
   using: "node16"
