@@ -9748,16 +9748,18 @@ async function run() {
     const octokit = (0,_actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit)((0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)("github_token"));
     const { repo, owner } = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo;
     try {
-        const { repository: { pullRequests: { edges: open_pull_requests }, }, } = await octokit.graphql(`{
-repository(name: "${repo}", owner: "${owner}") {
-	pullRequests(first: 50, states: OPEN) {
-		edges {
-			node {
-				number
-				headRepository {
-					nameWithOwner
+        const { repository: { pullRequests: { edges: open_pull_requests }, }, } = await octokit.graphql(`
+{	
+	repository(name: "${repo}", owner: "${owner}") {
+		pullRequests(first: 50, states: OPEN) {
+			edges {
+				node {
+					number
+					headRepository {
+						nameWithOwner
+					}
+					headRefName
 				}
-				headRefName
 			}
 		}
 	}
