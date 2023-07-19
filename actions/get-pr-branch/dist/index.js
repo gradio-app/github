@@ -9746,11 +9746,12 @@ var __webpack_exports__ = {};
 
 async function run() {
     const octokit = (0,_actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit)((0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)("github_token"));
+    const pr = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)("pr");
     const { repo, owner } = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo;
     try {
         const { repository: { pullRequest: { headRefName: pr_head_branch, headRepositoryOwner: { login: pr_repo_owner }, headRepository: { name: pr_repo_name }, }, }, } = (await octokit.graphql(`{
 			repository(name: "${repo}", owner: "${owner}") {
-				pullRequest(number: 9) {
+				pullRequest(number: ${pr}) {
 					id
 					headRefName
 					headRepositoryOwner {
@@ -9762,8 +9763,8 @@ async function run() {
 				}
 			}
 		}`));
-        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)("pr_repo", `${pr_repo_owner}/${pr_repo_name}`);
-        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)("pr_branch", pr_head_branch);
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)("repo", `${pr_repo_owner}/${pr_repo_name}`);
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)("branch", pr_head_branch);
     }
     catch (e) {
         (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.warning)("Could not determine PR branch and repository.");
