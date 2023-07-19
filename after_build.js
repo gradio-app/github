@@ -34,12 +34,7 @@ async function copy_dist(pkg_name, pkg_dir) {
 		})
 	);
 
-	console.log({ pkg_name, pkg_src, pkg_dest, files });
-
 	console.log(`"${pkg_name}" action folder created."`);
-	const new_f = await recursive_read_dir(pkg_dest, ["node_modules"]);
-
-	console.log(new_f);
 }
 
 async function handle_packages() {
@@ -51,8 +46,6 @@ async function handle_packages() {
 			name: p.packageJson.name.replace("@gradio-action/", ""),
 			path: p.dir,
 		}));
-
-	console.log(action_packages);
 
 	await Promise.all(
 		action_packages.map(({ name, path }) => copy_dist(name, path))
