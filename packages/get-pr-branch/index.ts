@@ -47,6 +47,10 @@ async function run() {
 			context.payload.workflow_run?.head_repository?.full_name;
 		const source_branch = context.payload.workflow_run?.head_branch;
 
+		console.log("source_repo", source_repo);
+		console.log("source_branch", source_branch);
+		console.log("open_pull_requests", open_pull_requests);
+
 		if (!source_repo || !source_branch) {
 			setFailed("Could not determine source repository and branch.");
 		}
