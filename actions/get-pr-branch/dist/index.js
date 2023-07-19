@@ -9746,46 +9746,39 @@ var __webpack_exports__ = {};
 
 async function run() {
     const octokit = (0,_actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit)((0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)("github_token"));
-    const pr = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)("pr");
     const { repo, owner } = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo;
-    const artifact = await octokit.rest.actions.listWorkflowRunArtifacts({
-        owner,
-        repo,
-        run_id: _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.runId,
-    });
-    const pr_artifact = artifact.data.artifacts.find((a) => a.name === "pr");
-    if (!pr_artifact) {
-        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed)("Could not find PR artifact.");
-        return;
-    }
-    const pr_number = (await octokit.rest.actions.downloadArtifact({
-        owner: owner,
-        repo: repo,
-        artifact_id: pr_artifact.id,
-        archive_format: "zip",
-    })).data;
-    console.log(pr_number);
-    throw new Error("test");
     try {
-        const { repository: { pullRequest: { headRefName: pr_head_branch, headRepositoryOwner: { login: pr_repo_owner }, headRepository: { name: pr_repo_name }, }, }, } = (await octokit.graphql(`{
-			repository(name: "${repo}", owner: "${owner}") {
-				pullRequest(number: ${pr}) {
-					id
-					headRefName
-					headRepositoryOwner {
-						login
-					}
-					headRepository {
-						name
-					}
+        const { repository: { pullRequests: { edges: open_pull_requests }, }, } = await octokit.graphql(`{
+repository(name: "${repo}", owner: "${owner}") {
+	pullRequests(first: 50, states: OPEN) {
+		edges {
+			node {
+				number
+				headRepository {
+					nameWithOwner
 				}
+				headRefName
 			}
-		}`));
-        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)("repo", `${pr_repo_owner}/${pr_repo_name}`);
-        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)("branch", pr_head_branch);
+		}
+	}
+}`);
+        const source_repo = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.payload.workflow_run?.head_repository?.full_name;
+        const source_branch = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.payload.workflow_run?.head_branch;
+        if (!source_repo || !source_branch) {
+            (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed)("Could not determine source repository and branch.");
+        }
+        const [, , pr_number] = open_pull_requests.map((pr) => [
+            pr.node.headRepository.nameWithOwner,
+            pr.node.headRefName,
+            pr.node.number,
+        ]).find(([repo, branch]) => source_repo === repo && source_branch === branch) || [null, null, null];
+        if (!pr_number) {
+            (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed)("Could not determine PR number.");
+        }
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)("pr_number", pr_number);
     }
     catch (e) {
-        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.warning)("Could not determine PR branch and repository.");
+        (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.warning)("Could not determine PR number branch and repository.");
         (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed)(e.message);
     }
 }
