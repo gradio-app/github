@@ -3,6 +3,7 @@ import { context, getOctokit } from "@actions/github";
 
 async function run() {
 	const octokit = getOctokit(getInput("github_token"));
+	const pr = getInput("pr");
 	const { repo, owner } = context.repo;
 
 	try {
@@ -16,7 +17,7 @@ async function run() {
 			},
 		} = (await octokit.graphql(`{
 			repository(name: "${repo}", owner: "${owner}") {
-				pullRequest(number: 9) {
+				pullRequest(number: ${pr}) {
 					id
 					headRefName
 					headRepositoryOwner {
@@ -29,8 +30,8 @@ async function run() {
 			}
 		}`)) as any;
 
-		setOutput("pr_repo", `${pr_repo_owner}/${pr_repo_name}`);
-		setOutput("pr_branch", pr_head_branch);
+		setOutput("repo", `${pr_repo_owner}/${pr_repo_name}`);
+		setOutput("branch", pr_head_branch);
 	} catch (e: any) {
 		warning("Could not determine PR branch and repository.");
 		setFailed(e.message);
