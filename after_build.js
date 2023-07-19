@@ -37,6 +37,7 @@ async function copy_dist(pkg_name, pkg_dir) {
 	console.log({ pkg_name, pkg_src, pkg_dest, files });
 
 	console.log(`"${pkg_name}" action folder created."`);
+	const new_f = await recursive_read_dir(pkg_dest, ["node_modules"]);
 }
 
 async function handle_packages() {
