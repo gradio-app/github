@@ -52,7 +52,7 @@ async function run() {
 	const token = getInput("github_token");
 	const main_pkg = getInput("main_pkg");
 	const client = get_client(token, context.repo.owner, context.repo.repo);
-	const pull_request_number = parseInt(getInput("pull_request_number"));
+	const pull_request_number = parseInt(getInput("pr_number"));
 
 	let {
 		base_branch_name,
