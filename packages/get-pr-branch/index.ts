@@ -26,16 +26,18 @@ async function run() {
 			repository: {
 				pullRequests: { edges: open_pull_requests },
 			},
-		}: PullRequestResponse = await octokit.graphql(`{
-repository(name: "${repo}", owner: "${owner}") {
-	pullRequests(first: 50, states: OPEN) {
-		edges {
-			node {
-				number
-				headRepository {
-					nameWithOwner
+		}: PullRequestResponse = await octokit.graphql(`
+{	
+	repository(name: "${repo}", owner: "${owner}") {
+		pullRequests(first: 50, states: OPEN) {
+			edges {
+				node {
+					number
+					headRepository {
+						nameWithOwner
+					}
+					headRefName
 				}
-				headRefName
 			}
 		}
 	}
