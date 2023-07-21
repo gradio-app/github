@@ -1,6 +1,6 @@
-import { getInput, info, warning } from "@actions/core";
+import { getInput, info, setFailed, warning } from "@actions/core";
 import { exec } from "@actions/exec";
-import { type Packages, getPackagesSync } from "@manypkg/get-packages";
+import { type Packages, Package, getPackagesSync } from "@manypkg/get-packages";
 import { context } from "@actions/github";
 import { request } from "undici";
 import { promises as fs } from "fs";
@@ -8,11 +8,15 @@ import { join } from "path";
 
 import * as files from "./requirements";
 
+type PackageJson = Packages["packages"][0]["packageJson"];
+type PythonPackageJson = PackageJson & { python: boolean };
+type PythonPackage = Package & { packageJson: PythonPackageJson };
+
 async function run() {
 	const { packages } = getPackagesSync(process.cwd());
-	type PackageJson = Packages["packages"][0]["packageJson"];
-	const python_packages = packages.filter(
-		(p) => (p.packageJson as PackageJson & { python: boolean }).python
+
+	const python_packages = (packages as PythonPackage[]).filter(
+		(p) => (p.packageJson as PythonPackageJson).python
 	);
 
 	const user = getInput("user");
@@ -37,9 +41,13 @@ async function run() {
 				return p;
 			})
 		)
-	).filter(Boolean) as Packages["packages"];
+	).filter(Boolean) as PythonPackage[];
 
-	if (packages_to_publish.length === 0) {
+	const packages_to_publish_sorted = await topological_sort(
+		packages_to_publish
+	);
+
+	if (packages_to_publish_sorted.length === 0) {
 		info("No packages to publish.");
 		return;
 	}
@@ -105,7 +113,7 @@ async function run() {
 	await exec("pip", ["install", "secretstorage", "dbus-python"]);
 
 	let publishes: boolean[] = [];
-	for await (const p of packages_to_publish) {
+	for await (const p of packages_to_publish_sorted) {
 		info(`Publishing ${p.packageJson.name}@${p.packageJson.version} to PyPI`);
 		//@ts-ignore
 		publishes.push(await publish_package(user, pws[p.packageJson.name], p.dir));
@@ -157,7 +165,51 @@ async function publish_package(user: string, password: string, dir: string) {
 
 		return true;
 	} catch (e: any) {
-		warning(e);
-		return false;
+		setFailed(e.message);
+		throw new Error(e);
 	}
+}
+
+async function topological_sort(packages: PythonPackage[]) {
+	const package_map = new Map();
+	packages.forEach((pkg) => package_map.set(pkg.packageJson.name, pkg));
+
+	const visited = new Set();
+	const result: PythonPackage[] = [];
+
+	async function visit(pkg: PythonPackage) {
+		if (!visited.has(pkg.packageJson.name)) {
+			visited.add(pkg.packageJson.name);
+			const dependencies = (await get_package_dependencies(pkg)).filter((p) =>
+				package_map.has(p)
+			);
+
+			for await (const dep of dependencies) {
+				await visit(package_map.get(dep));
+			}
+			result.push(pkg);
+		}
+	}
+
+	for await (const pkg of packages) {
+		await visit(pkg);
+	}
+
+	// Reverse the result to get the correct order
+	result.reverse();
+
+	return result;
+}
+
+const RE_PKG_NAME = /^[\w-]+\b/;
+
+async function get_package_dependencies(pkg: PythonPackage): Promise<string[]> {
+	const requirements = join(pkg.dir, "..", "requirements.txt");
+	return (await fs.readFile(requirements, "utf-8"))
+		.split("\n")
+		.map((line) => {
+			const match = line.match(RE_PKG_NAME);
+			return match ? match[0] : null;
+		})
+		.filter(Boolean) as string[];
 }
