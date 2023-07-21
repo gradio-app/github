@@ -46662,7 +46662,8 @@ async function run() {
         (0,core.info)(`Publishing ${package_name}@${version} to PyPI`);
         return p;
     }))).filter(Boolean);
-    if (packages_to_publish.length === 0) {
+    const packages_to_publish_sorted = await topological_sort(packages_to_publish);
+    if (packages_to_publish_sorted.length === 0) {
         (0,core.info)("No packages to publish.");
         return;
     }
@@ -46709,7 +46710,7 @@ async function run() {
     });
     await (0,exec.exec)("pip", ["install", "secretstorage", "dbus-python"]);
     let publishes = [];
-    for await (const p of packages_to_publish) {
+    for await (const p of packages_to_publish_sorted) {
         (0,core.info)(`Publishing ${p.packageJson.name}@${p.packageJson.version} to PyPI`);
         //@ts-ignore
         publishes.push(await publish_package(user, pws[p.packageJson.name], p.dir));
@@ -46750,9 +46751,42 @@ async function publish_package(user, password, dir) {
         return true;
     }
     catch (e) {
-        (0,core.warning)(e);
-        return false;
+        (0,core.setFailed)(e.message);
+        throw new Error(e);
     }
+}
+async function topological_sort(packages) {
+    const package_map = new Map();
+    packages.forEach((pkg) => package_map.set(pkg.packageJson.name, pkg));
+    const visited = new Set();
+    const result = [];
+    async function visit(pkg) {
+        if (!visited.has(pkg.packageJson.name)) {
+            visited.add(pkg.packageJson.name);
+            const dependencies = (await get_package_dependencies(pkg)).filter((p) => package_map.has(p));
+            for await (const dep of dependencies) {
+                await visit(package_map.get(dep));
+            }
+            result.push(pkg);
+        }
+    }
+    for await (const pkg of packages) {
+        await visit(pkg);
+    }
+    // Reverse the result to get the correct order
+    result.reverse();
+    return result;
+}
+const RE_PKG_NAME = /^[\w-]+\b/;
+async function get_package_dependencies(pkg) {
+    const requirements = (0,external_path_.join)(pkg.dir, "..", "requirements.txt");
+    return (await external_fs_.promises.readFile(requirements, "utf-8"))
+        .split("\n")
+        .map((line) => {
+        const match = line.match(RE_PKG_NAME);
+        return match ? match[0] : null;
+    })
+        .filter(Boolean);
 }
 
 })();

@@ -64959,7 +64959,9 @@ function get_version_interaction_text(manual_version) {
         ? "enable automatic package selection"
         : "manually select packages to update";
 }
-function format_changelog_preview(changelog) {
+function format_changelog_preview(changelog, pacakges) {
+    if (!pacakges.length)
+        return "";
     return changelog
         .split("\n")
         .map((line) => `> ${line}`)
@@ -64978,28 +64980,33 @@ function create_changeset_comment({ packages, changelog, manual_package_selectio
 
 ###  🦄 ${get_title(packages)}
 
-#### This Pull Request includes changes to the following packages. 
+#### ${packages.length
+        ? "This Pull Request includes changes to the following packages. "
+        : "This Pull Request does not include changes to any packages."}
 
 ${create_version_table(packages)}
 ${manual_package_selection ? create_package_checklist(packages) : ""}
 ${generate_mode_description(manual_package_selection, manual_mode)}
 
 
-#### With the following changelog entry.
+#### ${packages.length ? "With the following changelog entry." : ""}
 
-${format_changelog_preview(changelog)}
+${format_changelog_preview(changelog, packages)}
 
-${manual_mode
-        ? "⚠️ _The changeset file for this pull request has been modified manually, so the changeset generation bot has been disabled. To go back into automatic mode, delete the changeset file._"
-        : `_Maintainers or the PR author can modify the PR title to modify this entry._
+${packages.length
+        ? manual_mode
+            ? "⚠️ _The changeset file for this pull request has been modified manually, so the changeset generation bot has been disabled. To go back into automatic mode, delete the changeset file._"
+            : "_Maintainers or the PR author can modify the PR title to modify this entry._"
+        : ""}
 <details><summary>
 
 #### Something isn't right?</summary>
 
 - Maintainers can change the version label to modify the version bump. 
-- If this pull request needs to update multiple packages to different versions or requires a more comprehensive changelog entry, maintainers can [update the changelog file directly](${changeset_url})
+- If the bot has failed to detect any changes, or if this pull request needs to update multiple packages to different versions or requires a more comprehensive changelog entry, maintainers can [${packages.length ? "update" : "create"} the changelog file directly](${packages.length ? changeset_url : changeset_url.replace("/edit/", "/new/")}).
 
-</details>`}`.trim();
+</details>
+`.trim();
 }
 const md_parser = unified().use(remarkParse).use(remarkFrontmatter).use(remarkGfm);
 function get_frontmatter_versions(md) {
