@@ -19,6 +19,9 @@ export function gql_get_pr(owner: string, repo: string, pr_number: number) {
         headRefName
         baseRefOid
         headRefOid
+        headRepository {
+          nameWithOwner
+        }
         closingIssuesReferences(first: 50) {
           nodes {
             labels(after: "", first: 10) {
@@ -120,11 +123,15 @@ export function create_changeset_comment({
 	changelog,
 	manual_package_selection,
 	manual_mode = false,
+	changeset_content: string,
+	changeset_url: url,
 }: {
 	packages: [string, string | boolean][];
 	changelog: string;
 	manual_package_selection: boolean;
 	manual_mode?: boolean;
+	changeset_content: string;
+	changeset_url: string;
 }) {
 	return `<!-- tag=changesets_gradio -->
 
@@ -147,10 +154,10 @@ ${
 		: `_Maintainers or the PR author can modify the PR title to modify this entry._
 <details><summary>
 
-#### ⚠️ Something isn't right</summary>
+#### Something isn't right?</summary>
 
 - Maintainers can change the version label to modify the version bump. 
-- If this pull request needs to update multiple packages to different versions or requires a more comprehensive changelog entry, maintainers can [update the changelog file directly]()
+- If this pull request needs to update multiple packages to different versions or requires a more comprehensive changelog entry, maintainers can [update the changelog file directly](https://github.com/sveltejs/kit/new/server-js-fallthrough?filename=.changeset/grumpy-ears-own.md&value=---%0A%22%40sveltejs%2Fkit%22%3A%20patch%0A%22test-basics%22%3A%20patch%0A---%0A%0Afeat%3A%20server%20js%20fallthrough%20to%20page%20if%20handler%20doesn%27t%20exist%0A)
 
 </details>`
 }`.trim();
@@ -314,7 +321,8 @@ export function get_client(token: string, owner: string, repo: string) {
 				repository: {
 					pullRequest: {
 						baseRefName: base_branch_name,
-						headRefName: current_branch_name,
+						headRepository: { nameWithOwner: source_repo_name },
+						headRefName: source_branch_name,
 						baseRefOid: base_sha,
 						headRefOid: head_sha,
 						closingIssuesReferences: { nodes: closes },
@@ -329,7 +337,8 @@ export function get_client(token: string, owner: string, repo: string) {
 
 			return {
 				base_branch_name,
-				current_branch_name,
+				source_repo_name,
+				source_branch_name,
 				base_sha,
 				head_sha,
 				closes,

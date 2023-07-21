@@ -56,7 +56,8 @@ async function run() {
 
 	let {
 		base_branch_name,
-		current_branch_name,
+		source_branch_name,
+		source_repo_name,
 		base_sha,
 		head_sha,
 		closes,
@@ -100,6 +101,8 @@ async function run() {
 			changelog: !valid ? message : changelog_entry,
 			manual_package_selection: false,
 			manual_mode: true,
+			changeset_content: old_changeset_content,
+			changeset_url: `https://github.com/${source_repo_name}/new/${source_branch_name}?filename=${changeset_path}`,
 		});
 
 		await client.upsert_comment({
@@ -203,6 +206,8 @@ async function run() {
 		packages: packages_versions,
 		changelog: title,
 		manual_package_selection,
+		changeset_content,
+		changeset_url: `https://github.com/${source_repo_name}/new/${source_branch_name}?filename=${changeset_path}`,
 	});
 
 	// this always happens
@@ -323,8 +328,6 @@ async function get_changed_packages({
 		ref: base_sha,
 		changedFilePatterns: dev_only_ignore_globs,
 	});
-
-	// const { packages: pkgs, rootDir } = getPackagesSync(process.cwd());
 
 	const main_package_json = pkgs.find(
 		(p) => p.packageJson.name === main_pkg
