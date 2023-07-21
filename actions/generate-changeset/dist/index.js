@@ -64890,6 +64890,9 @@ function gql_get_pr(owner, repo, pr_number) {
         headRefName
         baseRefOid
         headRefOid
+        headRepository {
+          nameWithOwner
+        }
         closingIssuesReferences(first: 50) {
           nodes {
             labels(after: "", first: 10) {
@@ -64970,7 +64973,7 @@ function generate_mode_description(manual_package_selection, manual_mode) {
         return `- [${manual_package_selection ? "x" : " "}] Maintainers can ${manual_package_selection ? "de" : " "}select this checkbox to ${get_version_interaction_text(manual_package_selection)}.`;
     }
 }
-function create_changeset_comment({ packages, changelog, manual_package_selection, manual_mode = false, }) {
+function create_changeset_comment({ packages, changelog, manual_package_selection, manual_mode = false, changeset_content, changeset_url, }) {
     return `<!-- tag=changesets_gradio -->
 
 ###  🦄 ${get_title(packages)}
@@ -64991,10 +64994,10 @@ ${manual_mode
         : `_Maintainers or the PR author can modify the PR title to modify this entry._
 <details><summary>
 
-#### ⚠️ Something isn't right</summary>
+#### Something isn't right?</summary>
 
 - Maintainers can change the version label to modify the version bump. 
-- If this pull request needs to update multiple packages to different versions or requires a more comprehensive changelog entry, maintainers can [update the changelog file directly]()
+- If this pull request needs to update multiple packages to different versions or requires a more comprehensive changelog entry, maintainers can [update the changelog file directly](${changeset_url})
 
 </details>`}`.trim();
 }
@@ -65097,10 +65100,11 @@ function get_client(token, owner, repo) {
     const octokit = (0,github.getOctokit)(token);
     return {
         async get_pr(pr_number) {
-            let { repository: { pullRequest: { baseRefName: base_branch_name, headRefName: current_branch_name, baseRefOid: base_sha, headRefOid: head_sha, closingIssuesReferences: { nodes: closes }, labels: { nodes: labels }, title, comments: { nodes: comments }, }, }, } = await octokit.graphql(gql_get_pr(owner, repo, pr_number));
+            let { repository: { pullRequest: { baseRefName: base_branch_name, headRepository: { nameWithOwner: source_repo_name }, headRefName: source_branch_name, baseRefOid: base_sha, headRefOid: head_sha, closingIssuesReferences: { nodes: closes }, labels: { nodes: labels }, title, comments: { nodes: comments }, }, }, } = await octokit.graphql(gql_get_pr(owner, repo, pr_number));
             return {
                 base_branch_name,
-                current_branch_name,
+                source_repo_name,
+                source_branch_name,
                 base_sha,
                 head_sha,
                 closes,
@@ -65212,7 +65216,7 @@ async function run() {
     const main_pkg = (0,core.getInput)("main_pkg");
     const client = get_client(token, github.context.repo.owner, github.context.repo.repo);
     const pull_request_number = parseInt((0,core.getInput)("pr_number"));
-    let { base_branch_name, current_branch_name, base_sha, head_sha, closes, labels, title, comments, } = await client.get_pr(pull_request_number);
+    let { base_branch_name, source_branch_name, source_repo_name, base_sha, head_sha, closes, labels, title, comments, } = await client.get_pr(pull_request_number);
     const changed_files = await get_changed_files(base_sha);
     const comment = find_comment(comments);
     // check the status of the changeset
@@ -65235,6 +65239,8 @@ async function run() {
             changelog: !valid ? message : changelog_entry,
             manual_package_selection: false,
             manual_mode: true,
+            changeset_content: old_changeset_content,
+            changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
         });
         await client.upsert_comment({
             pr_number: pull_request_number,
@@ -65312,6 +65318,8 @@ async function run() {
         packages: packages_versions,
         changelog: title,
         manual_package_selection,
+        changeset_content,
+        changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
     });
     // this always happens
     await client.upsert_comment({
@@ -65397,7 +65405,6 @@ async function get_changed_packages({ changed_files, pkgs, base_sha, main_pkg, v
         ref: base_sha,
         changedFilePatterns: dev_only_ignore_globs,
     });
-    // const { packages: pkgs, rootDir } = getPackagesSync(process.cwd());
     const main_package_json = pkgs.find((p) => p.packageJson.name === main_pkg);
     if (!main_package_json) {
         (0,core.setFailed)(`Could not find main package ${main_pkg}`);
