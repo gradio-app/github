@@ -189,14 +189,9 @@ async function run() {
 			"config",
 			"--global",
 			"user.email",
-			"41898282+github-actions[bot]@users.noreply.github.com",
+			"gradio-pr-bot@users.noreply.github.com",
 		]);
-		await exec("git", [
-			"config",
-			"--global",
-			"user.name",
-			"github-actions[bot]",
-		]);
+		await exec("git", ["config", "--global", "user.name", "gradio-pr-bot"]);
 		await exec("git", ["add", "."]);
 		await exec("git", ["commit", "-m", `${operation} changeset`]);
 		await exec("git", ["push"]);
