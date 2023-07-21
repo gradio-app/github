@@ -102,7 +102,7 @@ async function run() {
 			manual_package_selection: false,
 			manual_mode: true,
 			changeset_content: old_changeset_content,
-			changeset_url: `https://github.com/${source_repo_name}/new/${source_branch_name}?filename=${changeset_path}`,
+			changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 		});
 
 		await client.upsert_comment({
@@ -207,7 +207,7 @@ async function run() {
 		changelog: title,
 		manual_package_selection,
 		changeset_content,
-		changeset_url: `https://github.com/${source_repo_name}/new/${source_branch_name}?filename=${changeset_path}`,
+		changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 	});
 
 	// this always happens

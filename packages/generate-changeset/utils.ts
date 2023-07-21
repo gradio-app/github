@@ -123,8 +123,8 @@ export function create_changeset_comment({
 	changelog,
 	manual_package_selection,
 	manual_mode = false,
-	changeset_content: string,
-	changeset_url: url,
+	changeset_content,
+	changeset_url,
 }: {
 	packages: [string, string | boolean][];
 	changelog: string;
@@ -157,7 +157,7 @@ ${
 #### Something isn't right?</summary>
 
 - Maintainers can change the version label to modify the version bump. 
-- If this pull request needs to update multiple packages to different versions or requires a more comprehensive changelog entry, maintainers can [update the changelog file directly](https://github.com/sveltejs/kit/new/server-js-fallthrough?filename=.changeset/grumpy-ears-own.md&value=---%0A%22%40sveltejs%2Fkit%22%3A%20patch%0A%22test-basics%22%3A%20patch%0A---%0A%0Afeat%3A%20server%20js%20fallthrough%20to%20page%20if%20handler%20doesn%27t%20exist%0A)
+- If this pull request needs to update multiple packages to different versions or requires a more comprehensive changelog entry, maintainers can [update the changelog file directly](${changeset_url})
 
 </details>`
 }`.trim();
