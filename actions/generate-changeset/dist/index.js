@@ -65385,7 +65385,7 @@ async function get_changeset_status(changed_files) {
     };
     await (0,exec.exec)("git", ["--no-pager", "log", "-p", "-1", "--", changeset_path], options);
     const last_change = output_data.trim();
-    if (!/Author: github-actions\[bot\]/.test(last_change)) {
+    if (!/Author: gradio-pr-bot/.test(last_change)) {
         (0,core.warning)(`Changeset file was edited manually. Skipping changeset generation.`);
         return {
             changeset_path,
