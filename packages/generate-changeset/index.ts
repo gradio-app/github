@@ -249,7 +249,7 @@ async function get_changeset_status(changed_files: Set<string>): Promise<{
 	let changeset_path = "";
 
 	changed_files.forEach((f) => {
-		if (f.startsWith(".changeset/")) {
+		if (f.startsWith(".changeset/") && f.endsWith(".md")) {
 			changeset_path = f;
 		}
 	});
