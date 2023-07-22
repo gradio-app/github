@@ -287,7 +287,7 @@ async function get_changeset_status(changed_files: Set<string>): Promise<{
 
 	const last_change = output_data.trim();
 
-	if (!/Author: github-actions\[bot\]/.test(last_change)) {
+	if (!/Author: gradio-pr-bot/.test(last_change)) {
 		warning(
 			`Changeset file was edited manually. Skipping changeset generation.`
 		);
