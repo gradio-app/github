@@ -108,7 +108,7 @@ async function run() {
 		await client.upsert_comment({
 			pr_number: pull_request_number,
 			body: pr_comment_content,
-			comment_id: comment?.fullDatabaseId,
+			comment_id: comment?.id,
 		});
 
 		info("Changeset comment updated.");
@@ -209,7 +209,7 @@ async function run() {
 	await client.upsert_comment({
 		pr_number: pull_request_number,
 		body: pr_comment_content,
-		comment_id: comment?.fullDatabaseId,
+		comment_id: comment?.id,
 	});
 }
 
