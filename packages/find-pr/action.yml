@@ -1,0 +1,20 @@
+name: find_pr
+description: Finds PR details for event
+
+inputs:
+  github_token:
+    description: "Your github token."
+    required: true
+outputs:
+  pr_number:
+    description: "Pull request number."
+  source_repo:
+    description: "Source repo."
+  source_branch:
+    description: "Source branch."
+  found_pr:
+    description: "Found PR."
+
+runs:
+  using: "node16"
+  main: "dist/index.js"

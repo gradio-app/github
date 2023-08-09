@@ -1,5 +1,5 @@
 {
-	"name": "@gradio-action/get-pr-branch",
+	"name": "@gradio-action/find-pr",
 	"version": "0.1.0",
 	"description": "",
 	"main": "index.js",
