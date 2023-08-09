@@ -45,6 +45,8 @@ importers:
         specifier: ^4.9.5
         version: 4.9.5
 
+  packages/comment-pr: {}
+
   packages/deploy-space:
     dependencies:
       '@huggingface/hub':
@@ -56,6 +58,8 @@ importers:
       node-fetch:
         specifier: ^3.3.0
         version: 3.3.0
+
+  packages/find-pr: {}
 
   packages/generate-changeset:
     dependencies:
