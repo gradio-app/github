@@ -1,5 +1,5 @@
 name: find_pr
-description: Finds PR details for event
+description: Finds PR details for an workflow_run event. Works for push, pull_request, and issue_comment events that trigger a workflow_run.
 
 inputs:
   github_token:

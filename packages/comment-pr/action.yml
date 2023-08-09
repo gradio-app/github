@@ -1,5 +1,5 @@
 name: comment_pr
-description: Creates and deploys a gradio or static hugging face space. If the space already exists, it will be updated.
+description: Creates or updates a comment on a pull request. Bespoke for gradio.
 inputs:
   gh_token:
     description: "Your github token."
