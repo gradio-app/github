@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "pnpm --filter '@gradio-action/*' exec vite build --ssr index.ts --emptyOutDir --config ../../vite.config.js"
+		"build": "pnpm --filter '@gradio-action/*' exec vite build --ssr --config ../../vite.config.js"
 	},
 	"keywords": [],
 	"author": "",
