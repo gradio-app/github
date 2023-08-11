@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import { join } from "path";
 
-import { getInput, setFailed, info, warning } from "@actions/core";
+import { getInput, setFailed, info, warning, setOutput } from "@actions/core";
 import { exec } from "@actions/exec";
 import { context } from "@actions/github";
 import { getChangedPackagesSinceRef } from "@changesets/git";
@@ -25,7 +25,6 @@ import {
 	generate_changeset,
 	validate_changelog,
 } from "./utils";
-import { get } from "http";
 
 const dev_only_ignore_globs = [
 	"!**/test/**",
@@ -46,6 +45,7 @@ type PackageJson = Packages["packages"][0]["packageJson"] & {
 async function run() {
 	if (context?.payload?.pull_request?.head.ref === "changeset-release/main") {
 		info("Release PR. Skipping changeset generation.");
+		setOutput("skipped", "true");
 		return;
 	}
 
@@ -105,11 +105,14 @@ async function run() {
 			changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 		});
 
-		await client.upsert_comment({
+		const url = await client.upsert_comment({
 			pr_number: pull_request_number,
 			body: pr_comment_content,
 			comment_id: comment?.id,
 		});
+
+		setOutput("comment_url", url);
+		setOutput("skipped", "false");
 
 		info("Changeset comment updated.");
 
@@ -206,11 +209,14 @@ async function run() {
 	});
 
 	// this always happens
-	await client.upsert_comment({
+	const url = await client.upsert_comment({
 		pr_number: pull_request_number,
 		body: pr_comment_content,
 		comment_id: comment?.id,
 	});
+
+	setOutput("comment_url", url);
+	setOutput("skipped", "false");
 }
 
 run();

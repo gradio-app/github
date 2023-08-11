@@ -52,6 +52,7 @@ export function gql_get_pr(owner: string, repo: string, pr_number: number) {
             }
             body
             fullDatabaseId
+						url
           }
         }
       }
@@ -274,6 +275,7 @@ interface Comment {
 		login: string;
 	};
 	fullDatabaseId: string;
+	url: string;
 }
 
 export function find_comment(comments: Comment[]) {
@@ -372,19 +374,23 @@ export function get_client(token: string, owner: string, repo: string) {
 			body: string;
 		}) {
 			if (comment_id) {
-				await octokit.rest.issues.updateComment({
+				const data = await octokit.rest.issues.updateComment({
 					owner: context.repo.owner,
 					repo: context.repo.repo,
 					comment_id: parseInt(comment_id),
 					body,
 				});
+
+				return data.data.html_url;
 			} else {
-				await octokit.rest.issues.createComment({
+				const data = await octokit.rest.issues.createComment({
 					owner: context.repo.owner,
 					repo: context.repo.repo,
 					issue_number: pr_number,
 					body,
 				});
+
+				return data.data.html_url;
 			}
 		},
 	};

@@ -302,13 +302,15 @@ function handle_parts(parts: string[], key: string) {
 						? "detecting..."
 						: parts[0] === "success"
 						? "detected!"
+						: parts[0] === "warning"
+						? "skipped!"
 						: status_text[parts[0] as status],
 				url:
 					parts[1].trim() === "null"
 						? null
 						: {
 								url: parts[1],
-								text: `Workflow log`,
+								text: parts[0] === "success" ? "Details" : "Workflow log",
 						  },
 			};
 		case "notebooks":
