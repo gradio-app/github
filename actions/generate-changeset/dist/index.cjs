@@ -119727,8 +119727,9 @@ const dev_only_ignore_globs = [
   "!**/requirements.txt"
 ];
 async function run() {
-  var _a, _b, _c, _d;
-  if (((_b = (_a = context == null ? void 0 : context.payload) == null ? void 0 : _a.pull_request) == null ? void 0 : _b.head.ref) === "changeset-release/main") {
+  var _a, _b;
+  const branch_name = coreExports.getInput("branch_name");
+  if (branch_name === "changeset-release/main") {
     coreExports.info("Release PR. Skipping changeset generation.");
     coreExports.setOutput("skipped", "true");
     return;
@@ -119775,7 +119776,7 @@ async function run() {
       changeset_content: old_changeset_content,
       changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
     });
-    if (pr_comment_content2.trim() !== ((_c = comment == null ? void 0 : comment.body) == null ? void 0 : _c.trim())) {
+    if (pr_comment_content2.trim() !== ((_a = comment == null ? void 0 : comment.body) == null ? void 0 : _a.trim())) {
       coreExports.info("Changeset comment updated.");
       const url = await client.upsert_comment({
         pr_id,
@@ -119856,7 +119857,7 @@ async function run() {
     changeset_content,
     changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
   });
-  if (pr_comment_content.trim() !== ((_d = comment == null ? void 0 : comment.body) == null ? void 0 : _d.trim())) {
+  if (pr_comment_content.trim() !== ((_b = comment == null ? void 0 : comment.body) == null ? void 0 : _b.trim())) {
     coreExports.info("Changeset comment updated.");
     const url = await client.upsert_comment({
       pr_id,
