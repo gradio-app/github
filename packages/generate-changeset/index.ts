@@ -108,13 +108,19 @@ async function run() {
 			changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 		});
 
-		const url = await client.upsert_comment({
-			pr_id,
-			body: pr_comment_content,
-			comment_id: comment?.id,
-		});
+		if (pr_comment_content.trim() !== comment?.body?.trim()) {
+			info("Changeset comment updated.");
+			const url = await client.upsert_comment({
+				pr_id,
+				body: pr_comment_content,
+				comment_id: comment?.id,
+			});
+			setOutput("comment_url", url);
+		} else {
+			setOutput("comment_url", comment.url);
+			info("Changeset comment unchanged.");
+		}
 
-		setOutput("comment_url", url);
 		setOutput("skipped", "false");
 
 		info("Changeset comment updated.");
@@ -211,14 +217,21 @@ async function run() {
 		changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 	});
 
-	// this always happens
-	const url = await client.upsert_comment({
-		pr_id,
-		body: pr_comment_content,
-		comment_id: comment?.id,
-	});
+	// is pr body and generate body different?
+	if (pr_comment_content.trim() !== comment?.body?.trim()) {
+		info("Changeset comment updated.");
+		const url = await client.upsert_comment({
+			pr_id,
+			body: pr_comment_content,
+			comment_id: comment?.id,
+		});
+		setOutput("comment_url", url);
+	} else {
+		info("Changeset comment unchanged.");
+		setOutput("comment_url", comment.url);
+	}
 
-	setOutput("comment_url", url);
+	// this always happens
 	setOutput("skipped", "false");
 }
 
