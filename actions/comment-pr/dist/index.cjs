@@ -85479,10 +85479,10 @@ const icons = {
   changes: [":unicorn:"]
 };
 const status_icons = {
-  success: ":white_check_mark:",
-  failure: ":x:",
-  pending: ":hourglass_flowing_sand:",
-  warning: ":warning:"
+  success: `<img align=center src="https://github.com/pngwn/MDsveX/assets/12937446/e9cc30c1-0c5d-4a81-9b8a-4eb8cedb7240" width="18px">`,
+  failure: `<img align=center src="https://github.com/pngwn/MDsveX/assets/12937446/84ec9cd1-f9d9-48aa-95bb-5a180ce624d0" width="18px" />`,
+  pending: `<img align=center src="https://github.com/pngwn/MDsveX/assets/12937446/7f331dc1-7774-4484-94ce-2f2bec254510" width="18px" />`,
+  warning: `<img align=center src="https://github.com/pngwn/MDsveX/assets/12937446/d5a88c4e-2636-4e8d-bb3f-8b21dbe14071" width="18px" /> `
 };
 const status_text = {
   success: "ready!",
