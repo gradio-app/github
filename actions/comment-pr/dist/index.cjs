@@ -85310,7 +85310,8 @@ async function run() {
   );
   const comments = await octokit.rest.issues.listComments({
     ...repo,
-    issue_number: pr_number
+    issue_number: pr_number,
+    per_page: 50
   });
   if (comments.data.length === 0) {
     let body = message ? process_body(null, message, COMMENT_ID) : "";

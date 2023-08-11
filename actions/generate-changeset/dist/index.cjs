@@ -119406,7 +119406,7 @@ function gql_get_pr(owner, repo, pr_number) {
           }
         }
         title
-        comments(first: 10) {
+        comments(first: 50) {
           nodes {
             id
             author {
