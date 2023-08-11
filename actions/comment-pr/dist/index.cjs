@@ -85502,7 +85502,7 @@ function handle_parts(parts, key) {
         message: status_text[parts[0]],
         url: parts[1].trim() === "null" ? null : {
           url: parts[1],
-          text: `${key[0].toUpperCase()}${key.substring(1)} preview`
+          text: parts[0] === "success" ? `${key[0].toUpperCase()}${key.substring(1)} preview` : "Details"
         }
       };
     case "changes":
@@ -85523,7 +85523,7 @@ function handle_parts(parts, key) {
         name: `${key[0].toUpperCase()}${key.substring(1)}`,
         status_icon: status_icons[parts[0]],
         message,
-        url: null
+        url: parts[1].trim() === "null" ? null : { url: parts[1], text: "Details" }
       };
     case "visual":
       const [_status, tests, reviews, url] = parts;
