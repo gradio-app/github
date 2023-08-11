@@ -119732,6 +119732,7 @@ const dev_only_ignore_globs = [
   "!**/requirements.txt"
 ];
 async function run() {
+  console.log(JSON.stringify(context, null, 2));
   const branch_name = coreExports.getInput("branch_name");
   if (branch_name === "changeset-release/main") {
     coreExports.info("Release PR. Skipping changeset generation.");
