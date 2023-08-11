@@ -242,6 +242,24 @@ async function run() {
 run();
 
 async function get_changed_files(base_sha: string) {
+	let output_base = "";
+	let error_base = "";
+
+	const options_base = {
+		listeners: {
+			stdout: (data: Buffer) => {
+				output_base += data.toString();
+			},
+			stderr: (data: Buffer) => {
+				error_base += data.toString();
+			},
+		},
+	};
+
+	await exec("git", ["merge-base", "main"], options_base);
+
+	console.log({ options_base });
+
 	let output = "";
 	let error = "";
 
@@ -255,7 +273,8 @@ async function get_changed_files(base_sha: string) {
 			},
 		},
 	};
-	await exec("git", ["diff", "--name-only", base_sha], options);
+
+	await exec("git", ["diff", "--name-only", output_base.trim()], options);
 
 	return output
 		.split("\n")
