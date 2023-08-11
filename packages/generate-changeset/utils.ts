@@ -60,22 +60,6 @@ export function gql_get_pr(owner: string, repo: string, pr_number: number) {
   }`;
 }
 
-// mutation MyMutation {
-//   updateIssueComment(input: {id: "IC_kwDOKDgvTc5joFop", body: "hello friends two"}) {
-//     clientMutationId
-//     issueComment {
-//       url
-//     }
-//   }
-//   addComment(input: {body: "new comment", subjectId: "IC_kwDOKDgvTc5joFop"}) {
-//     commentEdge {
-//       node {
-//         url
-//       }
-//     }
-//   }
-// }
-
 function gql_update_issue_comment(comment_id: string, body: string) {
 	return `mutation {
 		updateIssueComment(input: {id: "${comment_id}", body: "${body}"}) {
@@ -375,6 +359,7 @@ export function get_client(token: string, owner: string, repo: string) {
 			let {
 				repository: {
 					pullRequest: {
+						id,
 						baseRefName: base_branch_name,
 						headRepository: { nameWithOwner: source_repo_name },
 						headRefName: source_branch_name,
@@ -391,6 +376,7 @@ export function get_client(token: string, owner: string, repo: string) {
 			);
 
 			return {
+				id,
 				base_branch_name,
 				source_repo_name,
 				source_branch_name,
@@ -403,11 +389,11 @@ export function get_client(token: string, owner: string, repo: string) {
 			};
 		},
 		async upsert_comment({
-			pr_number,
+			pr_id,
 			comment_id,
 			body,
 		}: {
-			pr_number: number;
+			pr_id: string;
 			comment_id?: string;
 			body: string;
 		}) {

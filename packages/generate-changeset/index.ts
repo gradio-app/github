@@ -57,6 +57,7 @@ async function run() {
 	const pull_request_number = parseInt(pr_input);
 
 	let {
+		id: pr_id,
 		base_branch_name,
 		source_branch_name,
 		source_repo_name,
@@ -108,7 +109,7 @@ async function run() {
 		});
 
 		const url = await client.upsert_comment({
-			pr_number: pull_request_number,
+			pr_id,
 			body: pr_comment_content,
 			comment_id: comment?.id,
 		});
@@ -212,7 +213,7 @@ async function run() {
 
 	// this always happens
 	const url = await client.upsert_comment({
-		pr_number: pull_request_number,
+		pr_id,
 		body: pr_comment_content,
 		comment_id: comment?.id,
 	});
