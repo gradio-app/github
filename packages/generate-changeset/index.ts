@@ -43,7 +43,9 @@ type PackageJson = Packages["packages"][0]["packageJson"] & {
 };
 
 async function run() {
-	if (context?.payload?.pull_request?.head.ref === "changeset-release/main") {
+	const branch_name = getInput("branch_name");
+
+	if (branch_name === "changeset-release/main") {
 		info("Release PR. Skipping changeset generation.");
 		setOutput("skipped", "true");
 		return;
