@@ -43,7 +43,7 @@ type PackageJson = Packages["packages"][0]["packageJson"] & {
 };
 
 async function run() {
-	console.log(JSON.stringify(context, null, 2));
+	// console.log(JSON.stringify(context, null, 2));
 	const branch_name = getInput("branch_name");
 
 	if (branch_name === "changeset-release/main") {
@@ -258,7 +258,7 @@ async function get_changed_files(base_sha: string) {
 
 	await exec("git", ["merge-base", "main"], options_base);
 
-	console.log({ options_base });
+	console.log({ output_base });
 
 	let output = "";
 	let error = "";
