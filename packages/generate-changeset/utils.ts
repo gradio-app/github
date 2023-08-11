@@ -1,4 +1,4 @@
-import { context, getOctokit } from "@actions/github";
+import { getOctokit } from "@actions/github";
 
 import { unified } from "unified";
 import remarkParse from "remark-parse";
@@ -58,6 +58,44 @@ export function gql_get_pr(owner: string, repo: string, pr_number: number) {
       }
     }
   }`;
+}
+
+// mutation MyMutation {
+//   updateIssueComment(input: {id: "IC_kwDOKDgvTc5joFop", body: "hello friends two"}) {
+//     clientMutationId
+//     issueComment {
+//       url
+//     }
+//   }
+//   addComment(input: {body: "new comment", subjectId: "IC_kwDOKDgvTc5joFop"}) {
+//     commentEdge {
+//       node {
+//         url
+//       }
+//     }
+//   }
+// }
+
+function gql_update_issue_comment(comment_id: string, body: string) {
+	return `mutation {
+		updateIssueComment(input: {id: "${comment_id}", body: "${body}"}) {
+			issueComment {
+				url
+			}
+		}
+	}`;
+}
+
+function gql_create_issue_comment(pr_number: number, body: string) {
+	return `mutation {
+		addComment(input: {body: "${body}", subjectId: "${pr_number}"}) {
+			commentEdge {
+				node {
+					url
+				}
+			}
+		}
+	}`;
 }
 
 function get_title(packages: [string, string | boolean][]) {
@@ -375,23 +413,27 @@ export function get_client(token: string, owner: string, repo: string) {
 		}) {
 			console.log({ comment_id });
 			if (comment_id) {
-				const data = await octokit.rest.issues.updateComment({
-					owner: context.repo.owner,
-					repo: context.repo.repo,
-					comment_id: parseInt(comment_id),
-					body,
-				});
+				const {
+					updateIssueComment: {
+						issueComment: { url },
+					},
+				} = await octokit.graphql<Record<string, any>>(
+					gql_update_issue_comment(comment_id, body)
+				);
 
-				return data.data.html_url;
+				return url;
 			} else {
-				const data = await octokit.rest.issues.createComment({
-					owner: context.repo.owner,
-					repo: context.repo.repo,
-					issue_number: pr_number,
-					body,
-				});
+				const {
+					addComment: {
+						commentEdge: {
+							node: { url },
+						},
+					},
+				} = await octokit.graphql<Record<string, any>>(
+					gql_create_issue_comment(pr_number, body)
+				);
 
-				return data.data.html_url;
+				return url;
 			}
 		},
 	};
