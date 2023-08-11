@@ -70,9 +70,9 @@ function gql_update_issue_comment(comment_id: string, body: string) {
 	}`;
 }
 
-function gql_create_issue_comment(pr_number: number, body: string) {
+function gql_create_issue_comment(pr_id: string, body: string) {
 	return `mutation {
-		addComment(input: {body: "${body}", subjectId: "${pr_number}"}) {
+		addComment(input: {body: "${body}", subjectId: "${pr_id}"}) {
 			commentEdge {
 				node {
 					url
@@ -416,7 +416,7 @@ export function get_client(token: string, owner: string, repo: string) {
 						},
 					},
 				} = await octokit.graphql<Record<string, any>>(
-					gql_create_issue_comment(pr_number, body)
+					gql_create_issue_comment(pr_id, body)
 				);
 
 				return url;
