@@ -119372,10 +119372,10 @@ function find(tree, condition) {
   });
   return result;
 }
-function gql_get_pr(owner, repo, pr_number) {
+function gql_get_pr(owner, repo, pr_number2) {
   return `{
     repository(owner: "${owner}", name: "${repo}") {
-      pullRequest(number: ${pr_number}) {
+      pullRequest(number: ${pr_number2}) {
         id
         baseRefName
         headRefName
@@ -119420,6 +119420,26 @@ function gql_get_pr(owner, repo, pr_number) {
       }
     }
   }`;
+}
+function gql_update_issue_comment(comment_id, body) {
+  return `mutation {
+		updateIssueComment(input: {id: "${comment_id}", body: "${body}"}) {
+			issueComment {
+				url
+			}
+		}
+	}`;
+}
+function gql_create_issue_comment(pr_number2, body) {
+  return `mutation {
+		addComment(input: {body: "${body}", subjectId: "${pr_number2}"}) {
+			commentEdge {
+				node {
+					url
+				}
+			}
+		}
+	}`;
 }
 function get_title(packages) {
   return packages.length ? `change detected` : `no changes detected`;
@@ -119585,10 +119605,11 @@ function get_type_from_linked_issues(closes) {
 function get_client(token, owner, repo) {
   const octokit = getOctokit_1(token);
   return {
-    async get_pr(pr_number) {
+    async get_pr(pr_number2) {
       let {
         repository: {
           pullRequest: {
+            id,
             baseRefName: base_branch_name,
             headRepository: { nameWithOwner: source_repo_name },
             headRefName: source_branch_name,
@@ -119601,9 +119622,10 @@ function get_client(token, owner, repo) {
           }
         }
       } = await octokit.graphql(
-        gql_get_pr(owner, repo, pr_number)
+        gql_get_pr(owner, repo, pr_number2)
       );
       return {
+        id,
         base_branch_name,
         source_repo_name,
         source_branch_name,
@@ -119616,27 +119638,31 @@ function get_client(token, owner, repo) {
       };
     },
     async upsert_comment({
-      pr_number,
+      pr_id,
       comment_id,
       body
     }) {
       console.log({ comment_id });
       if (comment_id) {
-        const data = await octokit.rest.issues.updateComment({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          comment_id: parseInt(comment_id),
-          body
-        });
-        return data.data.html_url;
+        const {
+          updateIssueComment: {
+            issueComment: { url }
+          }
+        } = await octokit.graphql(
+          gql_update_issue_comment(comment_id, body)
+        );
+        return url;
       } else {
-        const data = await octokit.rest.issues.createComment({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          issue_number: pr_number,
-          body
-        });
-        return data.data.html_url;
+        const {
+          addComment: {
+            commentEdge: {
+              node: { url }
+            }
+          }
+        } = await octokit.graphql(
+          gql_create_issue_comment(pr_number, body)
+        );
+        return url;
       }
     }
   };
@@ -119714,6 +119740,7 @@ async function run() {
   console.log(pr_input);
   const pull_request_number = parseInt(pr_input);
   let {
+    id: pr_id,
     base_branch_name,
     source_branch_name,
     source_repo_name,
@@ -119749,7 +119776,7 @@ async function run() {
       changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
     });
     const url2 = await client.upsert_comment({
-      pr_number: pull_request_number,
+      pr_id,
       body: pr_comment_content2,
       comment_id: comment == null ? void 0 : comment.id
     });
@@ -119824,7 +119851,7 @@ async function run() {
     changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
   });
   const url = await client.upsert_comment({
-    pr_number: pull_request_number,
+    pr_id,
     body: pr_comment_content,
     comment_id: comment == null ? void 0 : comment.id
   });
