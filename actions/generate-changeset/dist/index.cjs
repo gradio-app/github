@@ -119727,7 +119727,7 @@ const dev_only_ignore_globs = [
   "!**/requirements.txt"
 ];
 async function run() {
-  var _a, _b;
+  var _a, _b, _c, _d;
   if (((_b = (_a = context == null ? void 0 : context.payload) == null ? void 0 : _a.pull_request) == null ? void 0 : _b.head.ref) === "changeset-release/main") {
     coreExports.info("Release PR. Skipping changeset generation.");
     coreExports.setOutput("skipped", "true");
@@ -119775,12 +119775,18 @@ async function run() {
       changeset_content: old_changeset_content,
       changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
     });
-    const url2 = await client.upsert_comment({
-      pr_id,
-      body: pr_comment_content2,
-      comment_id: comment == null ? void 0 : comment.id
-    });
-    coreExports.setOutput("comment_url", url2);
+    if (pr_comment_content2.trim() !== ((_c = comment == null ? void 0 : comment.body) == null ? void 0 : _c.trim())) {
+      coreExports.info("Changeset comment updated.");
+      const url = await client.upsert_comment({
+        pr_id,
+        body: pr_comment_content2,
+        comment_id: comment == null ? void 0 : comment.id
+      });
+      coreExports.setOutput("comment_url", url);
+    } else {
+      coreExports.setOutput("comment_url", comment.url);
+      coreExports.info("Changeset comment unchanged.");
+    }
     coreExports.setOutput("skipped", "false");
     coreExports.info("Changeset comment updated.");
     return;
@@ -119850,12 +119856,18 @@ async function run() {
     changeset_content,
     changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
   });
-  const url = await client.upsert_comment({
-    pr_id,
-    body: pr_comment_content,
-    comment_id: comment == null ? void 0 : comment.id
-  });
-  coreExports.setOutput("comment_url", url);
+  if (pr_comment_content.trim() !== ((_d = comment == null ? void 0 : comment.body) == null ? void 0 : _d.trim())) {
+    coreExports.info("Changeset comment updated.");
+    const url = await client.upsert_comment({
+      pr_id,
+      body: pr_comment_content,
+      comment_id: comment == null ? void 0 : comment.id
+    });
+    coreExports.setOutput("comment_url", url);
+  } else {
+    coreExports.info("Changeset comment unchanged.");
+    coreExports.setOutput("comment_url", comment.url);
+  }
   coreExports.setOutput("skipped", "false");
 }
 run();
