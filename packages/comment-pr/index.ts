@@ -53,11 +53,13 @@ async function run() {
 			if (comment.body?.includes(COMMENT_ID)) {
 				let body = process_body(comment.body, message, COMMENT_ID);
 				body = handle_additional_text(additional_text, body, SUB_COMMENT_ID);
+
+				if (body === comment.body) return;
 				await update_pr_comment(octokit, repo, pr_number, comment.id, body);
 			} else {
 				let body = process_body(null, message, COMMENT_ID);
 				body = handle_additional_text(additional_text, body, SUB_COMMENT_ID);
-
+				if (body === comment.body) return;
 				await update_pr_comment(octokit, repo, pr_number, comment.id, body);
 			}
 		} else {
