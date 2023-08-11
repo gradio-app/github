@@ -44,7 +44,7 @@ export function gql_get_pr(owner: string, repo: string, pr_number: number) {
           }
         }
         title
-        comments(first: 10) {
+        comments(first: 50) {
           nodes {
             id
             author {
