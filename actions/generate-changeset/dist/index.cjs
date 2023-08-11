@@ -119485,9 +119485,10 @@ function create_changeset_comment({
   manual_package_selection,
   manual_mode = false,
   changeset_content,
-  changeset_url
+  changeset_url,
+  previous_comment
 }) {
-  return `<!-- tag=changesets_gradio -->
+  const new_comment = `<!-- tag=changesets_gradio -->
 
 ###  🦄 ${get_title(packages)}
 
@@ -119512,6 +119513,10 @@ ${packages.length ? manual_mode ? "⚠️ _The changeset file for this pull requ
 
 </details>
 `.trim();
+  return {
+    pr_comment_content: new_comment,
+    changes: changeset_content.replace(/\(https:\/\/github.com[^]*\.md\)/, "") !== new_comment.replace(/\(https:\/\/github.com[^]*\.md\)/, "")
+  };
 }
 const md_parser = unified().use(remarkParse).use(remarkFrontmatter).use(remarkGfm);
 function get_frontmatter_versions(md) {
@@ -119727,7 +119732,6 @@ const dev_only_ignore_globs = [
   "!**/requirements.txt"
 ];
 async function run() {
-  var _a, _b;
   const branch_name = coreExports.getInput("branch_name");
   if (branch_name === "changeset-release/main") {
     coreExports.info("Release PR. Skipping changeset generation.");
@@ -119768,15 +119772,16 @@ async function run() {
       );
       return;
     }
-    const pr_comment_content2 = create_changeset_comment({
+    const { pr_comment_content: pr_comment_content2, changes: changes2 } = create_changeset_comment({
       packages: versions,
       changelog: !valid ? message : changelog_entry,
       manual_package_selection: false,
       manual_mode: true,
       changeset_content: old_changeset_content,
-      changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
+      changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
+      previous_comment: comment == null ? void 0 : comment.body
     });
-    if (pr_comment_content2.trim() !== ((_a = comment == null ? void 0 : comment.body) == null ? void 0 : _a.trim())) {
+    if (changes2) {
       coreExports.info("Changeset comment updated.");
       const url = await client.upsert_comment({
         pr_id,
@@ -119785,7 +119790,7 @@ async function run() {
       });
       coreExports.setOutput("comment_url", url);
     } else {
-      coreExports.setOutput("comment_url", comment.url);
+      coreExports.setOutput("comment_url", comment == null ? void 0 : comment.url);
       coreExports.info("Changeset comment unchanged.");
     }
     coreExports.setOutput("skipped", "false");
@@ -119818,10 +119823,10 @@ async function run() {
   }
   if (manual_package_selection) {
     packages_versions = pkgs.map(({ packageJson: { name } }) => {
-      var _a2;
+      var _a;
       return [
         name,
-        ((_a2 = packages_versions == null ? void 0 : packages_versions.find(([pkg]) => pkg === name)) == null ? void 0 : _a2[1]) ? version2 : false
+        ((_a = packages_versions == null ? void 0 : packages_versions.find(([pkg]) => pkg === name)) == null ? void 0 : _a[1]) ? version2 : false
       ];
     });
   }
@@ -119850,14 +119855,14 @@ async function run() {
     await exec_2("git", ["commit", "-m", `${operation} changeset`]);
     await exec_2("git", ["push"]);
   }
-  const pr_comment_content = create_changeset_comment({
+  const { pr_comment_content, changes } = create_changeset_comment({
     packages: packages_versions,
     changelog: title,
     manual_package_selection,
     changeset_content,
     changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
   });
-  if (pr_comment_content.trim() !== ((_b = comment == null ? void 0 : comment.body) == null ? void 0 : _b.trim())) {
+  if (changes) {
     coreExports.info("Changeset comment updated.");
     const url = await client.upsert_comment({
       pr_id,
@@ -119867,7 +119872,7 @@ async function run() {
     coreExports.setOutput("comment_url", url);
   } else {
     coreExports.info("Changeset comment unchanged.");
-    coreExports.setOutput("comment_url", comment.url);
+    coreExports.setOutput("comment_url", comment == null ? void 0 : comment.url);
   }
   coreExports.setOutput("skipped", "false");
 }
