@@ -119620,6 +119620,7 @@ function get_client(token, owner, repo) {
       comment_id,
       body
     }) {
+      console.log({ comment_id });
       if (comment_id) {
         const data = await octokit.rest.issues.updateComment({
           owner: context.repo.owner,
