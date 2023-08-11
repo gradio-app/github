@@ -256,7 +256,7 @@ async function get_changed_files(base_sha: string) {
 		},
 	};
 
-	await exec("git", ["merge-base", "main"], options_base);
+	await exec("git", ["merge-base", "main", "HEAD"], options_base);
 
 	console.log({ output_base });
 
