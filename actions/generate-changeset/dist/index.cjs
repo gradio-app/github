@@ -119709,7 +119709,9 @@ async function run() {
   const token = coreExports.getInput("github_token");
   const main_pkg = coreExports.getInput("main_pkg");
   const client = get_client(token, context.repo.owner, context.repo.repo);
-  const pull_request_number = parseInt(coreExports.getInput("pr_number"));
+  const pr_input = coreExports.getInput("pr_number");
+  console.log(pr_input);
+  const pull_request_number = parseInt(pr_input);
   let {
     base_branch_name,
     source_branch_name,
