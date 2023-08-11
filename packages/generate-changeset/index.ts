@@ -43,6 +43,7 @@ type PackageJson = Packages["packages"][0]["packageJson"] & {
 };
 
 async function run() {
+	console.log(JSON.stringify(context, null, 2));
 	const branch_name = getInput("branch_name");
 
 	if (branch_name === "changeset-release/main") {
