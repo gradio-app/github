@@ -119757,7 +119757,7 @@ async function run() {
     title,
     comments
   } = await client.get_pr(pull_request_number);
-  const changed_files = await get_changed_files(base_sha);
+  const changed_files = await get_changed_files();
   const comment = find_comment(comments);
   const { changeset_path, manual_mode, old_changeset_content } = await get_changeset_status(changed_files);
   if (manual_mode) {
@@ -119879,6 +119879,20 @@ async function run() {
 }
 run();
 async function get_changed_files(base_sha) {
+  let output_base = "";
+  let error_base = "";
+  const options_base = {
+    listeners: {
+      stdout: (data) => {
+        output_base += data.toString();
+      },
+      stderr: (data) => {
+        error_base += data.toString();
+      }
+    }
+  };
+  await exec_2("git", ["merge-base", "main"], options_base);
+  console.log({ options_base });
   let output2 = "";
   let error2 = "";
   const options = {
@@ -119891,7 +119905,7 @@ async function get_changed_files(base_sha) {
       }
     }
   };
-  await exec_2("git", ["diff", "--name-only", base_sha], options);
+  await exec_2("git", ["diff", "--name-only", output_base.trim()], options);
   return output2.split("\n").map((s) => s.trim()).filter(Boolean).reduce((acc, next) => {
     acc.add(next);
     return acc;
