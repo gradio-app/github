@@ -98316,6 +98316,7 @@ function gql_get_pr(owner, repo, pr_number) {
             }
             body
             fullDatabaseId
+						url
           }
         }
       }
@@ -98522,19 +98523,21 @@ function get_client(token, owner, repo) {
       body
     }) {
       if (comment_id) {
-        await octokit.rest.issues.updateComment({
+        const data = await octokit.rest.issues.updateComment({
           owner: context.repo.owner,
           repo: context.repo.repo,
           comment_id: parseInt(comment_id),
           body
         });
+        return data.data.html_url;
       } else {
-        await octokit.rest.issues.createComment({
+        const data = await octokit.rest.issues.createComment({
           owner: context.repo.owner,
           repo: context.repo.repo,
           issue_number: pr_number,
           body
         });
+        return data.data.html_url;
       }
     }
   };
@@ -98602,6 +98605,7 @@ async function run() {
   var _a, _b;
   if (((_b = (_a = context == null ? void 0 : context.payload) == null ? void 0 : _a.pull_request) == null ? void 0 : _b.head.ref) === "changeset-release/main") {
     coreExports.info("Release PR. Skipping changeset generation.");
+    coreExports.setOutput("skipped", "true");
     return;
   }
   const token = coreExports.getInput("github_token");
@@ -98643,11 +98647,13 @@ async function run() {
       changeset_content: old_changeset_content,
       changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
     });
-    await client.upsert_comment({
+    const url2 = await client.upsert_comment({
       pr_number: pull_request_number,
       body: pr_comment_content2,
       comment_id: comment == null ? void 0 : comment.id
     });
+    coreExports.setOutput("comment_url", url2);
+    coreExports.setOutput("skipped", "false");
     coreExports.info("Changeset comment updated.");
     return;
   }
@@ -98716,11 +98722,13 @@ async function run() {
     changeset_content,
     changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
   });
-  await client.upsert_comment({
+  const url = await client.upsert_comment({
     pr_number: pull_request_number,
     body: pr_comment_content,
     comment_id: comment == null ? void 0 : comment.id
   });
+  coreExports.setOutput("comment_url", url);
+  coreExports.setOutput("skipped", "false");
 }
 run();
 async function get_changed_files(base_sha) {

@@ -85510,10 +85510,10 @@ function handle_parts(parts, key) {
         icon: icons[key],
         name: `${key[0].toUpperCase()}${key.substring(1)}`,
         status_icon: status_icons[parts[0]],
-        message: parts[0] === "pending" ? "detecting..." : parts[0] === "success" ? "detected!" : status_text[parts[0]],
+        message: parts[0] === "pending" ? "detecting..." : parts[0] === "success" ? "detected!" : parts[0] === "warning" ? "skipped!" : status_text[parts[0]],
         url: parts[1].trim() === "null" ? null : {
           url: parts[1],
-          text: `Workflow log`
+          text: parts[0] === "success" ? "Details" : "Workflow log"
         }
       };
     case "notebooks":
