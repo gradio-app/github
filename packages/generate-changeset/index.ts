@@ -101,16 +101,17 @@ async function run() {
 			return;
 		}
 
-		const pr_comment_content = create_changeset_comment({
+		const { pr_comment_content, changes } = create_changeset_comment({
 			packages: versions,
 			changelog: !valid ? message : changelog_entry,
 			manual_package_selection: false,
 			manual_mode: true,
 			changeset_content: old_changeset_content,
 			changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
+			previous_comment: comment?.body,
 		});
 
-		if (pr_comment_content.trim() !== comment?.body?.trim()) {
+		if (changes) {
 			info("Changeset comment updated.");
 			const url = await client.upsert_comment({
 				pr_id,
@@ -119,7 +120,7 @@ async function run() {
 			});
 			setOutput("comment_url", url);
 		} else {
-			setOutput("comment_url", comment.url);
+			setOutput("comment_url", comment?.url);
 			info("Changeset comment unchanged.");
 		}
 
@@ -211,7 +212,7 @@ async function run() {
 		await exec("git", ["push"]);
 	}
 
-	const pr_comment_content = create_changeset_comment({
+	const { pr_comment_content, changes } = create_changeset_comment({
 		packages: packages_versions,
 		changelog: title,
 		manual_package_selection,
@@ -220,7 +221,7 @@ async function run() {
 	});
 
 	// is pr body and generate body different?
-	if (pr_comment_content.trim() !== comment?.body?.trim()) {
+	if (changes) {
 		info("Changeset comment updated.");
 		const url = await client.upsert_comment({
 			pr_id,
@@ -230,7 +231,7 @@ async function run() {
 		setOutput("comment_url", url);
 	} else {
 		info("Changeset comment unchanged.");
-		setOutput("comment_url", comment.url);
+		setOutput("comment_url", comment?.url);
 	}
 
 	// this always happens

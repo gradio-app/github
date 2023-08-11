@@ -152,6 +152,7 @@ export function create_changeset_comment({
 	manual_mode = false,
 	changeset_content,
 	changeset_url,
+	previous_comment,
 }: {
 	packages: [string, string | boolean][];
 	changelog: string;
@@ -159,8 +160,9 @@ export function create_changeset_comment({
 	manual_mode?: boolean;
 	changeset_content: string;
 	changeset_url: string;
+	previous_comment?: string;
 }) {
-	return `<!-- tag=changesets_gradio -->
+	const new_comment = `<!-- tag=changesets_gradio -->
 
 ###  🦄 ${get_title(packages)}
 
@@ -199,6 +201,13 @@ ${
 
 </details>
 `.trim();
+
+	return {
+		pr_comment_content: new_comment,
+		changes:
+			changeset_content.replace(/\(https:\/\/github.com[^]*\.md\)/, "") !==
+			new_comment.replace(/\(https:\/\/github.com[^]*\.md\)/, ""),
+	};
 }
 
 const md_parser = unified().use(remarkParse).use(frontmatter).use(remarkGfm);
