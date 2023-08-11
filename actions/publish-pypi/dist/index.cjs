@@ -15,7 +15,6 @@ const require$$1$2 = require("child_process");
 const require$$6 = require("timers");
 const require$$0$5 = require("constants");
 const require$$0$6 = require("stream");
-const require$$3$1 = require("js-yaml");
 const undici = require("undici");
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
@@ -47,7 +46,7 @@ function getAugmentedNamespace(n) {
   });
   return a;
 }
-var core = {};
+var core$1 = {};
 var command = {};
 var utils$5 = {};
 Object.defineProperty(utils$5, "__esModule", { value: true });
@@ -256,11 +255,11 @@ function parse$1(uuid) {
   arr[15] = v & 255;
   return arr;
 }
-function stringToBytes(str) {
-  str = unescape(encodeURIComponent(str));
+function stringToBytes(str2) {
+  str2 = unescape(encodeURIComponent(str2));
   const bytes = [];
-  for (let i = 0; i < str.length; ++i) {
-    bytes.push(str.charCodeAt(i));
+  for (let i = 0; i < str2.length; ++i) {
+    bytes.push(str2.charCodeAt(i));
   }
   return bytes;
 }
@@ -1397,7 +1396,7 @@ function requireOidcUtils() {
   oidcUtils.OidcClient = void 0;
   const http_client_1 = lib$1;
   const auth_1 = auth;
-  const core_1 = requireCore();
+  const core_1 = requireCore$1();
   class OidcClient {
     static createHttpClient(allowRetry = true, maxRetry = 10) {
       const requestOptions = {
@@ -1807,11 +1806,11 @@ function requirePathUtils() {
   pathUtils.toPlatformPath = toPlatformPath;
   return pathUtils;
 }
-var hasRequiredCore;
-function requireCore() {
-  if (hasRequiredCore)
-    return core;
-  hasRequiredCore = 1;
+var hasRequiredCore$1;
+function requireCore$1() {
+  if (hasRequiredCore$1)
+    return core$1;
+  hasRequiredCore$1 = 1;
   (function(exports2) {
     var __createBinding2 = commonjsGlobal && commonjsGlobal.__createBinding || (Object.create ? function(o, m, k, k2) {
       if (k2 === void 0)
@@ -2035,10 +2034,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     Object.defineProperty(exports2, "toPlatformPath", { enumerable: true, get: function() {
       return path_utils_1.toPlatformPath;
     } });
-  })(core);
-  return core;
+  })(core$1);
+  return core$1;
 }
-var coreExports = requireCore();
+var coreExports = requireCore$1();
 var exec$2 = {};
 var toolrunner = {};
 var io$1 = {};
@@ -2636,8 +2635,8 @@ class ToolRunner extends events.EventEmitter {
     }
     return this.args;
   }
-  _endsWith(str, end) {
-    return str.endsWith(end);
+  _endsWith(str2, end) {
+    return str2.endsWith(end);
   }
   _isCmdFile() {
     const upperToolPath = this.toolPath.toUpperCase();
@@ -3180,13 +3179,13 @@ const typeMappings = {
   directory: "isDirectory",
   file: "isFile"
 };
-function checkType({ type }) {
-  if (type in typeMappings) {
+function checkType({ type: type2 }) {
+  if (type2 in typeMappings) {
     return;
   }
-  throw new Error(`Invalid type specified: ${type}`);
+  throw new Error(`Invalid type specified: ${type2}`);
 }
-const matchType = (type, stat2) => type === void 0 || stat2[typeMappings[type]]();
+const matchType = (type2, stat2) => type2 === void 0 || stat2[typeMappings[type2]]();
 locatePath.exports = async (paths, options) => {
   options = {
     cwd: process.cwd(),
@@ -4373,11 +4372,11 @@ function hasMillisRes(callback) {
     });
   });
 }
-function timeRemoveMillis(timestamp) {
-  if (typeof timestamp === "number") {
-    return Math.floor(timestamp / 1e3) * 1e3;
-  } else if (timestamp instanceof Date) {
-    return new Date(Math.floor(timestamp.getTime() / 1e3) * 1e3);
+function timeRemoveMillis(timestamp2) {
+  if (typeof timestamp2 === "number") {
+    return Math.floor(timestamp2 / 1e3) * 1e3;
+  } else if (timestamp2 instanceof Date) {
+    return new Date(Math.floor(timestamp2.getTime() / 1e3) * 1e3);
   } else {
     throw new Error("fs-extra: timeRemoveMillis() unknown parameter type");
   }
@@ -5422,22 +5421,22 @@ var symlinkPaths_1 = {
   symlinkPathsSync: symlinkPathsSync$1
 };
 const fs$a = gracefulFs;
-function symlinkType$1(srcpath, type, callback) {
-  callback = typeof type === "function" ? type : callback;
-  type = typeof type === "function" ? false : type;
-  if (type)
-    return callback(null, type);
+function symlinkType$1(srcpath, type2, callback) {
+  callback = typeof type2 === "function" ? type2 : callback;
+  type2 = typeof type2 === "function" ? false : type2;
+  if (type2)
+    return callback(null, type2);
   fs$a.lstat(srcpath, (err, stats) => {
     if (err)
       return callback(null, "file");
-    type = stats && stats.isDirectory() ? "dir" : "file";
-    callback(null, type);
+    type2 = stats && stats.isDirectory() ? "dir" : "file";
+    callback(null, type2);
   });
 }
-function symlinkTypeSync$1(srcpath, type) {
+function symlinkTypeSync$1(srcpath, type2) {
   let stats;
-  if (type)
-    return type;
+  if (type2)
+    return type2;
   try {
     stats = fs$a.lstatSync(srcpath);
   } catch (e) {
@@ -5462,9 +5461,9 @@ const _symlinkType = symlinkType_1;
 const symlinkType = _symlinkType.symlinkType;
 const symlinkTypeSync = _symlinkType.symlinkTypeSync;
 const pathExists$3 = pathExists_1.pathExists;
-function createSymlink(srcpath, dstpath, type, callback) {
-  callback = typeof type === "function" ? type : callback;
-  type = typeof type === "function" ? false : type;
+function createSymlink(srcpath, dstpath, type2, callback) {
+  callback = typeof type2 === "function" ? type2 : callback;
+  type2 = typeof type2 === "function" ? false : type2;
   pathExists$3(dstpath, (err, destinationExists) => {
     if (err)
       return callback(err);
@@ -5474,7 +5473,7 @@ function createSymlink(srcpath, dstpath, type, callback) {
       if (err2)
         return callback(err2);
       srcpath = relative.toDst;
-      symlinkType(relative.toCwd, type, (err3, type2) => {
+      symlinkType(relative.toCwd, type2, (err3, type3) => {
         if (err3)
           return callback(err3);
         const dir = path$6.dirname(dstpath);
@@ -5482,30 +5481,30 @@ function createSymlink(srcpath, dstpath, type, callback) {
           if (err4)
             return callback(err4);
           if (dirExists)
-            return fs$9.symlink(srcpath, dstpath, type2, callback);
+            return fs$9.symlink(srcpath, dstpath, type3, callback);
           mkdirs(dir, (err5) => {
             if (err5)
               return callback(err5);
-            fs$9.symlink(srcpath, dstpath, type2, callback);
+            fs$9.symlink(srcpath, dstpath, type3, callback);
           });
         });
       });
     });
   });
 }
-function createSymlinkSync(srcpath, dstpath, type) {
+function createSymlinkSync(srcpath, dstpath, type2) {
   const destinationExists = fs$9.existsSync(dstpath);
   if (destinationExists)
     return void 0;
   const relative = symlinkPathsSync(srcpath, dstpath);
   srcpath = relative.toDst;
-  type = symlinkTypeSync(relative.toCwd, type);
+  type2 = symlinkTypeSync(relative.toCwd, type2);
   const dir = path$6.dirname(dstpath);
   const exists = fs$9.existsSync(dir);
   if (exists)
-    return fs$9.symlinkSync(srcpath, dstpath, type);
+    return fs$9.symlinkSync(srcpath, dstpath, type2);
   mkdirsSync(dir);
-  return fs$9.symlinkSync(srcpath, dstpath, type);
+  return fs$9.symlinkSync(srcpath, dstpath, type2);
 }
 var symlink$1 = {
   createSymlink: u$4(createSymlink),
@@ -5603,8 +5602,8 @@ function stringify$2(obj, options) {
       EOL = options.EOL;
     }
   }
-  var str = JSON.stringify(obj, options ? options.replacer : null, spaces);
-  return str.replace(/\n/g, EOL) + EOL;
+  var str2 = JSON.stringify(obj, options ? options.replacer : null, spaces);
+  return str2.replace(/\n/g, EOL) + EOL;
 }
 function writeFile(file2, obj, options, callback) {
   if (callback == null) {
@@ -5613,21 +5612,21 @@ function writeFile(file2, obj, options, callback) {
   }
   options = options || {};
   var fs2 = options.fs || _fs;
-  var str = "";
+  var str2 = "";
   try {
-    str = stringify$2(obj, options);
+    str2 = stringify$2(obj, options);
   } catch (err) {
     if (callback)
       callback(err, null);
     return;
   }
-  fs2.writeFile(file2, str, options, callback);
+  fs2.writeFile(file2, str2, options, callback);
 }
 function writeFileSync(file2, obj, options) {
   options = options || {};
   var fs2 = options.fs || _fs;
-  var str = stringify$2(obj, options);
-  return fs2.writeFileSync(file2, str, options);
+  var str2 = stringify$2(obj, options);
+  return fs2.writeFileSync(file2, str2, options);
 }
 function stripBom$1(content) {
   if (Buffer.isBuffer(content))
@@ -5696,7 +5695,7 @@ jsonFile.writeJSON = jsonFile.writeJson;
 jsonFile.writeJSONSync = jsonFile.writeJsonSync;
 jsonFile.readJSON = jsonFile.readJson;
 jsonFile.readJSONSync = jsonFile.readJsonSync;
-var json = jsonFile;
+var json$1 = jsonFile;
 const fs$7 = gracefulFs;
 const path$3 = require$$0$3;
 const copySync = copySync$1.copySync;
@@ -5855,7 +5854,7 @@ var output = {
     copy$1,
     empty,
     ensure,
-    json,
+    json$1,
     mkdirs_1,
     moveSync,
     move,
@@ -6145,15 +6144,15 @@ function requireIsExtglob() {
   if (hasRequiredIsExtglob)
     return isExtglob;
   hasRequiredIsExtglob = 1;
-  isExtglob = function isExtglob2(str) {
-    if (typeof str !== "string" || str === "") {
+  isExtglob = function isExtglob2(str2) {
+    if (typeof str2 !== "string" || str2 === "") {
       return false;
     }
     var match;
-    while (match = /(\\).|([@?!+*]\(.*\))/g.exec(str)) {
+    while (match = /(\\).|([@?!+*]\(.*\))/g.exec(str2)) {
       if (match[2])
         return true;
-      str = str.slice(match.index + match[0].length);
+      str2 = str2.slice(match.index + match[0].length);
     }
     return false;
   };
@@ -6173,8 +6172,8 @@ function requireIsGlob() {
   hasRequiredIsGlob = 1;
   var isExtglob2 = requireIsExtglob();
   var chars = { "{": "}", "(": ")", "[": "]" };
-  var strictCheck = function(str) {
-    if (str[0] === "!") {
+  var strictCheck = function(str2) {
+    if (str2[0] === "!") {
       return true;
     }
     var index = 0;
@@ -6183,70 +6182,70 @@ function requireIsGlob() {
     var closeCurlyIndex = -2;
     var closeParenIndex = -2;
     var backSlashIndex = -2;
-    while (index < str.length) {
-      if (str[index] === "*") {
+    while (index < str2.length) {
+      if (str2[index] === "*") {
         return true;
       }
-      if (str[index + 1] === "?" && /[\].+)]/.test(str[index])) {
+      if (str2[index + 1] === "?" && /[\].+)]/.test(str2[index])) {
         return true;
       }
-      if (closeSquareIndex !== -1 && str[index] === "[" && str[index + 1] !== "]") {
+      if (closeSquareIndex !== -1 && str2[index] === "[" && str2[index + 1] !== "]") {
         if (closeSquareIndex < index) {
-          closeSquareIndex = str.indexOf("]", index);
+          closeSquareIndex = str2.indexOf("]", index);
         }
         if (closeSquareIndex > index) {
           if (backSlashIndex === -1 || backSlashIndex > closeSquareIndex) {
             return true;
           }
-          backSlashIndex = str.indexOf("\\", index);
+          backSlashIndex = str2.indexOf("\\", index);
           if (backSlashIndex === -1 || backSlashIndex > closeSquareIndex) {
             return true;
           }
         }
       }
-      if (closeCurlyIndex !== -1 && str[index] === "{" && str[index + 1] !== "}") {
-        closeCurlyIndex = str.indexOf("}", index);
+      if (closeCurlyIndex !== -1 && str2[index] === "{" && str2[index + 1] !== "}") {
+        closeCurlyIndex = str2.indexOf("}", index);
         if (closeCurlyIndex > index) {
-          backSlashIndex = str.indexOf("\\", index);
+          backSlashIndex = str2.indexOf("\\", index);
           if (backSlashIndex === -1 || backSlashIndex > closeCurlyIndex) {
             return true;
           }
         }
       }
-      if (closeParenIndex !== -1 && str[index] === "(" && str[index + 1] === "?" && /[:!=]/.test(str[index + 2]) && str[index + 3] !== ")") {
-        closeParenIndex = str.indexOf(")", index);
+      if (closeParenIndex !== -1 && str2[index] === "(" && str2[index + 1] === "?" && /[:!=]/.test(str2[index + 2]) && str2[index + 3] !== ")") {
+        closeParenIndex = str2.indexOf(")", index);
         if (closeParenIndex > index) {
-          backSlashIndex = str.indexOf("\\", index);
+          backSlashIndex = str2.indexOf("\\", index);
           if (backSlashIndex === -1 || backSlashIndex > closeParenIndex) {
             return true;
           }
         }
       }
-      if (pipeIndex !== -1 && str[index] === "(" && str[index + 1] !== "|") {
+      if (pipeIndex !== -1 && str2[index] === "(" && str2[index + 1] !== "|") {
         if (pipeIndex < index) {
-          pipeIndex = str.indexOf("|", index);
+          pipeIndex = str2.indexOf("|", index);
         }
-        if (pipeIndex !== -1 && str[pipeIndex + 1] !== ")") {
-          closeParenIndex = str.indexOf(")", pipeIndex);
+        if (pipeIndex !== -1 && str2[pipeIndex + 1] !== ")") {
+          closeParenIndex = str2.indexOf(")", pipeIndex);
           if (closeParenIndex > pipeIndex) {
-            backSlashIndex = str.indexOf("\\", pipeIndex);
+            backSlashIndex = str2.indexOf("\\", pipeIndex);
             if (backSlashIndex === -1 || backSlashIndex > closeParenIndex) {
               return true;
             }
           }
         }
       }
-      if (str[index] === "\\") {
-        var open = str[index + 1];
+      if (str2[index] === "\\") {
+        var open = str2[index + 1];
         index += 2;
         var close = chars[open];
         if (close) {
-          var n = str.indexOf(close, index);
+          var n = str2.indexOf(close, index);
           if (n !== -1) {
             index = n + 1;
           }
         }
-        if (str[index] === "!") {
+        if (str2[index] === "!") {
           return true;
         }
       } else {
@@ -6255,26 +6254,26 @@ function requireIsGlob() {
     }
     return false;
   };
-  var relaxedCheck = function(str) {
-    if (str[0] === "!") {
+  var relaxedCheck = function(str2) {
+    if (str2[0] === "!") {
       return true;
     }
     var index = 0;
-    while (index < str.length) {
-      if (/[*?{}()[\]]/.test(str[index])) {
+    while (index < str2.length) {
+      if (/[*?{}()[\]]/.test(str2[index])) {
         return true;
       }
-      if (str[index] === "\\") {
-        var open = str[index + 1];
+      if (str2[index] === "\\") {
+        var open = str2[index + 1];
         index += 2;
         var close = chars[open];
         if (close) {
-          var n = str.indexOf(close, index);
+          var n = str2.indexOf(close, index);
           if (n !== -1) {
             index = n + 1;
           }
         }
-        if (str[index] === "!") {
+        if (str2[index] === "!") {
           return true;
         }
       } else {
@@ -6283,18 +6282,18 @@ function requireIsGlob() {
     }
     return false;
   };
-  isGlob = function isGlob2(str, options) {
-    if (typeof str !== "string" || str === "") {
+  isGlob = function isGlob2(str2, options) {
+    if (typeof str2 !== "string" || str2 === "") {
       return false;
     }
-    if (isExtglob2(str)) {
+    if (isExtglob2(str2)) {
       return true;
     }
     var check = strictCheck;
     if (options && options.strict === false) {
       check = relaxedCheck;
     }
-    return check(str);
+    return check(str2);
   };
   return isGlob;
 }
@@ -6312,19 +6311,19 @@ function requireGlobParent() {
   var enclosure = /[\{\[].*[\}\]]$/;
   var globby2 = /(^|[^\\])([\{\[]|\([^\)]+$)/;
   var escaped = /\\([\!\*\?\|\[\]\(\)\{\}])/g;
-  globParent = function globParent2(str, opts) {
+  globParent = function globParent2(str2, opts) {
     var options = Object.assign({ flipBackslashes: true }, opts);
-    if (options.flipBackslashes && isWin32 && str.indexOf(slash2) < 0) {
-      str = str.replace(backslash, slash2);
+    if (options.flipBackslashes && isWin32 && str2.indexOf(slash2) < 0) {
+      str2 = str2.replace(backslash, slash2);
     }
-    if (enclosure.test(str)) {
-      str += slash2;
+    if (enclosure.test(str2)) {
+      str2 += slash2;
     }
-    str += "a";
+    str2 += "a";
     do {
-      str = pathPosixDirname(str);
-    } while (isGlob2(str) || globby2.test(str));
-    return str.replace(escaped, "$1");
+      str2 = pathPosixDirname(str2);
+    } while (isGlob2(str2) || globby2.test(str2));
+    return str2.replace(escaped, "$1");
   };
   return globParent;
 }
@@ -6344,7 +6343,7 @@ function requireUtils$4() {
       }
       return false;
     };
-    exports2.find = (node, type) => node.nodes.find((node2) => node2.type === type);
+    exports2.find = (node, type2) => node.nodes.find((node2) => node2.type === type2);
     exports2.exceedsLimit = (min, max, step = 1, limit) => {
       if (limit === false)
         return false;
@@ -6352,11 +6351,11 @@ function requireUtils$4() {
         return false;
       return (Number(max) - Number(min)) / Number(step) >= limit;
     };
-    exports2.escapeNode = (block, n = 0, type) => {
+    exports2.escapeNode = (block, n = 0, type2) => {
       let node = block.nodes[n];
       if (!node)
         return;
-      if (type && node.type === type || node.type === "open" || node.type === "close") {
+      if (type2 && node.type === type2 || node.type === "open" || node.type === "close") {
         if (node.escaped !== true) {
           node.value = "\\" + node.value;
           node.escaped = true;
@@ -6663,8 +6662,8 @@ function requireToRegexRange() {
   function toCharacterClass(a, b, options) {
     return `[${a}${b - a === 1 ? "" : "-"}${b}]`;
   }
-  function hasPadding(str) {
-    return /^-?(0+)\d/.test(str);
+  function hasPadding(str2) {
+    return /^-?(0+)\d/.test(str2);
   }
   function padZeros(value, tok, options) {
     if (!tok.isPadded) {
@@ -7321,10 +7320,10 @@ function requireParse$2() {
           push({ type: "text", value });
           continue;
         }
-        let type = "close";
+        let type2 = "close";
         block = stack.pop();
         block.close = true;
-        push({ type, value });
+        push({ type: type2, value });
         depth--;
         block = stack[stack.length - 1];
         continue;
@@ -7675,12 +7674,12 @@ function requireUtils$3() {
       REGEX_SPECIAL_CHARS_GLOBAL
     } = requireConstants$1();
     exports2.isObject = (val) => val !== null && typeof val === "object" && !Array.isArray(val);
-    exports2.hasRegexChars = (str) => REGEX_SPECIAL_CHARS.test(str);
-    exports2.isRegexChar = (str) => str.length === 1 && exports2.hasRegexChars(str);
-    exports2.escapeRegex = (str) => str.replace(REGEX_SPECIAL_CHARS_GLOBAL, "\\$1");
-    exports2.toPosixSlashes = (str) => str.replace(REGEX_BACKSLASH, "/");
-    exports2.removeBackslashes = (str) => {
-      return str.replace(REGEX_REMOVE_BACKSLASH, (match) => {
+    exports2.hasRegexChars = (str2) => REGEX_SPECIAL_CHARS.test(str2);
+    exports2.isRegexChar = (str2) => str2.length === 1 && exports2.hasRegexChars(str2);
+    exports2.escapeRegex = (str2) => str2.replace(REGEX_SPECIAL_CHARS_GLOBAL, "\\$1");
+    exports2.toPosixSlashes = (str2) => str2.replace(REGEX_BACKSLASH, "/");
+    exports2.removeBackslashes = (str2) => {
+      return str2.replace(REGEX_REMOVE_BACKSLASH, (match) => {
         return match === "\\" ? "" : match;
       });
     };
@@ -7779,7 +7778,7 @@ function requireScan() {
     const slashes = [];
     const tokens = [];
     const parts = [];
-    let str = input;
+    let str2 = input;
     let index = -1;
     let start = 0;
     let lastIndex = 0;
@@ -7798,10 +7797,10 @@ function requireScan() {
     let code;
     let token = { value: "", depth: 0, isGlob: false };
     const eos = () => index >= length;
-    const peek = () => str.charCodeAt(index + 1);
+    const peek = () => str2.charCodeAt(index + 1);
     const advance = () => {
       prev = code;
-      return str.charCodeAt(++index);
+      return str2.charCodeAt(++index);
     };
     while (index < length) {
       code = advance();
@@ -7971,24 +7970,24 @@ function requireScan() {
       isExtglob2 = false;
       isGlob2 = false;
     }
-    let base = str;
+    let base = str2;
     let prefix = "";
     let glob = "";
     if (start > 0) {
-      prefix = str.slice(0, start);
-      str = str.slice(start);
+      prefix = str2.slice(0, start);
+      str2 = str2.slice(start);
       lastIndex -= start;
     }
     if (base && isGlob2 === true && lastIndex > 0) {
-      base = str.slice(0, lastIndex);
-      glob = str.slice(lastIndex);
+      base = str2.slice(0, lastIndex);
+      glob = str2.slice(lastIndex);
     } else if (isGlob2 === true) {
       base = "";
-      glob = str;
+      glob = str2;
     } else {
-      base = str;
+      base = str2;
     }
-    if (base && base !== "" && base !== "/" && base !== str) {
+    if (base && base !== "" && base !== "/" && base !== str2) {
       if (isPathSeparator(base.charCodeAt(base.length - 1))) {
         base = base.slice(0, -1);
       }
@@ -8087,8 +8086,8 @@ function requireParse$1() {
     }
     return value;
   };
-  const syntaxError = (type, char) => {
-    return `Missing ${type}: "${char}" - use "\\\\${char}" to match literal characters`;
+  const syntaxError = (type2, char) => {
+    return `Missing ${type2}: "${char}" - use "\\\\${char}" to match literal characters`;
   };
   const parse2 = (input, options) => {
     if (typeof input !== "string") {
@@ -8183,12 +8182,12 @@ function requireParse$1() {
       state.start++;
       return true;
     };
-    const increment = (type) => {
-      state[type]++;
-      stack.push(type);
+    const increment = (type2) => {
+      state[type2]++;
+      stack.push(type2);
     };
-    const decrement = (type) => {
-      state[type]--;
+    const decrement = (type2) => {
+      state[type2]--;
       stack.pop();
     };
     const push = (tok) => {
@@ -8217,14 +8216,14 @@ function requireParse$1() {
       tokens.push(tok);
       prev = tok;
     };
-    const extglobOpen = (type, value2) => {
+    const extglobOpen = (type2, value2) => {
       const token = { ...EXTGLOB_CHARS[value2], conditions: 1, inner: "" };
       token.prev = prev;
       token.parens = state.parens;
       token.output = state.output;
       const output2 = (opts.capture ? "(" : "") + token.open;
       increment("parens");
-      push({ type, value: value2, output: state.output ? "" : ONE_CHAR });
+      push({ type: type2, value: value2, output: state.output ? "" : ONE_CHAR });
       push({ type: "paren", extglob: true, value: advance(), output: output2 });
       extglobs.push(token);
     };
@@ -8802,8 +8801,8 @@ function requireParse$1() {
         return star;
       return `(${capture}(?:(?!${START_ANCHOR}${opts2.dot ? DOTS_SLASH : DOT_LITERAL}).)*?)`;
     };
-    const create = (str) => {
-      switch (str) {
+    const create = (str2) => {
+      switch (str2) {
         case "*":
           return `${nodot}${ONE_CHAR}${star}`;
         case ".*":
@@ -8821,7 +8820,7 @@ function requireParse$1() {
         case "**/.*":
           return `(?:${nodot}${globstar(opts)}${SLASH_LITERAL})?${DOT_LITERAL}${ONE_CHAR}${star}`;
         default: {
-          const match = /^(.*?)\.(\w+)$/.exec(str);
+          const match = /^(.*?)\.(\w+)$/.exec(str2);
           if (!match)
             return;
           const source2 = create(match[1]);
@@ -8856,9 +8855,9 @@ function requirePicomatch$1() {
   const picomatch2 = (glob, options, returnState = false) => {
     if (Array.isArray(glob)) {
       const fns = glob.map((input) => picomatch2(input, options, returnState));
-      const arrayMatcher = (str) => {
+      const arrayMatcher = (str2) => {
         for (const isMatch of fns) {
-          const state2 = isMatch(str);
+          const state2 = isMatch(str2);
           if (state2)
             return state2;
         }
@@ -8935,7 +8934,7 @@ function requirePicomatch$1() {
     const regex = glob instanceof RegExp ? glob : picomatch2.makeRe(glob, options);
     return regex.test(path2.basename(input));
   };
-  picomatch2.isMatch = (str, patterns, options) => picomatch2(patterns, options)(str);
+  picomatch2.isMatch = (str2, patterns, options) => picomatch2(patterns, options)(str2);
   picomatch2.parse = (pattern2, options) => {
     if (Array.isArray(pattern2))
       return pattern2.map((p) => picomatch2.parse(p, options));
@@ -9051,7 +9050,7 @@ function requireMicromatch() {
   };
   micromatch.match = micromatch;
   micromatch.matcher = (pattern2, options) => picomatch2(pattern2, options);
-  micromatch.isMatch = (str, patterns, options) => picomatch2(patterns, options)(str);
+  micromatch.isMatch = (str2, patterns, options) => picomatch2(patterns, options)(str2);
   micromatch.any = micromatch.isMatch;
   micromatch.not = (list, patterns, options = {}) => {
     patterns = [].concat(patterns).map(String);
@@ -9070,22 +9069,22 @@ function requireMicromatch() {
     }
     return [...result];
   };
-  micromatch.contains = (str, pattern2, options) => {
-    if (typeof str !== "string") {
-      throw new TypeError(`Expected a string: "${util2.inspect(str)}"`);
+  micromatch.contains = (str2, pattern2, options) => {
+    if (typeof str2 !== "string") {
+      throw new TypeError(`Expected a string: "${util2.inspect(str2)}"`);
     }
     if (Array.isArray(pattern2)) {
-      return pattern2.some((p) => micromatch.contains(str, p, options));
+      return pattern2.some((p) => micromatch.contains(str2, p, options));
     }
     if (typeof pattern2 === "string") {
-      if (isEmptyString(str) || isEmptyString(pattern2)) {
+      if (isEmptyString(str2) || isEmptyString(pattern2)) {
         return false;
       }
-      if (str.includes(pattern2) || str.startsWith("./") && str.slice(2).includes(pattern2)) {
+      if (str2.includes(pattern2) || str2.startsWith("./") && str2.slice(2).includes(pattern2)) {
         return true;
       }
     }
-    return micromatch.isMatch(str, pattern2, { ...options, contains: true });
+    return micromatch.isMatch(str2, pattern2, { ...options, contains: true });
   };
   micromatch.matchKeys = (obj, patterns, options) => {
     if (!utils2.isObject(obj)) {
@@ -9117,11 +9116,11 @@ function requireMicromatch() {
     }
     return true;
   };
-  micromatch.all = (str, patterns, options) => {
-    if (typeof str !== "string") {
-      throw new TypeError(`Expected a string: "${util2.inspect(str)}"`);
+  micromatch.all = (str2, patterns, options) => {
+    if (typeof str2 !== "string") {
+      throw new TypeError(`Expected a string: "${util2.inspect(str2)}"`);
     }
-    return [].concat(patterns).every((p) => picomatch2(p, options)(str));
+    return [].concat(patterns).every((p) => picomatch2(p, options)(str2));
   };
   micromatch.capture = (glob, input, options) => {
     let posix = utils2.isWindows(options);
@@ -9136,8 +9135,8 @@ function requireMicromatch() {
   micromatch.parse = (patterns, options) => {
     let res = [];
     for (let pattern2 of [].concat(patterns || [])) {
-      for (let str of braces(String(pattern2), options)) {
-        res.push(picomatch2.parse(str, options));
+      for (let str2 of braces(String(pattern2), options)) {
+        res.push(picomatch2.parse(str2, options));
       }
     }
     return res;
@@ -9315,7 +9314,7 @@ function requireStream$3() {
   Object.defineProperty(stream$3, "__esModule", { value: true });
   stream$3.merge = void 0;
   const merge2 = requireMerge2();
-  function merge(streams) {
+  function merge3(streams) {
     const mergedStream = merge2(streams);
     streams.forEach((stream2) => {
       stream2.once("error", (error2) => mergedStream.emit("error", error2));
@@ -9324,7 +9323,7 @@ function requireStream$3() {
     mergedStream.once("end", () => propagateCloseEventToSources(streams));
     return mergedStream;
   }
-  stream$3.merge = merge;
+  stream$3.merge = merge3;
   function propagateCloseEventToSources(streams) {
     streams.forEach((stream2) => stream2.emit("close"));
   }
@@ -9756,22 +9755,22 @@ function requireUtils$1() {
   utils$1.fs = fs2;
   return utils$1;
 }
-var common$1 = {};
-var hasRequiredCommon$1;
-function requireCommon$1() {
-  if (hasRequiredCommon$1)
-    return common$1;
-  hasRequiredCommon$1 = 1;
-  Object.defineProperty(common$1, "__esModule", { value: true });
-  common$1.joinPathSegments = void 0;
+var common$2 = {};
+var hasRequiredCommon$2;
+function requireCommon$2() {
+  if (hasRequiredCommon$2)
+    return common$2;
+  hasRequiredCommon$2 = 1;
+  Object.defineProperty(common$2, "__esModule", { value: true });
+  common$2.joinPathSegments = void 0;
   function joinPathSegments(a, b, separator) {
     if (a.endsWith(separator)) {
       return a + b;
     }
     return a + separator + b;
   }
-  common$1.joinPathSegments = joinPathSegments;
-  return common$1;
+  common$2.joinPathSegments = joinPathSegments;
+  return common$2;
 }
 var hasRequiredAsync$4;
 function requireAsync$4() {
@@ -9784,7 +9783,7 @@ function requireAsync$4() {
   const rpl = requireRunParallel();
   const constants_1 = requireConstants();
   const utils2 = requireUtils$1();
-  const common2 = requireCommon$1();
+  const common2 = requireCommon$2();
   function read(directory, settings2, callback) {
     if (!settings2.stats && constants_1.IS_SUPPORT_READDIR_WITH_FILE_TYPES) {
       readdirWithFileTypes(directory, settings2, callback);
@@ -9894,7 +9893,7 @@ function requireSync$4() {
   const fsStat2 = requireOut$3();
   const constants_1 = requireConstants();
   const utils2 = requireUtils$1();
-  const common2 = requireCommon$1();
+  const common2 = requireCommon$2();
   function read(directory, settings2) {
     if (!settings2.stats && constants_1.IS_SUPPORT_READDIR_WITH_FILE_TYPES) {
       return readdirWithFileTypes(directory, settings2);
@@ -10308,29 +10307,29 @@ function requireQueue() {
   queue.exports.promise = queueAsPromised;
   return queue.exports;
 }
-var common = {};
-var hasRequiredCommon;
-function requireCommon() {
-  if (hasRequiredCommon)
-    return common;
-  hasRequiredCommon = 1;
-  Object.defineProperty(common, "__esModule", { value: true });
-  common.joinPathSegments = common.replacePathSegmentSeparator = common.isAppliedFilter = common.isFatalError = void 0;
+var common$1 = {};
+var hasRequiredCommon$1;
+function requireCommon$1() {
+  if (hasRequiredCommon$1)
+    return common$1;
+  hasRequiredCommon$1 = 1;
+  Object.defineProperty(common$1, "__esModule", { value: true });
+  common$1.joinPathSegments = common$1.replacePathSegmentSeparator = common$1.isAppliedFilter = common$1.isFatalError = void 0;
   function isFatalError(settings2, error2) {
     if (settings2.errorFilter === null) {
       return true;
     }
     return !settings2.errorFilter(error2);
   }
-  common.isFatalError = isFatalError;
+  common$1.isFatalError = isFatalError;
   function isAppliedFilter(filter, value) {
     return filter === null || filter(value);
   }
-  common.isAppliedFilter = isAppliedFilter;
+  common$1.isAppliedFilter = isAppliedFilter;
   function replacePathSegmentSeparator(filepath, separator) {
     return filepath.split(/[/\\]/).join(separator);
   }
-  common.replacePathSegmentSeparator = replacePathSegmentSeparator;
+  common$1.replacePathSegmentSeparator = replacePathSegmentSeparator;
   function joinPathSegments(a, b, separator) {
     if (a === "") {
       return b;
@@ -10340,8 +10339,8 @@ function requireCommon() {
     }
     return a + separator + b;
   }
-  common.joinPathSegments = joinPathSegments;
-  return common;
+  common$1.joinPathSegments = joinPathSegments;
+  return common$1;
 }
 var reader$1 = {};
 var hasRequiredReader$1;
@@ -10350,7 +10349,7 @@ function requireReader$1() {
     return reader$1;
   hasRequiredReader$1 = 1;
   Object.defineProperty(reader$1, "__esModule", { value: true });
-  const common2 = requireCommon();
+  const common2 = requireCommon$1();
   class Reader {
     constructor(_root, _settings) {
       this._root = _root;
@@ -10370,7 +10369,7 @@ function requireAsync$3() {
   const events_1 = require$$4;
   const fsScandir = requireOut$2();
   const fastq = requireQueue();
-  const common2 = requireCommon();
+  const common2 = requireCommon$1();
   const reader_1 = requireReader$1();
   class AsyncReader extends reader_1.default {
     constructor(_root, _settings) {
@@ -10551,7 +10550,7 @@ function requireSync$3() {
   hasRequiredSync$3 = 1;
   Object.defineProperty(sync$2, "__esModule", { value: true });
   const fsScandir = requireOut$2();
-  const common2 = requireCommon();
+  const common2 = requireCommon$1();
   const reader_1 = requireReader$1();
   class SyncReader extends reader_1.default {
     constructor() {
@@ -11699,7 +11698,7 @@ function requireIgnore() {
       // Zero, one or several directories
       // should not use '*', or it will be replaced by the next replacer
       // Check if it is not the last `'/**'`
-      (_, index, str) => index + 6 < str.length ? "(?:\\/[^\\/]+)*" : "\\/.+"
+      (_, index, str2) => index + 6 < str2.length ? "(?:\\/[^\\/]+)*" : "\\/.+"
     ],
     // normal intermediate wildcards
     [
@@ -11952,7 +11951,7 @@ function requireIgnore() {
     // Detect `process` so that it can run in browsers.
     typeof process !== "undefined" && (process.env && process.env.IGNORE_TEST_WIN32 || process.platform === "win32")
   ) {
-    const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
+    const makePosix = (str2) => /^\\\\\?\\/.test(str2) || /["<>|\u0000-\u001F]+/u.test(str2) ? str2 : str2.replace(/\\/g, "/");
     checkPath.convert = makePosix;
     const REGIX_IS_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
     checkPath.isNotRelative = (path2) => REGIX_IS_WINDOWS_PATH_ABSOLUTE.test(path2) || isNotRelative(path2);
@@ -12337,6 +12336,2916 @@ function requireStripBom() {
   };
   return stripBom;
 }
+var jsYaml$1 = {};
+var loader = {};
+var common = {};
+var hasRequiredCommon;
+function requireCommon() {
+  if (hasRequiredCommon)
+    return common;
+  hasRequiredCommon = 1;
+  function isNothing(subject) {
+    return typeof subject === "undefined" || subject === null;
+  }
+  function isObject(subject) {
+    return typeof subject === "object" && subject !== null;
+  }
+  function toArray(sequence) {
+    if (Array.isArray(sequence))
+      return sequence;
+    else if (isNothing(sequence))
+      return [];
+    return [sequence];
+  }
+  function extend(target, source) {
+    var index, length, key, sourceKeys;
+    if (source) {
+      sourceKeys = Object.keys(source);
+      for (index = 0, length = sourceKeys.length; index < length; index += 1) {
+        key = sourceKeys[index];
+        target[key] = source[key];
+      }
+    }
+    return target;
+  }
+  function repeat(string2, count) {
+    var result = "", cycle;
+    for (cycle = 0; cycle < count; cycle += 1) {
+      result += string2;
+    }
+    return result;
+  }
+  function isNegativeZero(number) {
+    return number === 0 && Number.NEGATIVE_INFINITY === 1 / number;
+  }
+  common.isNothing = isNothing;
+  common.isObject = isObject;
+  common.toArray = toArray;
+  common.repeat = repeat;
+  common.isNegativeZero = isNegativeZero;
+  common.extend = extend;
+  return common;
+}
+var exception;
+var hasRequiredException;
+function requireException() {
+  if (hasRequiredException)
+    return exception;
+  hasRequiredException = 1;
+  function YAMLException(reason, mark2) {
+    Error.call(this);
+    this.name = "YAMLException";
+    this.reason = reason;
+    this.mark = mark2;
+    this.message = (this.reason || "(unknown reason)") + (this.mark ? " " + this.mark.toString() : "");
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = new Error().stack || "";
+    }
+  }
+  YAMLException.prototype = Object.create(Error.prototype);
+  YAMLException.prototype.constructor = YAMLException;
+  YAMLException.prototype.toString = function toString(compact) {
+    var result = this.name + ": ";
+    result += this.reason || "(unknown reason)";
+    if (!compact && this.mark) {
+      result += " " + this.mark.toString();
+    }
+    return result;
+  };
+  exception = YAMLException;
+  return exception;
+}
+var mark;
+var hasRequiredMark;
+function requireMark() {
+  if (hasRequiredMark)
+    return mark;
+  hasRequiredMark = 1;
+  var common2 = requireCommon();
+  function Mark(name, buffer2, position, line, column) {
+    this.name = name;
+    this.buffer = buffer2;
+    this.position = position;
+    this.line = line;
+    this.column = column;
+  }
+  Mark.prototype.getSnippet = function getSnippet(indent, maxLength) {
+    var head, start, tail, end, snippet;
+    if (!this.buffer)
+      return null;
+    indent = indent || 4;
+    maxLength = maxLength || 75;
+    head = "";
+    start = this.position;
+    while (start > 0 && "\0\r\n\u2028\u2029".indexOf(this.buffer.charAt(start - 1)) === -1) {
+      start -= 1;
+      if (this.position - start > maxLength / 2 - 1) {
+        head = " ... ";
+        start += 5;
+        break;
+      }
+    }
+    tail = "";
+    end = this.position;
+    while (end < this.buffer.length && "\0\r\n\u2028\u2029".indexOf(this.buffer.charAt(end)) === -1) {
+      end += 1;
+      if (end - this.position > maxLength / 2 - 1) {
+        tail = " ... ";
+        end -= 5;
+        break;
+      }
+    }
+    snippet = this.buffer.slice(start, end);
+    return common2.repeat(" ", indent) + head + snippet + tail + "\n" + common2.repeat(" ", indent + this.position - start + head.length) + "^";
+  };
+  Mark.prototype.toString = function toString(compact) {
+    var snippet, where = "";
+    if (this.name) {
+      where += 'in "' + this.name + '" ';
+    }
+    where += "at line " + (this.line + 1) + ", column " + (this.column + 1);
+    if (!compact) {
+      snippet = this.getSnippet();
+      if (snippet) {
+        where += ":\n" + snippet;
+      }
+    }
+    return where;
+  };
+  mark = Mark;
+  return mark;
+}
+var type;
+var hasRequiredType;
+function requireType() {
+  if (hasRequiredType)
+    return type;
+  hasRequiredType = 1;
+  var YAMLException = requireException();
+  var TYPE_CONSTRUCTOR_OPTIONS = [
+    "kind",
+    "resolve",
+    "construct",
+    "instanceOf",
+    "predicate",
+    "represent",
+    "defaultStyle",
+    "styleAliases"
+  ];
+  var YAML_NODE_KINDS = [
+    "scalar",
+    "sequence",
+    "mapping"
+  ];
+  function compileStyleAliases(map2) {
+    var result = {};
+    if (map2 !== null) {
+      Object.keys(map2).forEach(function(style) {
+        map2[style].forEach(function(alias) {
+          result[String(alias)] = style;
+        });
+      });
+    }
+    return result;
+  }
+  function Type(tag, options) {
+    options = options || {};
+    Object.keys(options).forEach(function(name) {
+      if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
+        throw new YAMLException('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
+      }
+    });
+    this.tag = tag;
+    this.kind = options["kind"] || null;
+    this.resolve = options["resolve"] || function() {
+      return true;
+    };
+    this.construct = options["construct"] || function(data) {
+      return data;
+    };
+    this.instanceOf = options["instanceOf"] || null;
+    this.predicate = options["predicate"] || null;
+    this.represent = options["represent"] || null;
+    this.defaultStyle = options["defaultStyle"] || null;
+    this.styleAliases = compileStyleAliases(options["styleAliases"] || null);
+    if (YAML_NODE_KINDS.indexOf(this.kind) === -1) {
+      throw new YAMLException('Unknown kind "' + this.kind + '" is specified for "' + tag + '" YAML type.');
+    }
+  }
+  type = Type;
+  return type;
+}
+var schema;
+var hasRequiredSchema;
+function requireSchema() {
+  if (hasRequiredSchema)
+    return schema;
+  hasRequiredSchema = 1;
+  var common2 = requireCommon();
+  var YAMLException = requireException();
+  var Type = requireType();
+  function compileList(schema2, name, result) {
+    var exclude = [];
+    schema2.include.forEach(function(includedSchema) {
+      result = compileList(includedSchema, name, result);
+    });
+    schema2[name].forEach(function(currentType) {
+      result.forEach(function(previousType, previousIndex) {
+        if (previousType.tag === currentType.tag && previousType.kind === currentType.kind) {
+          exclude.push(previousIndex);
+        }
+      });
+      result.push(currentType);
+    });
+    return result.filter(function(type2, index) {
+      return exclude.indexOf(index) === -1;
+    });
+  }
+  function compileMap() {
+    var result = {
+      scalar: {},
+      sequence: {},
+      mapping: {},
+      fallback: {}
+    }, index, length;
+    function collectType(type2) {
+      result[type2.kind][type2.tag] = result["fallback"][type2.tag] = type2;
+    }
+    for (index = 0, length = arguments.length; index < length; index += 1) {
+      arguments[index].forEach(collectType);
+    }
+    return result;
+  }
+  function Schema(definition) {
+    this.include = definition.include || [];
+    this.implicit = definition.implicit || [];
+    this.explicit = definition.explicit || [];
+    this.implicit.forEach(function(type2) {
+      if (type2.loadKind && type2.loadKind !== "scalar") {
+        throw new YAMLException("There is a non-scalar type in the implicit list of a schema. Implicit resolving of such types is not supported.");
+      }
+    });
+    this.compiledImplicit = compileList(this, "implicit", []);
+    this.compiledExplicit = compileList(this, "explicit", []);
+    this.compiledTypeMap = compileMap(this.compiledImplicit, this.compiledExplicit);
+  }
+  Schema.DEFAULT = null;
+  Schema.create = function createSchema() {
+    var schemas, types;
+    switch (arguments.length) {
+      case 1:
+        schemas = Schema.DEFAULT;
+        types = arguments[0];
+        break;
+      case 2:
+        schemas = arguments[0];
+        types = arguments[1];
+        break;
+      default:
+        throw new YAMLException("Wrong number of arguments for Schema.create function");
+    }
+    schemas = common2.toArray(schemas);
+    types = common2.toArray(types);
+    if (!schemas.every(function(schema2) {
+      return schema2 instanceof Schema;
+    })) {
+      throw new YAMLException("Specified list of super schemas (or a single Schema object) contains a non-Schema object.");
+    }
+    if (!types.every(function(type2) {
+      return type2 instanceof Type;
+    })) {
+      throw new YAMLException("Specified list of YAML types (or a single Type object) contains a non-Type object.");
+    }
+    return new Schema({
+      include: schemas,
+      explicit: types
+    });
+  };
+  schema = Schema;
+  return schema;
+}
+var str;
+var hasRequiredStr;
+function requireStr() {
+  if (hasRequiredStr)
+    return str;
+  hasRequiredStr = 1;
+  var Type = requireType();
+  str = new Type("tag:yaml.org,2002:str", {
+    kind: "scalar",
+    construct: function(data) {
+      return data !== null ? data : "";
+    }
+  });
+  return str;
+}
+var seq;
+var hasRequiredSeq;
+function requireSeq() {
+  if (hasRequiredSeq)
+    return seq;
+  hasRequiredSeq = 1;
+  var Type = requireType();
+  seq = new Type("tag:yaml.org,2002:seq", {
+    kind: "sequence",
+    construct: function(data) {
+      return data !== null ? data : [];
+    }
+  });
+  return seq;
+}
+var map;
+var hasRequiredMap;
+function requireMap() {
+  if (hasRequiredMap)
+    return map;
+  hasRequiredMap = 1;
+  var Type = requireType();
+  map = new Type("tag:yaml.org,2002:map", {
+    kind: "mapping",
+    construct: function(data) {
+      return data !== null ? data : {};
+    }
+  });
+  return map;
+}
+var failsafe;
+var hasRequiredFailsafe;
+function requireFailsafe() {
+  if (hasRequiredFailsafe)
+    return failsafe;
+  hasRequiredFailsafe = 1;
+  var Schema = requireSchema();
+  failsafe = new Schema({
+    explicit: [
+      requireStr(),
+      requireSeq(),
+      requireMap()
+    ]
+  });
+  return failsafe;
+}
+var _null;
+var hasRequired_null;
+function require_null() {
+  if (hasRequired_null)
+    return _null;
+  hasRequired_null = 1;
+  var Type = requireType();
+  function resolveYamlNull(data) {
+    if (data === null)
+      return true;
+    var max = data.length;
+    return max === 1 && data === "~" || max === 4 && (data === "null" || data === "Null" || data === "NULL");
+  }
+  function constructYamlNull() {
+    return null;
+  }
+  function isNull(object) {
+    return object === null;
+  }
+  _null = new Type("tag:yaml.org,2002:null", {
+    kind: "scalar",
+    resolve: resolveYamlNull,
+    construct: constructYamlNull,
+    predicate: isNull,
+    represent: {
+      canonical: function() {
+        return "~";
+      },
+      lowercase: function() {
+        return "null";
+      },
+      uppercase: function() {
+        return "NULL";
+      },
+      camelcase: function() {
+        return "Null";
+      }
+    },
+    defaultStyle: "lowercase"
+  });
+  return _null;
+}
+var bool;
+var hasRequiredBool;
+function requireBool() {
+  if (hasRequiredBool)
+    return bool;
+  hasRequiredBool = 1;
+  var Type = requireType();
+  function resolveYamlBoolean(data) {
+    if (data === null)
+      return false;
+    var max = data.length;
+    return max === 4 && (data === "true" || data === "True" || data === "TRUE") || max === 5 && (data === "false" || data === "False" || data === "FALSE");
+  }
+  function constructYamlBoolean(data) {
+    return data === "true" || data === "True" || data === "TRUE";
+  }
+  function isBoolean(object) {
+    return Object.prototype.toString.call(object) === "[object Boolean]";
+  }
+  bool = new Type("tag:yaml.org,2002:bool", {
+    kind: "scalar",
+    resolve: resolveYamlBoolean,
+    construct: constructYamlBoolean,
+    predicate: isBoolean,
+    represent: {
+      lowercase: function(object) {
+        return object ? "true" : "false";
+      },
+      uppercase: function(object) {
+        return object ? "TRUE" : "FALSE";
+      },
+      camelcase: function(object) {
+        return object ? "True" : "False";
+      }
+    },
+    defaultStyle: "lowercase"
+  });
+  return bool;
+}
+var int;
+var hasRequiredInt;
+function requireInt() {
+  if (hasRequiredInt)
+    return int;
+  hasRequiredInt = 1;
+  var common2 = requireCommon();
+  var Type = requireType();
+  function isHexCode(c) {
+    return 48 <= c && c <= 57 || 65 <= c && c <= 70 || 97 <= c && c <= 102;
+  }
+  function isOctCode(c) {
+    return 48 <= c && c <= 55;
+  }
+  function isDecCode(c) {
+    return 48 <= c && c <= 57;
+  }
+  function resolveYamlInteger(data) {
+    if (data === null)
+      return false;
+    var max = data.length, index = 0, hasDigits = false, ch;
+    if (!max)
+      return false;
+    ch = data[index];
+    if (ch === "-" || ch === "+") {
+      ch = data[++index];
+    }
+    if (ch === "0") {
+      if (index + 1 === max)
+        return true;
+      ch = data[++index];
+      if (ch === "b") {
+        index++;
+        for (; index < max; index++) {
+          ch = data[index];
+          if (ch === "_")
+            continue;
+          if (ch !== "0" && ch !== "1")
+            return false;
+          hasDigits = true;
+        }
+        return hasDigits && ch !== "_";
+      }
+      if (ch === "x") {
+        index++;
+        for (; index < max; index++) {
+          ch = data[index];
+          if (ch === "_")
+            continue;
+          if (!isHexCode(data.charCodeAt(index)))
+            return false;
+          hasDigits = true;
+        }
+        return hasDigits && ch !== "_";
+      }
+      for (; index < max; index++) {
+        ch = data[index];
+        if (ch === "_")
+          continue;
+        if (!isOctCode(data.charCodeAt(index)))
+          return false;
+        hasDigits = true;
+      }
+      return hasDigits && ch !== "_";
+    }
+    if (ch === "_")
+      return false;
+    for (; index < max; index++) {
+      ch = data[index];
+      if (ch === "_")
+        continue;
+      if (ch === ":")
+        break;
+      if (!isDecCode(data.charCodeAt(index))) {
+        return false;
+      }
+      hasDigits = true;
+    }
+    if (!hasDigits || ch === "_")
+      return false;
+    if (ch !== ":")
+      return true;
+    return /^(:[0-5]?[0-9])+$/.test(data.slice(index));
+  }
+  function constructYamlInteger(data) {
+    var value = data, sign = 1, ch, base, digits = [];
+    if (value.indexOf("_") !== -1) {
+      value = value.replace(/_/g, "");
+    }
+    ch = value[0];
+    if (ch === "-" || ch === "+") {
+      if (ch === "-")
+        sign = -1;
+      value = value.slice(1);
+      ch = value[0];
+    }
+    if (value === "0")
+      return 0;
+    if (ch === "0") {
+      if (value[1] === "b")
+        return sign * parseInt(value.slice(2), 2);
+      if (value[1] === "x")
+        return sign * parseInt(value, 16);
+      return sign * parseInt(value, 8);
+    }
+    if (value.indexOf(":") !== -1) {
+      value.split(":").forEach(function(v) {
+        digits.unshift(parseInt(v, 10));
+      });
+      value = 0;
+      base = 1;
+      digits.forEach(function(d) {
+        value += d * base;
+        base *= 60;
+      });
+      return sign * value;
+    }
+    return sign * parseInt(value, 10);
+  }
+  function isInteger(object) {
+    return Object.prototype.toString.call(object) === "[object Number]" && (object % 1 === 0 && !common2.isNegativeZero(object));
+  }
+  int = new Type("tag:yaml.org,2002:int", {
+    kind: "scalar",
+    resolve: resolveYamlInteger,
+    construct: constructYamlInteger,
+    predicate: isInteger,
+    represent: {
+      binary: function(obj) {
+        return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
+      },
+      octal: function(obj) {
+        return obj >= 0 ? "0" + obj.toString(8) : "-0" + obj.toString(8).slice(1);
+      },
+      decimal: function(obj) {
+        return obj.toString(10);
+      },
+      /* eslint-disable max-len */
+      hexadecimal: function(obj) {
+        return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
+      }
+    },
+    defaultStyle: "decimal",
+    styleAliases: {
+      binary: [2, "bin"],
+      octal: [8, "oct"],
+      decimal: [10, "dec"],
+      hexadecimal: [16, "hex"]
+    }
+  });
+  return int;
+}
+var float;
+var hasRequiredFloat;
+function requireFloat() {
+  if (hasRequiredFloat)
+    return float;
+  hasRequiredFloat = 1;
+  var common2 = requireCommon();
+  var Type = requireType();
+  var YAML_FLOAT_PATTERN = new RegExp(
+    // 2.5e4, 2.5 and integers
+    "^(?:[-+]?(?:0|[1-9][0-9_]*)(?:\\.[0-9_]*)?(?:[eE][-+]?[0-9]+)?|\\.[0-9_]+(?:[eE][-+]?[0-9]+)?|[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*|[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$"
+  );
+  function resolveYamlFloat(data) {
+    if (data === null)
+      return false;
+    if (!YAML_FLOAT_PATTERN.test(data) || // Quick hack to not allow integers end with `_`
+    // Probably should update regexp & check speed
+    data[data.length - 1] === "_") {
+      return false;
+    }
+    return true;
+  }
+  function constructYamlFloat(data) {
+    var value, sign, base, digits;
+    value = data.replace(/_/g, "").toLowerCase();
+    sign = value[0] === "-" ? -1 : 1;
+    digits = [];
+    if ("+-".indexOf(value[0]) >= 0) {
+      value = value.slice(1);
+    }
+    if (value === ".inf") {
+      return sign === 1 ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+    } else if (value === ".nan") {
+      return NaN;
+    } else if (value.indexOf(":") >= 0) {
+      value.split(":").forEach(function(v) {
+        digits.unshift(parseFloat(v, 10));
+      });
+      value = 0;
+      base = 1;
+      digits.forEach(function(d) {
+        value += d * base;
+        base *= 60;
+      });
+      return sign * value;
+    }
+    return sign * parseFloat(value, 10);
+  }
+  var SCIENTIFIC_WITHOUT_DOT = /^[-+]?[0-9]+e/;
+  function representYamlFloat(object, style) {
+    var res;
+    if (isNaN(object)) {
+      switch (style) {
+        case "lowercase":
+          return ".nan";
+        case "uppercase":
+          return ".NAN";
+        case "camelcase":
+          return ".NaN";
+      }
+    } else if (Number.POSITIVE_INFINITY === object) {
+      switch (style) {
+        case "lowercase":
+          return ".inf";
+        case "uppercase":
+          return ".INF";
+        case "camelcase":
+          return ".Inf";
+      }
+    } else if (Number.NEGATIVE_INFINITY === object) {
+      switch (style) {
+        case "lowercase":
+          return "-.inf";
+        case "uppercase":
+          return "-.INF";
+        case "camelcase":
+          return "-.Inf";
+      }
+    } else if (common2.isNegativeZero(object)) {
+      return "-0.0";
+    }
+    res = object.toString(10);
+    return SCIENTIFIC_WITHOUT_DOT.test(res) ? res.replace("e", ".e") : res;
+  }
+  function isFloat(object) {
+    return Object.prototype.toString.call(object) === "[object Number]" && (object % 1 !== 0 || common2.isNegativeZero(object));
+  }
+  float = new Type("tag:yaml.org,2002:float", {
+    kind: "scalar",
+    resolve: resolveYamlFloat,
+    construct: constructYamlFloat,
+    predicate: isFloat,
+    represent: representYamlFloat,
+    defaultStyle: "lowercase"
+  });
+  return float;
+}
+var json;
+var hasRequiredJson;
+function requireJson() {
+  if (hasRequiredJson)
+    return json;
+  hasRequiredJson = 1;
+  var Schema = requireSchema();
+  json = new Schema({
+    include: [
+      requireFailsafe()
+    ],
+    implicit: [
+      require_null(),
+      requireBool(),
+      requireInt(),
+      requireFloat()
+    ]
+  });
+  return json;
+}
+var core;
+var hasRequiredCore;
+function requireCore() {
+  if (hasRequiredCore)
+    return core;
+  hasRequiredCore = 1;
+  var Schema = requireSchema();
+  core = new Schema({
+    include: [
+      requireJson()
+    ]
+  });
+  return core;
+}
+var timestamp;
+var hasRequiredTimestamp;
+function requireTimestamp() {
+  if (hasRequiredTimestamp)
+    return timestamp;
+  hasRequiredTimestamp = 1;
+  var Type = requireType();
+  var YAML_DATE_REGEXP = new RegExp(
+    "^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$"
+  );
+  var YAML_TIMESTAMP_REGEXP = new RegExp(
+    "^([0-9][0-9][0-9][0-9])-([0-9][0-9]?)-([0-9][0-9]?)(?:[Tt]|[ \\t]+)([0-9][0-9]?):([0-9][0-9]):([0-9][0-9])(?:\\.([0-9]*))?(?:[ \\t]*(Z|([-+])([0-9][0-9]?)(?::([0-9][0-9]))?))?$"
+  );
+  function resolveYamlTimestamp(data) {
+    if (data === null)
+      return false;
+    if (YAML_DATE_REGEXP.exec(data) !== null)
+      return true;
+    if (YAML_TIMESTAMP_REGEXP.exec(data) !== null)
+      return true;
+    return false;
+  }
+  function constructYamlTimestamp(data) {
+    var match, year, month, day, hour, minute, second, fraction = 0, delta = null, tz_hour, tz_minute, date;
+    match = YAML_DATE_REGEXP.exec(data);
+    if (match === null)
+      match = YAML_TIMESTAMP_REGEXP.exec(data);
+    if (match === null)
+      throw new Error("Date resolve error");
+    year = +match[1];
+    month = +match[2] - 1;
+    day = +match[3];
+    if (!match[4]) {
+      return new Date(Date.UTC(year, month, day));
+    }
+    hour = +match[4];
+    minute = +match[5];
+    second = +match[6];
+    if (match[7]) {
+      fraction = match[7].slice(0, 3);
+      while (fraction.length < 3) {
+        fraction += "0";
+      }
+      fraction = +fraction;
+    }
+    if (match[9]) {
+      tz_hour = +match[10];
+      tz_minute = +(match[11] || 0);
+      delta = (tz_hour * 60 + tz_minute) * 6e4;
+      if (match[9] === "-")
+        delta = -delta;
+    }
+    date = new Date(Date.UTC(year, month, day, hour, minute, second, fraction));
+    if (delta)
+      date.setTime(date.getTime() - delta);
+    return date;
+  }
+  function representYamlTimestamp(object) {
+    return object.toISOString();
+  }
+  timestamp = new Type("tag:yaml.org,2002:timestamp", {
+    kind: "scalar",
+    resolve: resolveYamlTimestamp,
+    construct: constructYamlTimestamp,
+    instanceOf: Date,
+    represent: representYamlTimestamp
+  });
+  return timestamp;
+}
+var merge;
+var hasRequiredMerge;
+function requireMerge() {
+  if (hasRequiredMerge)
+    return merge;
+  hasRequiredMerge = 1;
+  var Type = requireType();
+  function resolveYamlMerge(data) {
+    return data === "<<" || data === null;
+  }
+  merge = new Type("tag:yaml.org,2002:merge", {
+    kind: "scalar",
+    resolve: resolveYamlMerge
+  });
+  return merge;
+}
+function commonjsRequire(path2) {
+  throw new Error('Could not dynamically require "' + path2 + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
+}
+var binary;
+var hasRequiredBinary;
+function requireBinary() {
+  if (hasRequiredBinary)
+    return binary;
+  hasRequiredBinary = 1;
+  var NodeBuffer;
+  try {
+    var _require = commonjsRequire;
+    NodeBuffer = _require("buffer").Buffer;
+  } catch (__) {
+  }
+  var Type = requireType();
+  var BASE64_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r";
+  function resolveYamlBinary(data) {
+    if (data === null)
+      return false;
+    var code, idx, bitlen = 0, max = data.length, map2 = BASE64_MAP;
+    for (idx = 0; idx < max; idx++) {
+      code = map2.indexOf(data.charAt(idx));
+      if (code > 64)
+        continue;
+      if (code < 0)
+        return false;
+      bitlen += 6;
+    }
+    return bitlen % 8 === 0;
+  }
+  function constructYamlBinary(data) {
+    var idx, tailbits, input = data.replace(/[\r\n=]/g, ""), max = input.length, map2 = BASE64_MAP, bits = 0, result = [];
+    for (idx = 0; idx < max; idx++) {
+      if (idx % 4 === 0 && idx) {
+        result.push(bits >> 16 & 255);
+        result.push(bits >> 8 & 255);
+        result.push(bits & 255);
+      }
+      bits = bits << 6 | map2.indexOf(input.charAt(idx));
+    }
+    tailbits = max % 4 * 6;
+    if (tailbits === 0) {
+      result.push(bits >> 16 & 255);
+      result.push(bits >> 8 & 255);
+      result.push(bits & 255);
+    } else if (tailbits === 18) {
+      result.push(bits >> 10 & 255);
+      result.push(bits >> 2 & 255);
+    } else if (tailbits === 12) {
+      result.push(bits >> 4 & 255);
+    }
+    if (NodeBuffer) {
+      return NodeBuffer.from ? NodeBuffer.from(result) : new NodeBuffer(result);
+    }
+    return result;
+  }
+  function representYamlBinary(object) {
+    var result = "", bits = 0, idx, tail, max = object.length, map2 = BASE64_MAP;
+    for (idx = 0; idx < max; idx++) {
+      if (idx % 3 === 0 && idx) {
+        result += map2[bits >> 18 & 63];
+        result += map2[bits >> 12 & 63];
+        result += map2[bits >> 6 & 63];
+        result += map2[bits & 63];
+      }
+      bits = (bits << 8) + object[idx];
+    }
+    tail = max % 3;
+    if (tail === 0) {
+      result += map2[bits >> 18 & 63];
+      result += map2[bits >> 12 & 63];
+      result += map2[bits >> 6 & 63];
+      result += map2[bits & 63];
+    } else if (tail === 2) {
+      result += map2[bits >> 10 & 63];
+      result += map2[bits >> 4 & 63];
+      result += map2[bits << 2 & 63];
+      result += map2[64];
+    } else if (tail === 1) {
+      result += map2[bits >> 2 & 63];
+      result += map2[bits << 4 & 63];
+      result += map2[64];
+      result += map2[64];
+    }
+    return result;
+  }
+  function isBinary(object) {
+    return NodeBuffer && NodeBuffer.isBuffer(object);
+  }
+  binary = new Type("tag:yaml.org,2002:binary", {
+    kind: "scalar",
+    resolve: resolveYamlBinary,
+    construct: constructYamlBinary,
+    predicate: isBinary,
+    represent: representYamlBinary
+  });
+  return binary;
+}
+var omap;
+var hasRequiredOmap;
+function requireOmap() {
+  if (hasRequiredOmap)
+    return omap;
+  hasRequiredOmap = 1;
+  var Type = requireType();
+  var _hasOwnProperty = Object.prototype.hasOwnProperty;
+  var _toString = Object.prototype.toString;
+  function resolveYamlOmap(data) {
+    if (data === null)
+      return true;
+    var objectKeys = [], index, length, pair, pairKey, pairHasKey, object = data;
+    for (index = 0, length = object.length; index < length; index += 1) {
+      pair = object[index];
+      pairHasKey = false;
+      if (_toString.call(pair) !== "[object Object]")
+        return false;
+      for (pairKey in pair) {
+        if (_hasOwnProperty.call(pair, pairKey)) {
+          if (!pairHasKey)
+            pairHasKey = true;
+          else
+            return false;
+        }
+      }
+      if (!pairHasKey)
+        return false;
+      if (objectKeys.indexOf(pairKey) === -1)
+        objectKeys.push(pairKey);
+      else
+        return false;
+    }
+    return true;
+  }
+  function constructYamlOmap(data) {
+    return data !== null ? data : [];
+  }
+  omap = new Type("tag:yaml.org,2002:omap", {
+    kind: "sequence",
+    resolve: resolveYamlOmap,
+    construct: constructYamlOmap
+  });
+  return omap;
+}
+var pairs;
+var hasRequiredPairs;
+function requirePairs() {
+  if (hasRequiredPairs)
+    return pairs;
+  hasRequiredPairs = 1;
+  var Type = requireType();
+  var _toString = Object.prototype.toString;
+  function resolveYamlPairs(data) {
+    if (data === null)
+      return true;
+    var index, length, pair, keys, result, object = data;
+    result = new Array(object.length);
+    for (index = 0, length = object.length; index < length; index += 1) {
+      pair = object[index];
+      if (_toString.call(pair) !== "[object Object]")
+        return false;
+      keys = Object.keys(pair);
+      if (keys.length !== 1)
+        return false;
+      result[index] = [keys[0], pair[keys[0]]];
+    }
+    return true;
+  }
+  function constructYamlPairs(data) {
+    if (data === null)
+      return [];
+    var index, length, pair, keys, result, object = data;
+    result = new Array(object.length);
+    for (index = 0, length = object.length; index < length; index += 1) {
+      pair = object[index];
+      keys = Object.keys(pair);
+      result[index] = [keys[0], pair[keys[0]]];
+    }
+    return result;
+  }
+  pairs = new Type("tag:yaml.org,2002:pairs", {
+    kind: "sequence",
+    resolve: resolveYamlPairs,
+    construct: constructYamlPairs
+  });
+  return pairs;
+}
+var set;
+var hasRequiredSet;
+function requireSet() {
+  if (hasRequiredSet)
+    return set;
+  hasRequiredSet = 1;
+  var Type = requireType();
+  var _hasOwnProperty = Object.prototype.hasOwnProperty;
+  function resolveYamlSet(data) {
+    if (data === null)
+      return true;
+    var key, object = data;
+    for (key in object) {
+      if (_hasOwnProperty.call(object, key)) {
+        if (object[key] !== null)
+          return false;
+      }
+    }
+    return true;
+  }
+  function constructYamlSet(data) {
+    return data !== null ? data : {};
+  }
+  set = new Type("tag:yaml.org,2002:set", {
+    kind: "mapping",
+    resolve: resolveYamlSet,
+    construct: constructYamlSet
+  });
+  return set;
+}
+var default_safe;
+var hasRequiredDefault_safe;
+function requireDefault_safe() {
+  if (hasRequiredDefault_safe)
+    return default_safe;
+  hasRequiredDefault_safe = 1;
+  var Schema = requireSchema();
+  default_safe = new Schema({
+    include: [
+      requireCore()
+    ],
+    implicit: [
+      requireTimestamp(),
+      requireMerge()
+    ],
+    explicit: [
+      requireBinary(),
+      requireOmap(),
+      requirePairs(),
+      requireSet()
+    ]
+  });
+  return default_safe;
+}
+var _undefined;
+var hasRequired_undefined;
+function require_undefined() {
+  if (hasRequired_undefined)
+    return _undefined;
+  hasRequired_undefined = 1;
+  var Type = requireType();
+  function resolveJavascriptUndefined() {
+    return true;
+  }
+  function constructJavascriptUndefined() {
+    return void 0;
+  }
+  function representJavascriptUndefined() {
+    return "";
+  }
+  function isUndefined(object) {
+    return typeof object === "undefined";
+  }
+  _undefined = new Type("tag:yaml.org,2002:js/undefined", {
+    kind: "scalar",
+    resolve: resolveJavascriptUndefined,
+    construct: constructJavascriptUndefined,
+    predicate: isUndefined,
+    represent: representJavascriptUndefined
+  });
+  return _undefined;
+}
+var regexp;
+var hasRequiredRegexp;
+function requireRegexp() {
+  if (hasRequiredRegexp)
+    return regexp;
+  hasRequiredRegexp = 1;
+  var Type = requireType();
+  function resolveJavascriptRegExp(data) {
+    if (data === null)
+      return false;
+    if (data.length === 0)
+      return false;
+    var regexp2 = data, tail = /\/([gim]*)$/.exec(data), modifiers = "";
+    if (regexp2[0] === "/") {
+      if (tail)
+        modifiers = tail[1];
+      if (modifiers.length > 3)
+        return false;
+      if (regexp2[regexp2.length - modifiers.length - 1] !== "/")
+        return false;
+    }
+    return true;
+  }
+  function constructJavascriptRegExp(data) {
+    var regexp2 = data, tail = /\/([gim]*)$/.exec(data), modifiers = "";
+    if (regexp2[0] === "/") {
+      if (tail)
+        modifiers = tail[1];
+      regexp2 = regexp2.slice(1, regexp2.length - modifiers.length - 1);
+    }
+    return new RegExp(regexp2, modifiers);
+  }
+  function representJavascriptRegExp(object) {
+    var result = "/" + object.source + "/";
+    if (object.global)
+      result += "g";
+    if (object.multiline)
+      result += "m";
+    if (object.ignoreCase)
+      result += "i";
+    return result;
+  }
+  function isRegExp(object) {
+    return Object.prototype.toString.call(object) === "[object RegExp]";
+  }
+  regexp = new Type("tag:yaml.org,2002:js/regexp", {
+    kind: "scalar",
+    resolve: resolveJavascriptRegExp,
+    construct: constructJavascriptRegExp,
+    predicate: isRegExp,
+    represent: representJavascriptRegExp
+  });
+  return regexp;
+}
+var _function;
+var hasRequired_function;
+function require_function() {
+  if (hasRequired_function)
+    return _function;
+  hasRequired_function = 1;
+  var esprima;
+  try {
+    var _require = commonjsRequire;
+    esprima = _require("esprima");
+  } catch (_) {
+    if (typeof window !== "undefined")
+      esprima = window.esprima;
+  }
+  var Type = requireType();
+  function resolveJavascriptFunction(data) {
+    if (data === null)
+      return false;
+    try {
+      var source = "(" + data + ")", ast = esprima.parse(source, { range: true });
+      if (ast.type !== "Program" || ast.body.length !== 1 || ast.body[0].type !== "ExpressionStatement" || ast.body[0].expression.type !== "ArrowFunctionExpression" && ast.body[0].expression.type !== "FunctionExpression") {
+        return false;
+      }
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  function constructJavascriptFunction(data) {
+    var source = "(" + data + ")", ast = esprima.parse(source, { range: true }), params = [], body;
+    if (ast.type !== "Program" || ast.body.length !== 1 || ast.body[0].type !== "ExpressionStatement" || ast.body[0].expression.type !== "ArrowFunctionExpression" && ast.body[0].expression.type !== "FunctionExpression") {
+      throw new Error("Failed to resolve function");
+    }
+    ast.body[0].expression.params.forEach(function(param) {
+      params.push(param.name);
+    });
+    body = ast.body[0].expression.body.range;
+    if (ast.body[0].expression.body.type === "BlockStatement") {
+      return new Function(params, source.slice(body[0] + 1, body[1] - 1));
+    }
+    return new Function(params, "return " + source.slice(body[0], body[1]));
+  }
+  function representJavascriptFunction(object) {
+    return object.toString();
+  }
+  function isFunction(object) {
+    return Object.prototype.toString.call(object) === "[object Function]";
+  }
+  _function = new Type("tag:yaml.org,2002:js/function", {
+    kind: "scalar",
+    resolve: resolveJavascriptFunction,
+    construct: constructJavascriptFunction,
+    predicate: isFunction,
+    represent: representJavascriptFunction
+  });
+  return _function;
+}
+var default_full;
+var hasRequiredDefault_full;
+function requireDefault_full() {
+  if (hasRequiredDefault_full)
+    return default_full;
+  hasRequiredDefault_full = 1;
+  var Schema = requireSchema();
+  default_full = Schema.DEFAULT = new Schema({
+    include: [
+      requireDefault_safe()
+    ],
+    explicit: [
+      require_undefined(),
+      requireRegexp(),
+      require_function()
+    ]
+  });
+  return default_full;
+}
+var hasRequiredLoader;
+function requireLoader() {
+  if (hasRequiredLoader)
+    return loader;
+  hasRequiredLoader = 1;
+  var common2 = requireCommon();
+  var YAMLException = requireException();
+  var Mark = requireMark();
+  var DEFAULT_SAFE_SCHEMA = requireDefault_safe();
+  var DEFAULT_FULL_SCHEMA = requireDefault_full();
+  var _hasOwnProperty = Object.prototype.hasOwnProperty;
+  var CONTEXT_FLOW_IN = 1;
+  var CONTEXT_FLOW_OUT = 2;
+  var CONTEXT_BLOCK_IN = 3;
+  var CONTEXT_BLOCK_OUT = 4;
+  var CHOMPING_CLIP = 1;
+  var CHOMPING_STRIP = 2;
+  var CHOMPING_KEEP = 3;
+  var PATTERN_NON_PRINTABLE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x84\x86-\x9F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
+  var PATTERN_NON_ASCII_LINE_BREAKS = /[\x85\u2028\u2029]/;
+  var PATTERN_FLOW_INDICATORS = /[,\[\]\{\}]/;
+  var PATTERN_TAG_HANDLE = /^(?:!|!!|![a-z\-]+!)$/i;
+  var PATTERN_TAG_URI = /^(?:!|[^,\[\]\{\}])(?:%[0-9a-f]{2}|[0-9a-z\-#;\/\?:@&=\+\$,_\.!~\*'\(\)\[\]])*$/i;
+  function _class(obj) {
+    return Object.prototype.toString.call(obj);
+  }
+  function is_EOL(c) {
+    return c === 10 || c === 13;
+  }
+  function is_WHITE_SPACE(c) {
+    return c === 9 || c === 32;
+  }
+  function is_WS_OR_EOL(c) {
+    return c === 9 || c === 32 || c === 10 || c === 13;
+  }
+  function is_FLOW_INDICATOR(c) {
+    return c === 44 || c === 91 || c === 93 || c === 123 || c === 125;
+  }
+  function fromHexCode(c) {
+    var lc;
+    if (48 <= c && c <= 57) {
+      return c - 48;
+    }
+    lc = c | 32;
+    if (97 <= lc && lc <= 102) {
+      return lc - 97 + 10;
+    }
+    return -1;
+  }
+  function escapedHexLen(c) {
+    if (c === 120) {
+      return 2;
+    }
+    if (c === 117) {
+      return 4;
+    }
+    if (c === 85) {
+      return 8;
+    }
+    return 0;
+  }
+  function fromDecimalCode(c) {
+    if (48 <= c && c <= 57) {
+      return c - 48;
+    }
+    return -1;
+  }
+  function simpleEscapeSequence(c) {
+    return c === 48 ? "\0" : c === 97 ? "\x07" : c === 98 ? "\b" : c === 116 ? "	" : c === 9 ? "	" : c === 110 ? "\n" : c === 118 ? "\v" : c === 102 ? "\f" : c === 114 ? "\r" : c === 101 ? "\x1B" : c === 32 ? " " : c === 34 ? '"' : c === 47 ? "/" : c === 92 ? "\\" : c === 78 ? "" : c === 95 ? " " : c === 76 ? "\u2028" : c === 80 ? "\u2029" : "";
+  }
+  function charFromCodepoint(c) {
+    if (c <= 65535) {
+      return String.fromCharCode(c);
+    }
+    return String.fromCharCode(
+      (c - 65536 >> 10) + 55296,
+      (c - 65536 & 1023) + 56320
+    );
+  }
+  var simpleEscapeCheck = new Array(256);
+  var simpleEscapeMap = new Array(256);
+  for (var i = 0; i < 256; i++) {
+    simpleEscapeCheck[i] = simpleEscapeSequence(i) ? 1 : 0;
+    simpleEscapeMap[i] = simpleEscapeSequence(i);
+  }
+  function State(input, options) {
+    this.input = input;
+    this.filename = options["filename"] || null;
+    this.schema = options["schema"] || DEFAULT_FULL_SCHEMA;
+    this.onWarning = options["onWarning"] || null;
+    this.legacy = options["legacy"] || false;
+    this.json = options["json"] || false;
+    this.listener = options["listener"] || null;
+    this.implicitTypes = this.schema.compiledImplicit;
+    this.typeMap = this.schema.compiledTypeMap;
+    this.length = input.length;
+    this.position = 0;
+    this.line = 0;
+    this.lineStart = 0;
+    this.lineIndent = 0;
+    this.documents = [];
+  }
+  function generateError(state, message) {
+    return new YAMLException(
+      message,
+      new Mark(state.filename, state.input, state.position, state.line, state.position - state.lineStart)
+    );
+  }
+  function throwError(state, message) {
+    throw generateError(state, message);
+  }
+  function throwWarning(state, message) {
+    if (state.onWarning) {
+      state.onWarning.call(null, generateError(state, message));
+    }
+  }
+  var directiveHandlers = {
+    YAML: function handleYamlDirective(state, name, args) {
+      var match, major, minor;
+      if (state.version !== null) {
+        throwError(state, "duplication of %YAML directive");
+      }
+      if (args.length !== 1) {
+        throwError(state, "YAML directive accepts exactly one argument");
+      }
+      match = /^([0-9]+)\.([0-9]+)$/.exec(args[0]);
+      if (match === null) {
+        throwError(state, "ill-formed argument of the YAML directive");
+      }
+      major = parseInt(match[1], 10);
+      minor = parseInt(match[2], 10);
+      if (major !== 1) {
+        throwError(state, "unacceptable YAML version of the document");
+      }
+      state.version = args[0];
+      state.checkLineBreaks = minor < 2;
+      if (minor !== 1 && minor !== 2) {
+        throwWarning(state, "unsupported YAML version of the document");
+      }
+    },
+    TAG: function handleTagDirective(state, name, args) {
+      var handle, prefix;
+      if (args.length !== 2) {
+        throwError(state, "TAG directive accepts exactly two arguments");
+      }
+      handle = args[0];
+      prefix = args[1];
+      if (!PATTERN_TAG_HANDLE.test(handle)) {
+        throwError(state, "ill-formed tag handle (first argument) of the TAG directive");
+      }
+      if (_hasOwnProperty.call(state.tagMap, handle)) {
+        throwError(state, 'there is a previously declared suffix for "' + handle + '" tag handle');
+      }
+      if (!PATTERN_TAG_URI.test(prefix)) {
+        throwError(state, "ill-formed tag prefix (second argument) of the TAG directive");
+      }
+      state.tagMap[handle] = prefix;
+    }
+  };
+  function captureSegment(state, start, end, checkJson) {
+    var _position, _length, _character, _result;
+    if (start < end) {
+      _result = state.input.slice(start, end);
+      if (checkJson) {
+        for (_position = 0, _length = _result.length; _position < _length; _position += 1) {
+          _character = _result.charCodeAt(_position);
+          if (!(_character === 9 || 32 <= _character && _character <= 1114111)) {
+            throwError(state, "expected valid JSON character");
+          }
+        }
+      } else if (PATTERN_NON_PRINTABLE.test(_result)) {
+        throwError(state, "the stream contains non-printable characters");
+      }
+      state.result += _result;
+    }
+  }
+  function mergeMappings(state, destination, source, overridableKeys) {
+    var sourceKeys, key, index, quantity;
+    if (!common2.isObject(source)) {
+      throwError(state, "cannot merge mappings; the provided source object is unacceptable");
+    }
+    sourceKeys = Object.keys(source);
+    for (index = 0, quantity = sourceKeys.length; index < quantity; index += 1) {
+      key = sourceKeys[index];
+      if (!_hasOwnProperty.call(destination, key)) {
+        destination[key] = source[key];
+        overridableKeys[key] = true;
+      }
+    }
+  }
+  function storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, valueNode, startLine, startPos) {
+    var index, quantity;
+    if (Array.isArray(keyNode)) {
+      keyNode = Array.prototype.slice.call(keyNode);
+      for (index = 0, quantity = keyNode.length; index < quantity; index += 1) {
+        if (Array.isArray(keyNode[index])) {
+          throwError(state, "nested arrays are not supported inside keys");
+        }
+        if (typeof keyNode === "object" && _class(keyNode[index]) === "[object Object]") {
+          keyNode[index] = "[object Object]";
+        }
+      }
+    }
+    if (typeof keyNode === "object" && _class(keyNode) === "[object Object]") {
+      keyNode = "[object Object]";
+    }
+    keyNode = String(keyNode);
+    if (_result === null) {
+      _result = {};
+    }
+    if (keyTag === "tag:yaml.org,2002:merge") {
+      if (Array.isArray(valueNode)) {
+        for (index = 0, quantity = valueNode.length; index < quantity; index += 1) {
+          mergeMappings(state, _result, valueNode[index], overridableKeys);
+        }
+      } else {
+        mergeMappings(state, _result, valueNode, overridableKeys);
+      }
+    } else {
+      if (!state.json && !_hasOwnProperty.call(overridableKeys, keyNode) && _hasOwnProperty.call(_result, keyNode)) {
+        state.line = startLine || state.line;
+        state.position = startPos || state.position;
+        throwError(state, "duplicated mapping key");
+      }
+      _result[keyNode] = valueNode;
+      delete overridableKeys[keyNode];
+    }
+    return _result;
+  }
+  function readLineBreak(state) {
+    var ch;
+    ch = state.input.charCodeAt(state.position);
+    if (ch === 10) {
+      state.position++;
+    } else if (ch === 13) {
+      state.position++;
+      if (state.input.charCodeAt(state.position) === 10) {
+        state.position++;
+      }
+    } else {
+      throwError(state, "a line break is expected");
+    }
+    state.line += 1;
+    state.lineStart = state.position;
+  }
+  function skipSeparationSpace(state, allowComments, checkIndent) {
+    var lineBreaks = 0, ch = state.input.charCodeAt(state.position);
+    while (ch !== 0) {
+      while (is_WHITE_SPACE(ch)) {
+        ch = state.input.charCodeAt(++state.position);
+      }
+      if (allowComments && ch === 35) {
+        do {
+          ch = state.input.charCodeAt(++state.position);
+        } while (ch !== 10 && ch !== 13 && ch !== 0);
+      }
+      if (is_EOL(ch)) {
+        readLineBreak(state);
+        ch = state.input.charCodeAt(state.position);
+        lineBreaks++;
+        state.lineIndent = 0;
+        while (ch === 32) {
+          state.lineIndent++;
+          ch = state.input.charCodeAt(++state.position);
+        }
+      } else {
+        break;
+      }
+    }
+    if (checkIndent !== -1 && lineBreaks !== 0 && state.lineIndent < checkIndent) {
+      throwWarning(state, "deficient indentation");
+    }
+    return lineBreaks;
+  }
+  function testDocumentSeparator(state) {
+    var _position = state.position, ch;
+    ch = state.input.charCodeAt(_position);
+    if ((ch === 45 || ch === 46) && ch === state.input.charCodeAt(_position + 1) && ch === state.input.charCodeAt(_position + 2)) {
+      _position += 3;
+      ch = state.input.charCodeAt(_position);
+      if (ch === 0 || is_WS_OR_EOL(ch)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function writeFoldedLines(state, count) {
+    if (count === 1) {
+      state.result += " ";
+    } else if (count > 1) {
+      state.result += common2.repeat("\n", count - 1);
+    }
+  }
+  function readPlainScalar(state, nodeIndent, withinFlowCollection) {
+    var preceding, following, captureStart, captureEnd, hasPendingContent, _line, _lineStart, _lineIndent, _kind = state.kind, _result = state.result, ch;
+    ch = state.input.charCodeAt(state.position);
+    if (is_WS_OR_EOL(ch) || is_FLOW_INDICATOR(ch) || ch === 35 || ch === 38 || ch === 42 || ch === 33 || ch === 124 || ch === 62 || ch === 39 || ch === 34 || ch === 37 || ch === 64 || ch === 96) {
+      return false;
+    }
+    if (ch === 63 || ch === 45) {
+      following = state.input.charCodeAt(state.position + 1);
+      if (is_WS_OR_EOL(following) || withinFlowCollection && is_FLOW_INDICATOR(following)) {
+        return false;
+      }
+    }
+    state.kind = "scalar";
+    state.result = "";
+    captureStart = captureEnd = state.position;
+    hasPendingContent = false;
+    while (ch !== 0) {
+      if (ch === 58) {
+        following = state.input.charCodeAt(state.position + 1);
+        if (is_WS_OR_EOL(following) || withinFlowCollection && is_FLOW_INDICATOR(following)) {
+          break;
+        }
+      } else if (ch === 35) {
+        preceding = state.input.charCodeAt(state.position - 1);
+        if (is_WS_OR_EOL(preceding)) {
+          break;
+        }
+      } else if (state.position === state.lineStart && testDocumentSeparator(state) || withinFlowCollection && is_FLOW_INDICATOR(ch)) {
+        break;
+      } else if (is_EOL(ch)) {
+        _line = state.line;
+        _lineStart = state.lineStart;
+        _lineIndent = state.lineIndent;
+        skipSeparationSpace(state, false, -1);
+        if (state.lineIndent >= nodeIndent) {
+          hasPendingContent = true;
+          ch = state.input.charCodeAt(state.position);
+          continue;
+        } else {
+          state.position = captureEnd;
+          state.line = _line;
+          state.lineStart = _lineStart;
+          state.lineIndent = _lineIndent;
+          break;
+        }
+      }
+      if (hasPendingContent) {
+        captureSegment(state, captureStart, captureEnd, false);
+        writeFoldedLines(state, state.line - _line);
+        captureStart = captureEnd = state.position;
+        hasPendingContent = false;
+      }
+      if (!is_WHITE_SPACE(ch)) {
+        captureEnd = state.position + 1;
+      }
+      ch = state.input.charCodeAt(++state.position);
+    }
+    captureSegment(state, captureStart, captureEnd, false);
+    if (state.result) {
+      return true;
+    }
+    state.kind = _kind;
+    state.result = _result;
+    return false;
+  }
+  function readSingleQuotedScalar(state, nodeIndent) {
+    var ch, captureStart, captureEnd;
+    ch = state.input.charCodeAt(state.position);
+    if (ch !== 39) {
+      return false;
+    }
+    state.kind = "scalar";
+    state.result = "";
+    state.position++;
+    captureStart = captureEnd = state.position;
+    while ((ch = state.input.charCodeAt(state.position)) !== 0) {
+      if (ch === 39) {
+        captureSegment(state, captureStart, state.position, true);
+        ch = state.input.charCodeAt(++state.position);
+        if (ch === 39) {
+          captureStart = state.position;
+          state.position++;
+          captureEnd = state.position;
+        } else {
+          return true;
+        }
+      } else if (is_EOL(ch)) {
+        captureSegment(state, captureStart, captureEnd, true);
+        writeFoldedLines(state, skipSeparationSpace(state, false, nodeIndent));
+        captureStart = captureEnd = state.position;
+      } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
+        throwError(state, "unexpected end of the document within a single quoted scalar");
+      } else {
+        state.position++;
+        captureEnd = state.position;
+      }
+    }
+    throwError(state, "unexpected end of the stream within a single quoted scalar");
+  }
+  function readDoubleQuotedScalar(state, nodeIndent) {
+    var captureStart, captureEnd, hexLength, hexResult, tmp, ch;
+    ch = state.input.charCodeAt(state.position);
+    if (ch !== 34) {
+      return false;
+    }
+    state.kind = "scalar";
+    state.result = "";
+    state.position++;
+    captureStart = captureEnd = state.position;
+    while ((ch = state.input.charCodeAt(state.position)) !== 0) {
+      if (ch === 34) {
+        captureSegment(state, captureStart, state.position, true);
+        state.position++;
+        return true;
+      } else if (ch === 92) {
+        captureSegment(state, captureStart, state.position, true);
+        ch = state.input.charCodeAt(++state.position);
+        if (is_EOL(ch)) {
+          skipSeparationSpace(state, false, nodeIndent);
+        } else if (ch < 256 && simpleEscapeCheck[ch]) {
+          state.result += simpleEscapeMap[ch];
+          state.position++;
+        } else if ((tmp = escapedHexLen(ch)) > 0) {
+          hexLength = tmp;
+          hexResult = 0;
+          for (; hexLength > 0; hexLength--) {
+            ch = state.input.charCodeAt(++state.position);
+            if ((tmp = fromHexCode(ch)) >= 0) {
+              hexResult = (hexResult << 4) + tmp;
+            } else {
+              throwError(state, "expected hexadecimal character");
+            }
+          }
+          state.result += charFromCodepoint(hexResult);
+          state.position++;
+        } else {
+          throwError(state, "unknown escape sequence");
+        }
+        captureStart = captureEnd = state.position;
+      } else if (is_EOL(ch)) {
+        captureSegment(state, captureStart, captureEnd, true);
+        writeFoldedLines(state, skipSeparationSpace(state, false, nodeIndent));
+        captureStart = captureEnd = state.position;
+      } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
+        throwError(state, "unexpected end of the document within a double quoted scalar");
+      } else {
+        state.position++;
+        captureEnd = state.position;
+      }
+    }
+    throwError(state, "unexpected end of the stream within a double quoted scalar");
+  }
+  function readFlowCollection(state, nodeIndent) {
+    var readNext = true, _line, _tag = state.tag, _result, _anchor = state.anchor, following, terminator, isPair, isExplicitPair, isMapping, overridableKeys = {}, keyNode, keyTag, valueNode, ch;
+    ch = state.input.charCodeAt(state.position);
+    if (ch === 91) {
+      terminator = 93;
+      isMapping = false;
+      _result = [];
+    } else if (ch === 123) {
+      terminator = 125;
+      isMapping = true;
+      _result = {};
+    } else {
+      return false;
+    }
+    if (state.anchor !== null) {
+      state.anchorMap[state.anchor] = _result;
+    }
+    ch = state.input.charCodeAt(++state.position);
+    while (ch !== 0) {
+      skipSeparationSpace(state, true, nodeIndent);
+      ch = state.input.charCodeAt(state.position);
+      if (ch === terminator) {
+        state.position++;
+        state.tag = _tag;
+        state.anchor = _anchor;
+        state.kind = isMapping ? "mapping" : "sequence";
+        state.result = _result;
+        return true;
+      } else if (!readNext) {
+        throwError(state, "missed comma between flow collection entries");
+      }
+      keyTag = keyNode = valueNode = null;
+      isPair = isExplicitPair = false;
+      if (ch === 63) {
+        following = state.input.charCodeAt(state.position + 1);
+        if (is_WS_OR_EOL(following)) {
+          isPair = isExplicitPair = true;
+          state.position++;
+          skipSeparationSpace(state, true, nodeIndent);
+        }
+      }
+      _line = state.line;
+      composeNode(state, nodeIndent, CONTEXT_FLOW_IN, false, true);
+      keyTag = state.tag;
+      keyNode = state.result;
+      skipSeparationSpace(state, true, nodeIndent);
+      ch = state.input.charCodeAt(state.position);
+      if ((isExplicitPair || state.line === _line) && ch === 58) {
+        isPair = true;
+        ch = state.input.charCodeAt(++state.position);
+        skipSeparationSpace(state, true, nodeIndent);
+        composeNode(state, nodeIndent, CONTEXT_FLOW_IN, false, true);
+        valueNode = state.result;
+      }
+      if (isMapping) {
+        storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, valueNode);
+      } else if (isPair) {
+        _result.push(storeMappingPair(state, null, overridableKeys, keyTag, keyNode, valueNode));
+      } else {
+        _result.push(keyNode);
+      }
+      skipSeparationSpace(state, true, nodeIndent);
+      ch = state.input.charCodeAt(state.position);
+      if (ch === 44) {
+        readNext = true;
+        ch = state.input.charCodeAt(++state.position);
+      } else {
+        readNext = false;
+      }
+    }
+    throwError(state, "unexpected end of the stream within a flow collection");
+  }
+  function readBlockScalar(state, nodeIndent) {
+    var captureStart, folding, chomping = CHOMPING_CLIP, didReadContent = false, detectedIndent = false, textIndent = nodeIndent, emptyLines = 0, atMoreIndented = false, tmp, ch;
+    ch = state.input.charCodeAt(state.position);
+    if (ch === 124) {
+      folding = false;
+    } else if (ch === 62) {
+      folding = true;
+    } else {
+      return false;
+    }
+    state.kind = "scalar";
+    state.result = "";
+    while (ch !== 0) {
+      ch = state.input.charCodeAt(++state.position);
+      if (ch === 43 || ch === 45) {
+        if (CHOMPING_CLIP === chomping) {
+          chomping = ch === 43 ? CHOMPING_KEEP : CHOMPING_STRIP;
+        } else {
+          throwError(state, "repeat of a chomping mode identifier");
+        }
+      } else if ((tmp = fromDecimalCode(ch)) >= 0) {
+        if (tmp === 0) {
+          throwError(state, "bad explicit indentation width of a block scalar; it cannot be less than one");
+        } else if (!detectedIndent) {
+          textIndent = nodeIndent + tmp - 1;
+          detectedIndent = true;
+        } else {
+          throwError(state, "repeat of an indentation width identifier");
+        }
+      } else {
+        break;
+      }
+    }
+    if (is_WHITE_SPACE(ch)) {
+      do {
+        ch = state.input.charCodeAt(++state.position);
+      } while (is_WHITE_SPACE(ch));
+      if (ch === 35) {
+        do {
+          ch = state.input.charCodeAt(++state.position);
+        } while (!is_EOL(ch) && ch !== 0);
+      }
+    }
+    while (ch !== 0) {
+      readLineBreak(state);
+      state.lineIndent = 0;
+      ch = state.input.charCodeAt(state.position);
+      while ((!detectedIndent || state.lineIndent < textIndent) && ch === 32) {
+        state.lineIndent++;
+        ch = state.input.charCodeAt(++state.position);
+      }
+      if (!detectedIndent && state.lineIndent > textIndent) {
+        textIndent = state.lineIndent;
+      }
+      if (is_EOL(ch)) {
+        emptyLines++;
+        continue;
+      }
+      if (state.lineIndent < textIndent) {
+        if (chomping === CHOMPING_KEEP) {
+          state.result += common2.repeat("\n", didReadContent ? 1 + emptyLines : emptyLines);
+        } else if (chomping === CHOMPING_CLIP) {
+          if (didReadContent) {
+            state.result += "\n";
+          }
+        }
+        break;
+      }
+      if (folding) {
+        if (is_WHITE_SPACE(ch)) {
+          atMoreIndented = true;
+          state.result += common2.repeat("\n", didReadContent ? 1 + emptyLines : emptyLines);
+        } else if (atMoreIndented) {
+          atMoreIndented = false;
+          state.result += common2.repeat("\n", emptyLines + 1);
+        } else if (emptyLines === 0) {
+          if (didReadContent) {
+            state.result += " ";
+          }
+        } else {
+          state.result += common2.repeat("\n", emptyLines);
+        }
+      } else {
+        state.result += common2.repeat("\n", didReadContent ? 1 + emptyLines : emptyLines);
+      }
+      didReadContent = true;
+      detectedIndent = true;
+      emptyLines = 0;
+      captureStart = state.position;
+      while (!is_EOL(ch) && ch !== 0) {
+        ch = state.input.charCodeAt(++state.position);
+      }
+      captureSegment(state, captureStart, state.position, false);
+    }
+    return true;
+  }
+  function readBlockSequence(state, nodeIndent) {
+    var _line, _tag = state.tag, _anchor = state.anchor, _result = [], following, detected = false, ch;
+    if (state.anchor !== null) {
+      state.anchorMap[state.anchor] = _result;
+    }
+    ch = state.input.charCodeAt(state.position);
+    while (ch !== 0) {
+      if (ch !== 45) {
+        break;
+      }
+      following = state.input.charCodeAt(state.position + 1);
+      if (!is_WS_OR_EOL(following)) {
+        break;
+      }
+      detected = true;
+      state.position++;
+      if (skipSeparationSpace(state, true, -1)) {
+        if (state.lineIndent <= nodeIndent) {
+          _result.push(null);
+          ch = state.input.charCodeAt(state.position);
+          continue;
+        }
+      }
+      _line = state.line;
+      composeNode(state, nodeIndent, CONTEXT_BLOCK_IN, false, true);
+      _result.push(state.result);
+      skipSeparationSpace(state, true, -1);
+      ch = state.input.charCodeAt(state.position);
+      if ((state.line === _line || state.lineIndent > nodeIndent) && ch !== 0) {
+        throwError(state, "bad indentation of a sequence entry");
+      } else if (state.lineIndent < nodeIndent) {
+        break;
+      }
+    }
+    if (detected) {
+      state.tag = _tag;
+      state.anchor = _anchor;
+      state.kind = "sequence";
+      state.result = _result;
+      return true;
+    }
+    return false;
+  }
+  function readBlockMapping(state, nodeIndent, flowIndent) {
+    var following, allowCompact, _line, _pos, _tag = state.tag, _anchor = state.anchor, _result = {}, overridableKeys = {}, keyTag = null, keyNode = null, valueNode = null, atExplicitKey = false, detected = false, ch;
+    if (state.anchor !== null) {
+      state.anchorMap[state.anchor] = _result;
+    }
+    ch = state.input.charCodeAt(state.position);
+    while (ch !== 0) {
+      following = state.input.charCodeAt(state.position + 1);
+      _line = state.line;
+      _pos = state.position;
+      if ((ch === 63 || ch === 58) && is_WS_OR_EOL(following)) {
+        if (ch === 63) {
+          if (atExplicitKey) {
+            storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, null);
+            keyTag = keyNode = valueNode = null;
+          }
+          detected = true;
+          atExplicitKey = true;
+          allowCompact = true;
+        } else if (atExplicitKey) {
+          atExplicitKey = false;
+          allowCompact = true;
+        } else {
+          throwError(state, "incomplete explicit mapping pair; a key node is missed; or followed by a non-tabulated empty line");
+        }
+        state.position += 1;
+        ch = following;
+      } else if (composeNode(state, flowIndent, CONTEXT_FLOW_OUT, false, true)) {
+        if (state.line === _line) {
+          ch = state.input.charCodeAt(state.position);
+          while (is_WHITE_SPACE(ch)) {
+            ch = state.input.charCodeAt(++state.position);
+          }
+          if (ch === 58) {
+            ch = state.input.charCodeAt(++state.position);
+            if (!is_WS_OR_EOL(ch)) {
+              throwError(state, "a whitespace character is expected after the key-value separator within a block mapping");
+            }
+            if (atExplicitKey) {
+              storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, null);
+              keyTag = keyNode = valueNode = null;
+            }
+            detected = true;
+            atExplicitKey = false;
+            allowCompact = false;
+            keyTag = state.tag;
+            keyNode = state.result;
+          } else if (detected) {
+            throwError(state, "can not read an implicit mapping pair; a colon is missed");
+          } else {
+            state.tag = _tag;
+            state.anchor = _anchor;
+            return true;
+          }
+        } else if (detected) {
+          throwError(state, "can not read a block mapping entry; a multiline key may not be an implicit key");
+        } else {
+          state.tag = _tag;
+          state.anchor = _anchor;
+          return true;
+        }
+      } else {
+        break;
+      }
+      if (state.line === _line || state.lineIndent > nodeIndent) {
+        if (composeNode(state, nodeIndent, CONTEXT_BLOCK_OUT, true, allowCompact)) {
+          if (atExplicitKey) {
+            keyNode = state.result;
+          } else {
+            valueNode = state.result;
+          }
+        }
+        if (!atExplicitKey) {
+          storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, valueNode, _line, _pos);
+          keyTag = keyNode = valueNode = null;
+        }
+        skipSeparationSpace(state, true, -1);
+        ch = state.input.charCodeAt(state.position);
+      }
+      if (state.lineIndent > nodeIndent && ch !== 0) {
+        throwError(state, "bad indentation of a mapping entry");
+      } else if (state.lineIndent < nodeIndent) {
+        break;
+      }
+    }
+    if (atExplicitKey) {
+      storeMappingPair(state, _result, overridableKeys, keyTag, keyNode, null);
+    }
+    if (detected) {
+      state.tag = _tag;
+      state.anchor = _anchor;
+      state.kind = "mapping";
+      state.result = _result;
+    }
+    return detected;
+  }
+  function readTagProperty(state) {
+    var _position, isVerbatim = false, isNamed = false, tagHandle, tagName, ch;
+    ch = state.input.charCodeAt(state.position);
+    if (ch !== 33)
+      return false;
+    if (state.tag !== null) {
+      throwError(state, "duplication of a tag property");
+    }
+    ch = state.input.charCodeAt(++state.position);
+    if (ch === 60) {
+      isVerbatim = true;
+      ch = state.input.charCodeAt(++state.position);
+    } else if (ch === 33) {
+      isNamed = true;
+      tagHandle = "!!";
+      ch = state.input.charCodeAt(++state.position);
+    } else {
+      tagHandle = "!";
+    }
+    _position = state.position;
+    if (isVerbatim) {
+      do {
+        ch = state.input.charCodeAt(++state.position);
+      } while (ch !== 0 && ch !== 62);
+      if (state.position < state.length) {
+        tagName = state.input.slice(_position, state.position);
+        ch = state.input.charCodeAt(++state.position);
+      } else {
+        throwError(state, "unexpected end of the stream within a verbatim tag");
+      }
+    } else {
+      while (ch !== 0 && !is_WS_OR_EOL(ch)) {
+        if (ch === 33) {
+          if (!isNamed) {
+            tagHandle = state.input.slice(_position - 1, state.position + 1);
+            if (!PATTERN_TAG_HANDLE.test(tagHandle)) {
+              throwError(state, "named tag handle cannot contain such characters");
+            }
+            isNamed = true;
+            _position = state.position + 1;
+          } else {
+            throwError(state, "tag suffix cannot contain exclamation marks");
+          }
+        }
+        ch = state.input.charCodeAt(++state.position);
+      }
+      tagName = state.input.slice(_position, state.position);
+      if (PATTERN_FLOW_INDICATORS.test(tagName)) {
+        throwError(state, "tag suffix cannot contain flow indicator characters");
+      }
+    }
+    if (tagName && !PATTERN_TAG_URI.test(tagName)) {
+      throwError(state, "tag name cannot contain such characters: " + tagName);
+    }
+    if (isVerbatim) {
+      state.tag = tagName;
+    } else if (_hasOwnProperty.call(state.tagMap, tagHandle)) {
+      state.tag = state.tagMap[tagHandle] + tagName;
+    } else if (tagHandle === "!") {
+      state.tag = "!" + tagName;
+    } else if (tagHandle === "!!") {
+      state.tag = "tag:yaml.org,2002:" + tagName;
+    } else {
+      throwError(state, 'undeclared tag handle "' + tagHandle + '"');
+    }
+    return true;
+  }
+  function readAnchorProperty(state) {
+    var _position, ch;
+    ch = state.input.charCodeAt(state.position);
+    if (ch !== 38)
+      return false;
+    if (state.anchor !== null) {
+      throwError(state, "duplication of an anchor property");
+    }
+    ch = state.input.charCodeAt(++state.position);
+    _position = state.position;
+    while (ch !== 0 && !is_WS_OR_EOL(ch) && !is_FLOW_INDICATOR(ch)) {
+      ch = state.input.charCodeAt(++state.position);
+    }
+    if (state.position === _position) {
+      throwError(state, "name of an anchor node must contain at least one character");
+    }
+    state.anchor = state.input.slice(_position, state.position);
+    return true;
+  }
+  function readAlias(state) {
+    var _position, alias, ch;
+    ch = state.input.charCodeAt(state.position);
+    if (ch !== 42)
+      return false;
+    ch = state.input.charCodeAt(++state.position);
+    _position = state.position;
+    while (ch !== 0 && !is_WS_OR_EOL(ch) && !is_FLOW_INDICATOR(ch)) {
+      ch = state.input.charCodeAt(++state.position);
+    }
+    if (state.position === _position) {
+      throwError(state, "name of an alias node must contain at least one character");
+    }
+    alias = state.input.slice(_position, state.position);
+    if (!_hasOwnProperty.call(state.anchorMap, alias)) {
+      throwError(state, 'unidentified alias "' + alias + '"');
+    }
+    state.result = state.anchorMap[alias];
+    skipSeparationSpace(state, true, -1);
+    return true;
+  }
+  function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact) {
+    var allowBlockStyles, allowBlockScalars, allowBlockCollections, indentStatus = 1, atNewLine = false, hasContent = false, typeIndex, typeQuantity, type2, flowIndent, blockIndent;
+    if (state.listener !== null) {
+      state.listener("open", state);
+    }
+    state.tag = null;
+    state.anchor = null;
+    state.kind = null;
+    state.result = null;
+    allowBlockStyles = allowBlockScalars = allowBlockCollections = CONTEXT_BLOCK_OUT === nodeContext || CONTEXT_BLOCK_IN === nodeContext;
+    if (allowToSeek) {
+      if (skipSeparationSpace(state, true, -1)) {
+        atNewLine = true;
+        if (state.lineIndent > parentIndent) {
+          indentStatus = 1;
+        } else if (state.lineIndent === parentIndent) {
+          indentStatus = 0;
+        } else if (state.lineIndent < parentIndent) {
+          indentStatus = -1;
+        }
+      }
+    }
+    if (indentStatus === 1) {
+      while (readTagProperty(state) || readAnchorProperty(state)) {
+        if (skipSeparationSpace(state, true, -1)) {
+          atNewLine = true;
+          allowBlockCollections = allowBlockStyles;
+          if (state.lineIndent > parentIndent) {
+            indentStatus = 1;
+          } else if (state.lineIndent === parentIndent) {
+            indentStatus = 0;
+          } else if (state.lineIndent < parentIndent) {
+            indentStatus = -1;
+          }
+        } else {
+          allowBlockCollections = false;
+        }
+      }
+    }
+    if (allowBlockCollections) {
+      allowBlockCollections = atNewLine || allowCompact;
+    }
+    if (indentStatus === 1 || CONTEXT_BLOCK_OUT === nodeContext) {
+      if (CONTEXT_FLOW_IN === nodeContext || CONTEXT_FLOW_OUT === nodeContext) {
+        flowIndent = parentIndent;
+      } else {
+        flowIndent = parentIndent + 1;
+      }
+      blockIndent = state.position - state.lineStart;
+      if (indentStatus === 1) {
+        if (allowBlockCollections && (readBlockSequence(state, blockIndent) || readBlockMapping(state, blockIndent, flowIndent)) || readFlowCollection(state, flowIndent)) {
+          hasContent = true;
+        } else {
+          if (allowBlockScalars && readBlockScalar(state, flowIndent) || readSingleQuotedScalar(state, flowIndent) || readDoubleQuotedScalar(state, flowIndent)) {
+            hasContent = true;
+          } else if (readAlias(state)) {
+            hasContent = true;
+            if (state.tag !== null || state.anchor !== null) {
+              throwError(state, "alias node should not have any properties");
+            }
+          } else if (readPlainScalar(state, flowIndent, CONTEXT_FLOW_IN === nodeContext)) {
+            hasContent = true;
+            if (state.tag === null) {
+              state.tag = "?";
+            }
+          }
+          if (state.anchor !== null) {
+            state.anchorMap[state.anchor] = state.result;
+          }
+        }
+      } else if (indentStatus === 0) {
+        hasContent = allowBlockCollections && readBlockSequence(state, blockIndent);
+      }
+    }
+    if (state.tag !== null && state.tag !== "!") {
+      if (state.tag === "?") {
+        if (state.result !== null && state.kind !== "scalar") {
+          throwError(state, 'unacceptable node kind for !<?> tag; it should be "scalar", not "' + state.kind + '"');
+        }
+        for (typeIndex = 0, typeQuantity = state.implicitTypes.length; typeIndex < typeQuantity; typeIndex += 1) {
+          type2 = state.implicitTypes[typeIndex];
+          if (type2.resolve(state.result)) {
+            state.result = type2.construct(state.result);
+            state.tag = type2.tag;
+            if (state.anchor !== null) {
+              state.anchorMap[state.anchor] = state.result;
+            }
+            break;
+          }
+        }
+      } else if (_hasOwnProperty.call(state.typeMap[state.kind || "fallback"], state.tag)) {
+        type2 = state.typeMap[state.kind || "fallback"][state.tag];
+        if (state.result !== null && type2.kind !== state.kind) {
+          throwError(state, "unacceptable node kind for !<" + state.tag + '> tag; it should be "' + type2.kind + '", not "' + state.kind + '"');
+        }
+        if (!type2.resolve(state.result)) {
+          throwError(state, "cannot resolve a node with !<" + state.tag + "> explicit tag");
+        } else {
+          state.result = type2.construct(state.result);
+          if (state.anchor !== null) {
+            state.anchorMap[state.anchor] = state.result;
+          }
+        }
+      } else {
+        throwError(state, "unknown tag !<" + state.tag + ">");
+      }
+    }
+    if (state.listener !== null) {
+      state.listener("close", state);
+    }
+    return state.tag !== null || state.anchor !== null || hasContent;
+  }
+  function readDocument(state) {
+    var documentStart = state.position, _position, directiveName, directiveArgs, hasDirectives = false, ch;
+    state.version = null;
+    state.checkLineBreaks = state.legacy;
+    state.tagMap = {};
+    state.anchorMap = {};
+    while ((ch = state.input.charCodeAt(state.position)) !== 0) {
+      skipSeparationSpace(state, true, -1);
+      ch = state.input.charCodeAt(state.position);
+      if (state.lineIndent > 0 || ch !== 37) {
+        break;
+      }
+      hasDirectives = true;
+      ch = state.input.charCodeAt(++state.position);
+      _position = state.position;
+      while (ch !== 0 && !is_WS_OR_EOL(ch)) {
+        ch = state.input.charCodeAt(++state.position);
+      }
+      directiveName = state.input.slice(_position, state.position);
+      directiveArgs = [];
+      if (directiveName.length < 1) {
+        throwError(state, "directive name must not be less than one character in length");
+      }
+      while (ch !== 0) {
+        while (is_WHITE_SPACE(ch)) {
+          ch = state.input.charCodeAt(++state.position);
+        }
+        if (ch === 35) {
+          do {
+            ch = state.input.charCodeAt(++state.position);
+          } while (ch !== 0 && !is_EOL(ch));
+          break;
+        }
+        if (is_EOL(ch))
+          break;
+        _position = state.position;
+        while (ch !== 0 && !is_WS_OR_EOL(ch)) {
+          ch = state.input.charCodeAt(++state.position);
+        }
+        directiveArgs.push(state.input.slice(_position, state.position));
+      }
+      if (ch !== 0)
+        readLineBreak(state);
+      if (_hasOwnProperty.call(directiveHandlers, directiveName)) {
+        directiveHandlers[directiveName](state, directiveName, directiveArgs);
+      } else {
+        throwWarning(state, 'unknown document directive "' + directiveName + '"');
+      }
+    }
+    skipSeparationSpace(state, true, -1);
+    if (state.lineIndent === 0 && state.input.charCodeAt(state.position) === 45 && state.input.charCodeAt(state.position + 1) === 45 && state.input.charCodeAt(state.position + 2) === 45) {
+      state.position += 3;
+      skipSeparationSpace(state, true, -1);
+    } else if (hasDirectives) {
+      throwError(state, "directives end mark is expected");
+    }
+    composeNode(state, state.lineIndent - 1, CONTEXT_BLOCK_OUT, false, true);
+    skipSeparationSpace(state, true, -1);
+    if (state.checkLineBreaks && PATTERN_NON_ASCII_LINE_BREAKS.test(state.input.slice(documentStart, state.position))) {
+      throwWarning(state, "non-ASCII line breaks are interpreted as content");
+    }
+    state.documents.push(state.result);
+    if (state.position === state.lineStart && testDocumentSeparator(state)) {
+      if (state.input.charCodeAt(state.position) === 46) {
+        state.position += 3;
+        skipSeparationSpace(state, true, -1);
+      }
+      return;
+    }
+    if (state.position < state.length - 1) {
+      throwError(state, "end of the stream or a document separator is expected");
+    } else {
+      return;
+    }
+  }
+  function loadDocuments(input, options) {
+    input = String(input);
+    options = options || {};
+    if (input.length !== 0) {
+      if (input.charCodeAt(input.length - 1) !== 10 && input.charCodeAt(input.length - 1) !== 13) {
+        input += "\n";
+      }
+      if (input.charCodeAt(0) === 65279) {
+        input = input.slice(1);
+      }
+    }
+    var state = new State(input, options);
+    var nullpos = input.indexOf("\0");
+    if (nullpos !== -1) {
+      state.position = nullpos;
+      throwError(state, "null byte is not allowed in input");
+    }
+    state.input += "\0";
+    while (state.input.charCodeAt(state.position) === 32) {
+      state.lineIndent += 1;
+      state.position += 1;
+    }
+    while (state.position < state.length - 1) {
+      readDocument(state);
+    }
+    return state.documents;
+  }
+  function loadAll(input, iterator, options) {
+    if (iterator !== null && typeof iterator === "object" && typeof options === "undefined") {
+      options = iterator;
+      iterator = null;
+    }
+    var documents = loadDocuments(input, options);
+    if (typeof iterator !== "function") {
+      return documents;
+    }
+    for (var index = 0, length = documents.length; index < length; index += 1) {
+      iterator(documents[index]);
+    }
+  }
+  function load(input, options) {
+    var documents = loadDocuments(input, options);
+    if (documents.length === 0) {
+      return void 0;
+    } else if (documents.length === 1) {
+      return documents[0];
+    }
+    throw new YAMLException("expected a single document in the stream, but found more");
+  }
+  function safeLoadAll(input, iterator, options) {
+    if (typeof iterator === "object" && iterator !== null && typeof options === "undefined") {
+      options = iterator;
+      iterator = null;
+    }
+    return loadAll(input, iterator, common2.extend({ schema: DEFAULT_SAFE_SCHEMA }, options));
+  }
+  function safeLoad(input, options) {
+    return load(input, common2.extend({ schema: DEFAULT_SAFE_SCHEMA }, options));
+  }
+  loader.loadAll = loadAll;
+  loader.load = load;
+  loader.safeLoadAll = safeLoadAll;
+  loader.safeLoad = safeLoad;
+  return loader;
+}
+var dumper = {};
+var hasRequiredDumper;
+function requireDumper() {
+  if (hasRequiredDumper)
+    return dumper;
+  hasRequiredDumper = 1;
+  var common2 = requireCommon();
+  var YAMLException = requireException();
+  var DEFAULT_FULL_SCHEMA = requireDefault_full();
+  var DEFAULT_SAFE_SCHEMA = requireDefault_safe();
+  var _toString = Object.prototype.toString;
+  var _hasOwnProperty = Object.prototype.hasOwnProperty;
+  var CHAR_TAB = 9;
+  var CHAR_LINE_FEED = 10;
+  var CHAR_CARRIAGE_RETURN = 13;
+  var CHAR_SPACE = 32;
+  var CHAR_EXCLAMATION = 33;
+  var CHAR_DOUBLE_QUOTE = 34;
+  var CHAR_SHARP = 35;
+  var CHAR_PERCENT = 37;
+  var CHAR_AMPERSAND = 38;
+  var CHAR_SINGLE_QUOTE = 39;
+  var CHAR_ASTERISK = 42;
+  var CHAR_COMMA = 44;
+  var CHAR_MINUS = 45;
+  var CHAR_COLON = 58;
+  var CHAR_EQUALS = 61;
+  var CHAR_GREATER_THAN = 62;
+  var CHAR_QUESTION = 63;
+  var CHAR_COMMERCIAL_AT = 64;
+  var CHAR_LEFT_SQUARE_BRACKET = 91;
+  var CHAR_RIGHT_SQUARE_BRACKET = 93;
+  var CHAR_GRAVE_ACCENT = 96;
+  var CHAR_LEFT_CURLY_BRACKET = 123;
+  var CHAR_VERTICAL_LINE = 124;
+  var CHAR_RIGHT_CURLY_BRACKET = 125;
+  var ESCAPE_SEQUENCES = {};
+  ESCAPE_SEQUENCES[0] = "\\0";
+  ESCAPE_SEQUENCES[7] = "\\a";
+  ESCAPE_SEQUENCES[8] = "\\b";
+  ESCAPE_SEQUENCES[9] = "\\t";
+  ESCAPE_SEQUENCES[10] = "\\n";
+  ESCAPE_SEQUENCES[11] = "\\v";
+  ESCAPE_SEQUENCES[12] = "\\f";
+  ESCAPE_SEQUENCES[13] = "\\r";
+  ESCAPE_SEQUENCES[27] = "\\e";
+  ESCAPE_SEQUENCES[34] = '\\"';
+  ESCAPE_SEQUENCES[92] = "\\\\";
+  ESCAPE_SEQUENCES[133] = "\\N";
+  ESCAPE_SEQUENCES[160] = "\\_";
+  ESCAPE_SEQUENCES[8232] = "\\L";
+  ESCAPE_SEQUENCES[8233] = "\\P";
+  var DEPRECATED_BOOLEANS_SYNTAX = [
+    "y",
+    "Y",
+    "yes",
+    "Yes",
+    "YES",
+    "on",
+    "On",
+    "ON",
+    "n",
+    "N",
+    "no",
+    "No",
+    "NO",
+    "off",
+    "Off",
+    "OFF"
+  ];
+  function compileStyleMap(schema2, map2) {
+    var result, keys, index, length, tag, style, type2;
+    if (map2 === null)
+      return {};
+    result = {};
+    keys = Object.keys(map2);
+    for (index = 0, length = keys.length; index < length; index += 1) {
+      tag = keys[index];
+      style = String(map2[tag]);
+      if (tag.slice(0, 2) === "!!") {
+        tag = "tag:yaml.org,2002:" + tag.slice(2);
+      }
+      type2 = schema2.compiledTypeMap["fallback"][tag];
+      if (type2 && _hasOwnProperty.call(type2.styleAliases, style)) {
+        style = type2.styleAliases[style];
+      }
+      result[tag] = style;
+    }
+    return result;
+  }
+  function encodeHex(character) {
+    var string2, handle, length;
+    string2 = character.toString(16).toUpperCase();
+    if (character <= 255) {
+      handle = "x";
+      length = 2;
+    } else if (character <= 65535) {
+      handle = "u";
+      length = 4;
+    } else if (character <= 4294967295) {
+      handle = "U";
+      length = 8;
+    } else {
+      throw new YAMLException("code point within a string may not be greater than 0xFFFFFFFF");
+    }
+    return "\\" + handle + common2.repeat("0", length - string2.length) + string2;
+  }
+  function State(options) {
+    this.schema = options["schema"] || DEFAULT_FULL_SCHEMA;
+    this.indent = Math.max(1, options["indent"] || 2);
+    this.noArrayIndent = options["noArrayIndent"] || false;
+    this.skipInvalid = options["skipInvalid"] || false;
+    this.flowLevel = common2.isNothing(options["flowLevel"]) ? -1 : options["flowLevel"];
+    this.styleMap = compileStyleMap(this.schema, options["styles"] || null);
+    this.sortKeys = options["sortKeys"] || false;
+    this.lineWidth = options["lineWidth"] || 80;
+    this.noRefs = options["noRefs"] || false;
+    this.noCompatMode = options["noCompatMode"] || false;
+    this.condenseFlow = options["condenseFlow"] || false;
+    this.implicitTypes = this.schema.compiledImplicit;
+    this.explicitTypes = this.schema.compiledExplicit;
+    this.tag = null;
+    this.result = "";
+    this.duplicates = [];
+    this.usedDuplicates = null;
+  }
+  function indentString(string2, spaces) {
+    var ind = common2.repeat(" ", spaces), position = 0, next = -1, result = "", line, length = string2.length;
+    while (position < length) {
+      next = string2.indexOf("\n", position);
+      if (next === -1) {
+        line = string2.slice(position);
+        position = length;
+      } else {
+        line = string2.slice(position, next + 1);
+        position = next + 1;
+      }
+      if (line.length && line !== "\n")
+        result += ind;
+      result += line;
+    }
+    return result;
+  }
+  function generateNextLine(state, level) {
+    return "\n" + common2.repeat(" ", state.indent * level);
+  }
+  function testImplicitResolving(state, str2) {
+    var index, length, type2;
+    for (index = 0, length = state.implicitTypes.length; index < length; index += 1) {
+      type2 = state.implicitTypes[index];
+      if (type2.resolve(str2)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function isWhitespace(c) {
+    return c === CHAR_SPACE || c === CHAR_TAB;
+  }
+  function isPrintable(c) {
+    return 32 <= c && c <= 126 || 161 <= c && c <= 55295 && c !== 8232 && c !== 8233 || 57344 <= c && c <= 65533 && c !== 65279 || 65536 <= c && c <= 1114111;
+  }
+  function isNsChar(c) {
+    return isPrintable(c) && !isWhitespace(c) && c !== 65279 && c !== CHAR_CARRIAGE_RETURN && c !== CHAR_LINE_FEED;
+  }
+  function isPlainSafe(c, prev) {
+    return isPrintable(c) && c !== 65279 && c !== CHAR_COMMA && c !== CHAR_LEFT_SQUARE_BRACKET && c !== CHAR_RIGHT_SQUARE_BRACKET && c !== CHAR_LEFT_CURLY_BRACKET && c !== CHAR_RIGHT_CURLY_BRACKET && c !== CHAR_COLON && (c !== CHAR_SHARP || prev && isNsChar(prev));
+  }
+  function isPlainSafeFirst(c) {
+    return isPrintable(c) && c !== 65279 && !isWhitespace(c) && c !== CHAR_MINUS && c !== CHAR_QUESTION && c !== CHAR_COLON && c !== CHAR_COMMA && c !== CHAR_LEFT_SQUARE_BRACKET && c !== CHAR_RIGHT_SQUARE_BRACKET && c !== CHAR_LEFT_CURLY_BRACKET && c !== CHAR_RIGHT_CURLY_BRACKET && c !== CHAR_SHARP && c !== CHAR_AMPERSAND && c !== CHAR_ASTERISK && c !== CHAR_EXCLAMATION && c !== CHAR_VERTICAL_LINE && c !== CHAR_EQUALS && c !== CHAR_GREATER_THAN && c !== CHAR_SINGLE_QUOTE && c !== CHAR_DOUBLE_QUOTE && c !== CHAR_PERCENT && c !== CHAR_COMMERCIAL_AT && c !== CHAR_GRAVE_ACCENT;
+  }
+  function needIndentIndicator(string2) {
+    var leadingSpaceRe = /^\n* /;
+    return leadingSpaceRe.test(string2);
+  }
+  var STYLE_PLAIN = 1, STYLE_SINGLE = 2, STYLE_LITERAL = 3, STYLE_FOLDED = 4, STYLE_DOUBLE = 5;
+  function chooseScalarStyle(string2, singleLineOnly, indentPerLevel, lineWidth, testAmbiguousType) {
+    var i;
+    var char, prev_char;
+    var hasLineBreak = false;
+    var hasFoldableLine = false;
+    var shouldTrackWidth = lineWidth !== -1;
+    var previousLineBreak = -1;
+    var plain = isPlainSafeFirst(string2.charCodeAt(0)) && !isWhitespace(string2.charCodeAt(string2.length - 1));
+    if (singleLineOnly) {
+      for (i = 0; i < string2.length; i++) {
+        char = string2.charCodeAt(i);
+        if (!isPrintable(char)) {
+          return STYLE_DOUBLE;
+        }
+        prev_char = i > 0 ? string2.charCodeAt(i - 1) : null;
+        plain = plain && isPlainSafe(char, prev_char);
+      }
+    } else {
+      for (i = 0; i < string2.length; i++) {
+        char = string2.charCodeAt(i);
+        if (char === CHAR_LINE_FEED) {
+          hasLineBreak = true;
+          if (shouldTrackWidth) {
+            hasFoldableLine = hasFoldableLine || // Foldable line = too long, and not more-indented.
+            i - previousLineBreak - 1 > lineWidth && string2[previousLineBreak + 1] !== " ";
+            previousLineBreak = i;
+          }
+        } else if (!isPrintable(char)) {
+          return STYLE_DOUBLE;
+        }
+        prev_char = i > 0 ? string2.charCodeAt(i - 1) : null;
+        plain = plain && isPlainSafe(char, prev_char);
+      }
+      hasFoldableLine = hasFoldableLine || shouldTrackWidth && (i - previousLineBreak - 1 > lineWidth && string2[previousLineBreak + 1] !== " ");
+    }
+    if (!hasLineBreak && !hasFoldableLine) {
+      return plain && !testAmbiguousType(string2) ? STYLE_PLAIN : STYLE_SINGLE;
+    }
+    if (indentPerLevel > 9 && needIndentIndicator(string2)) {
+      return STYLE_DOUBLE;
+    }
+    return hasFoldableLine ? STYLE_FOLDED : STYLE_LITERAL;
+  }
+  function writeScalar(state, string2, level, iskey) {
+    state.dump = function() {
+      if (string2.length === 0) {
+        return "''";
+      }
+      if (!state.noCompatMode && DEPRECATED_BOOLEANS_SYNTAX.indexOf(string2) !== -1) {
+        return "'" + string2 + "'";
+      }
+      var indent = state.indent * Math.max(1, level);
+      var lineWidth = state.lineWidth === -1 ? -1 : Math.max(Math.min(state.lineWidth, 40), state.lineWidth - indent);
+      var singleLineOnly = iskey || state.flowLevel > -1 && level >= state.flowLevel;
+      function testAmbiguity(string3) {
+        return testImplicitResolving(state, string3);
+      }
+      switch (chooseScalarStyle(string2, singleLineOnly, state.indent, lineWidth, testAmbiguity)) {
+        case STYLE_PLAIN:
+          return string2;
+        case STYLE_SINGLE:
+          return "'" + string2.replace(/'/g, "''") + "'";
+        case STYLE_LITERAL:
+          return "|" + blockHeader(string2, state.indent) + dropEndingNewline(indentString(string2, indent));
+        case STYLE_FOLDED:
+          return ">" + blockHeader(string2, state.indent) + dropEndingNewline(indentString(foldString(string2, lineWidth), indent));
+        case STYLE_DOUBLE:
+          return '"' + escapeString(string2) + '"';
+        default:
+          throw new YAMLException("impossible error: invalid scalar style");
+      }
+    }();
+  }
+  function blockHeader(string2, indentPerLevel) {
+    var indentIndicator = needIndentIndicator(string2) ? String(indentPerLevel) : "";
+    var clip = string2[string2.length - 1] === "\n";
+    var keep = clip && (string2[string2.length - 2] === "\n" || string2 === "\n");
+    var chomp = keep ? "+" : clip ? "" : "-";
+    return indentIndicator + chomp + "\n";
+  }
+  function dropEndingNewline(string2) {
+    return string2[string2.length - 1] === "\n" ? string2.slice(0, -1) : string2;
+  }
+  function foldString(string2, width) {
+    var lineRe = /(\n+)([^\n]*)/g;
+    var result = function() {
+      var nextLF = string2.indexOf("\n");
+      nextLF = nextLF !== -1 ? nextLF : string2.length;
+      lineRe.lastIndex = nextLF;
+      return foldLine(string2.slice(0, nextLF), width);
+    }();
+    var prevMoreIndented = string2[0] === "\n" || string2[0] === " ";
+    var moreIndented;
+    var match;
+    while (match = lineRe.exec(string2)) {
+      var prefix = match[1], line = match[2];
+      moreIndented = line[0] === " ";
+      result += prefix + (!prevMoreIndented && !moreIndented && line !== "" ? "\n" : "") + foldLine(line, width);
+      prevMoreIndented = moreIndented;
+    }
+    return result;
+  }
+  function foldLine(line, width) {
+    if (line === "" || line[0] === " ")
+      return line;
+    var breakRe = / [^ ]/g;
+    var match;
+    var start = 0, end, curr = 0, next = 0;
+    var result = "";
+    while (match = breakRe.exec(line)) {
+      next = match.index;
+      if (next - start > width) {
+        end = curr > start ? curr : next;
+        result += "\n" + line.slice(start, end);
+        start = end + 1;
+      }
+      curr = next;
+    }
+    result += "\n";
+    if (line.length - start > width && curr > start) {
+      result += line.slice(start, curr) + "\n" + line.slice(curr + 1);
+    } else {
+      result += line.slice(start);
+    }
+    return result.slice(1);
+  }
+  function escapeString(string2) {
+    var result = "";
+    var char, nextChar;
+    var escapeSeq;
+    for (var i = 0; i < string2.length; i++) {
+      char = string2.charCodeAt(i);
+      if (char >= 55296 && char <= 56319) {
+        nextChar = string2.charCodeAt(i + 1);
+        if (nextChar >= 56320 && nextChar <= 57343) {
+          result += encodeHex((char - 55296) * 1024 + nextChar - 56320 + 65536);
+          i++;
+          continue;
+        }
+      }
+      escapeSeq = ESCAPE_SEQUENCES[char];
+      result += !escapeSeq && isPrintable(char) ? string2[i] : escapeSeq || encodeHex(char);
+    }
+    return result;
+  }
+  function writeFlowSequence(state, level, object) {
+    var _result = "", _tag = state.tag, index, length;
+    for (index = 0, length = object.length; index < length; index += 1) {
+      if (writeNode(state, level, object[index], false, false)) {
+        if (index !== 0)
+          _result += "," + (!state.condenseFlow ? " " : "");
+        _result += state.dump;
+      }
+    }
+    state.tag = _tag;
+    state.dump = "[" + _result + "]";
+  }
+  function writeBlockSequence(state, level, object, compact) {
+    var _result = "", _tag = state.tag, index, length;
+    for (index = 0, length = object.length; index < length; index += 1) {
+      if (writeNode(state, level + 1, object[index], true, true)) {
+        if (!compact || index !== 0) {
+          _result += generateNextLine(state, level);
+        }
+        if (state.dump && CHAR_LINE_FEED === state.dump.charCodeAt(0)) {
+          _result += "-";
+        } else {
+          _result += "- ";
+        }
+        _result += state.dump;
+      }
+    }
+    state.tag = _tag;
+    state.dump = _result || "[]";
+  }
+  function writeFlowMapping(state, level, object) {
+    var _result = "", _tag = state.tag, objectKeyList = Object.keys(object), index, length, objectKey, objectValue, pairBuffer;
+    for (index = 0, length = objectKeyList.length; index < length; index += 1) {
+      pairBuffer = "";
+      if (index !== 0)
+        pairBuffer += ", ";
+      if (state.condenseFlow)
+        pairBuffer += '"';
+      objectKey = objectKeyList[index];
+      objectValue = object[objectKey];
+      if (!writeNode(state, level, objectKey, false, false)) {
+        continue;
+      }
+      if (state.dump.length > 1024)
+        pairBuffer += "? ";
+      pairBuffer += state.dump + (state.condenseFlow ? '"' : "") + ":" + (state.condenseFlow ? "" : " ");
+      if (!writeNode(state, level, objectValue, false, false)) {
+        continue;
+      }
+      pairBuffer += state.dump;
+      _result += pairBuffer;
+    }
+    state.tag = _tag;
+    state.dump = "{" + _result + "}";
+  }
+  function writeBlockMapping(state, level, object, compact) {
+    var _result = "", _tag = state.tag, objectKeyList = Object.keys(object), index, length, objectKey, objectValue, explicitPair, pairBuffer;
+    if (state.sortKeys === true) {
+      objectKeyList.sort();
+    } else if (typeof state.sortKeys === "function") {
+      objectKeyList.sort(state.sortKeys);
+    } else if (state.sortKeys) {
+      throw new YAMLException("sortKeys must be a boolean or a function");
+    }
+    for (index = 0, length = objectKeyList.length; index < length; index += 1) {
+      pairBuffer = "";
+      if (!compact || index !== 0) {
+        pairBuffer += generateNextLine(state, level);
+      }
+      objectKey = objectKeyList[index];
+      objectValue = object[objectKey];
+      if (!writeNode(state, level + 1, objectKey, true, true, true)) {
+        continue;
+      }
+      explicitPair = state.tag !== null && state.tag !== "?" || state.dump && state.dump.length > 1024;
+      if (explicitPair) {
+        if (state.dump && CHAR_LINE_FEED === state.dump.charCodeAt(0)) {
+          pairBuffer += "?";
+        } else {
+          pairBuffer += "? ";
+        }
+      }
+      pairBuffer += state.dump;
+      if (explicitPair) {
+        pairBuffer += generateNextLine(state, level);
+      }
+      if (!writeNode(state, level + 1, objectValue, true, explicitPair)) {
+        continue;
+      }
+      if (state.dump && CHAR_LINE_FEED === state.dump.charCodeAt(0)) {
+        pairBuffer += ":";
+      } else {
+        pairBuffer += ": ";
+      }
+      pairBuffer += state.dump;
+      _result += pairBuffer;
+    }
+    state.tag = _tag;
+    state.dump = _result || "{}";
+  }
+  function detectType(state, object, explicit) {
+    var _result, typeList, index, length, type2, style;
+    typeList = explicit ? state.explicitTypes : state.implicitTypes;
+    for (index = 0, length = typeList.length; index < length; index += 1) {
+      type2 = typeList[index];
+      if ((type2.instanceOf || type2.predicate) && (!type2.instanceOf || typeof object === "object" && object instanceof type2.instanceOf) && (!type2.predicate || type2.predicate(object))) {
+        state.tag = explicit ? type2.tag : "?";
+        if (type2.represent) {
+          style = state.styleMap[type2.tag] || type2.defaultStyle;
+          if (_toString.call(type2.represent) === "[object Function]") {
+            _result = type2.represent(object, style);
+          } else if (_hasOwnProperty.call(type2.represent, style)) {
+            _result = type2.represent[style](object, style);
+          } else {
+            throw new YAMLException("!<" + type2.tag + '> tag resolver accepts not "' + style + '" style');
+          }
+          state.dump = _result;
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+  function writeNode(state, level, object, block, compact, iskey) {
+    state.tag = null;
+    state.dump = object;
+    if (!detectType(state, object, false)) {
+      detectType(state, object, true);
+    }
+    var type2 = _toString.call(state.dump);
+    if (block) {
+      block = state.flowLevel < 0 || state.flowLevel > level;
+    }
+    var objectOrArray = type2 === "[object Object]" || type2 === "[object Array]", duplicateIndex, duplicate;
+    if (objectOrArray) {
+      duplicateIndex = state.duplicates.indexOf(object);
+      duplicate = duplicateIndex !== -1;
+    }
+    if (state.tag !== null && state.tag !== "?" || duplicate || state.indent !== 2 && level > 0) {
+      compact = false;
+    }
+    if (duplicate && state.usedDuplicates[duplicateIndex]) {
+      state.dump = "*ref_" + duplicateIndex;
+    } else {
+      if (objectOrArray && duplicate && !state.usedDuplicates[duplicateIndex]) {
+        state.usedDuplicates[duplicateIndex] = true;
+      }
+      if (type2 === "[object Object]") {
+        if (block && Object.keys(state.dump).length !== 0) {
+          writeBlockMapping(state, level, state.dump, compact);
+          if (duplicate) {
+            state.dump = "&ref_" + duplicateIndex + state.dump;
+          }
+        } else {
+          writeFlowMapping(state, level, state.dump);
+          if (duplicate) {
+            state.dump = "&ref_" + duplicateIndex + " " + state.dump;
+          }
+        }
+      } else if (type2 === "[object Array]") {
+        var arrayLevel = state.noArrayIndent && level > 0 ? level - 1 : level;
+        if (block && state.dump.length !== 0) {
+          writeBlockSequence(state, arrayLevel, state.dump, compact);
+          if (duplicate) {
+            state.dump = "&ref_" + duplicateIndex + state.dump;
+          }
+        } else {
+          writeFlowSequence(state, arrayLevel, state.dump);
+          if (duplicate) {
+            state.dump = "&ref_" + duplicateIndex + " " + state.dump;
+          }
+        }
+      } else if (type2 === "[object String]") {
+        if (state.tag !== "?") {
+          writeScalar(state, state.dump, level, iskey);
+        }
+      } else {
+        if (state.skipInvalid)
+          return false;
+        throw new YAMLException("unacceptable kind of an object to dump " + type2);
+      }
+      if (state.tag !== null && state.tag !== "?") {
+        state.dump = "!<" + state.tag + "> " + state.dump;
+      }
+    }
+    return true;
+  }
+  function getDuplicateReferences(object, state) {
+    var objects = [], duplicatesIndexes = [], index, length;
+    inspectNode(object, objects, duplicatesIndexes);
+    for (index = 0, length = duplicatesIndexes.length; index < length; index += 1) {
+      state.duplicates.push(objects[duplicatesIndexes[index]]);
+    }
+    state.usedDuplicates = new Array(length);
+  }
+  function inspectNode(object, objects, duplicatesIndexes) {
+    var objectKeyList, index, length;
+    if (object !== null && typeof object === "object") {
+      index = objects.indexOf(object);
+      if (index !== -1) {
+        if (duplicatesIndexes.indexOf(index) === -1) {
+          duplicatesIndexes.push(index);
+        }
+      } else {
+        objects.push(object);
+        if (Array.isArray(object)) {
+          for (index = 0, length = object.length; index < length; index += 1) {
+            inspectNode(object[index], objects, duplicatesIndexes);
+          }
+        } else {
+          objectKeyList = Object.keys(object);
+          for (index = 0, length = objectKeyList.length; index < length; index += 1) {
+            inspectNode(object[objectKeyList[index]], objects, duplicatesIndexes);
+          }
+        }
+      }
+    }
+  }
+  function dump(input, options) {
+    options = options || {};
+    var state = new State(options);
+    if (!state.noRefs)
+      getDuplicateReferences(input, state);
+    if (writeNode(state, 0, input, true, true))
+      return state.dump + "\n";
+    return "";
+  }
+  function safeDump(input, options) {
+    return dump(input, common2.extend({ schema: DEFAULT_SAFE_SCHEMA }, options));
+  }
+  dumper.dump = dump;
+  dumper.safeDump = safeDump;
+  return dumper;
+}
+var hasRequiredJsYaml$1;
+function requireJsYaml$1() {
+  if (hasRequiredJsYaml$1)
+    return jsYaml$1;
+  hasRequiredJsYaml$1 = 1;
+  var loader2 = requireLoader();
+  var dumper2 = requireDumper();
+  function deprecated(name) {
+    return function() {
+      throw new Error("Function " + name + " is deprecated and cannot be used.");
+    };
+  }
+  jsYaml$1.Type = requireType();
+  jsYaml$1.Schema = requireSchema();
+  jsYaml$1.FAILSAFE_SCHEMA = requireFailsafe();
+  jsYaml$1.JSON_SCHEMA = requireJson();
+  jsYaml$1.CORE_SCHEMA = requireCore();
+  jsYaml$1.DEFAULT_SAFE_SCHEMA = requireDefault_safe();
+  jsYaml$1.DEFAULT_FULL_SCHEMA = requireDefault_full();
+  jsYaml$1.load = loader2.load;
+  jsYaml$1.loadAll = loader2.loadAll;
+  jsYaml$1.safeLoad = loader2.safeLoad;
+  jsYaml$1.safeLoadAll = loader2.safeLoadAll;
+  jsYaml$1.dump = dumper2.dump;
+  jsYaml$1.safeDump = dumper2.safeDump;
+  jsYaml$1.YAMLException = requireException();
+  jsYaml$1.MINIMAL_SCHEMA = requireFailsafe();
+  jsYaml$1.SAFE_SCHEMA = requireDefault_safe();
+  jsYaml$1.DEFAULT_SCHEMA = requireDefault_full();
+  jsYaml$1.scan = deprecated("scan");
+  jsYaml$1.parse = deprecated("parse");
+  jsYaml$1.compose = deprecated("compose");
+  jsYaml$1.addConstructor = deprecated("addConstructor");
+  return jsYaml$1;
+}
+var jsYaml;
+var hasRequiredJsYaml;
+function requireJsYaml() {
+  if (hasRequiredJsYaml)
+    return jsYaml;
+  hasRequiredJsYaml = 1;
+  var yaml = requireJsYaml$1();
+  jsYaml = yaml;
+  return jsYaml;
+}
 var hasRequiredReadYamlFile;
 function requireReadYamlFile() {
   if (hasRequiredReadYamlFile)
@@ -12345,7 +15254,7 @@ function requireReadYamlFile() {
   const fs2 = gracefulFs;
   const pify2 = requirePify();
   const stripBom2 = requireStripBom();
-  const yaml = require$$3$1;
+  const yaml = requireJsYaml();
   const parse2 = (data) => yaml.safeLoad(stripBom2(data));
   const readYamlFile$1 = (fp) => pify2(fs2.readFile)(fp, "utf8").then((data) => parse2(data));
   readYamlFile.exports = readYamlFile$1;
@@ -12467,11 +15376,11 @@ function requireParse() {
               throw Error("internal error, token overlap");
             start = position;
           };
-          tokenEnd = function(v, type) {
+          tokenEnd = function(v, type2) {
             if (start != position) {
               var hash = {
                 raw: input.substr(start, position - start),
-                type,
+                type: type2,
                 stack: stack.slice(0)
               };
               if (v !== void 0)
@@ -12731,16 +15640,16 @@ function requireParse() {
         position--;
         var start = position, chr = input[position++];
         var to_num = function(is_octal2) {
-          var str = input.substr(start, position - start);
+          var str2 = input.substr(start, position - start);
           if (is_octal2) {
-            var result = parseInt(str.replace(/^0o?/, ""), 8);
+            var result = parseInt(str2.replace(/^0o?/, ""), 8);
           } else {
-            var result = Number(str);
+            var result = Number(str2);
           }
           if (Number.isNaN(result)) {
             position--;
             fail('Bad numeric literal - "' + input.substr(start, position - start + 1) + '"');
-          } else if (!json5 && !str.match(/^-?(0|[1-9][0-9]*)(\.[0-9]+)?(e[+-]?[0-9]+)?$/i)) {
+          } else if (!json5 && !str2.match(/^-?(0|[1-9][0-9]*)(\.[0-9]+)?(e[+-]?[0-9]+)?$/i)) {
             position--;
             fail('Non-json numeric literal - "' + input.substr(start, position - start + 1) + '"');
           } else {
@@ -12973,15 +15882,15 @@ function requireStringify() {
   var escapable = /[\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/;
   function _stringify(object, options, recursiveLvl, currentKey) {
     var json5 = options.mode === "json5" || !options.mode;
-    function indent(str2, add) {
+    function indent(str3, add) {
       var prefix = options._prefix ? options._prefix : "";
       if (!options.indent)
-        return prefix + str2;
+        return prefix + str3;
       var result = "";
       var count = recursiveLvl + (add || 0);
       for (var i = 0; i < count; i++)
         result += options.indent;
-      return prefix + result + str2 + (add ? "\n" : "");
+      return prefix + result + str3 + (add ? "\n" : "");
     }
     function _stringify_key(key) {
       if (options.quote_keys)
@@ -13149,11 +16058,11 @@ function requireStringify() {
     if (typeof object === "object") {
       if (object === null)
         return "null";
-      var str;
-      if (typeof (str = object.toJSON5) === "function" && options.mode !== "json") {
-        object = str.call(object, currentKey);
-      } else if (typeof (str = object.toJSON) === "function") {
-        object = str.call(object, currentKey);
+      var str2;
+      if (typeof (str2 = object.toJSON5) === "function" && options.mode !== "json") {
+        object = str2.call(object, currentKey);
+      } else if (typeof (str2 = object.toJSON) === "function") {
+        object = str2.call(object, currentKey);
       }
       if (object === null)
         return "null";
@@ -13665,9 +16574,6 @@ function requireDocument() {
     return Document(source, options).update(new_value).toString();
   };
   return document;
-}
-function commonjsRequire(path2) {
-  throw new Error('Could not dynamically require "' + path2 + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
 }
 var utils = {};
 var hasRequiredUtils;
