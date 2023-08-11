@@ -119890,7 +119890,7 @@ async function get_changed_files(base_sha) {
       }
     }
   };
-  await exec_2("git", ["merge-base", "main"], options_base);
+  await exec_2("git", ["merge-base", "main", "HEAD"], options_base);
   console.log({ output_base });
   let output2 = "";
   let error2 = "";
