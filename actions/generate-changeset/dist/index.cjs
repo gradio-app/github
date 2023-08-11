@@ -119372,10 +119372,10 @@ function find(tree, condition) {
   });
   return result;
 }
-function gql_get_pr(owner, repo, pr_number2) {
+function gql_get_pr(owner, repo, pr_number) {
   return `{
     repository(owner: "${owner}", name: "${repo}") {
-      pullRequest(number: ${pr_number2}) {
+      pullRequest(number: ${pr_number}) {
         id
         baseRefName
         headRefName
@@ -119430,9 +119430,9 @@ function gql_update_issue_comment(comment_id, body) {
 		}
 	}`;
 }
-function gql_create_issue_comment(pr_number2, body) {
+function gql_create_issue_comment(pr_id, body) {
   return `mutation {
-		addComment(input: {body: "${body}", subjectId: "${pr_number2}"}) {
+		addComment(input: {body: "${body}", subjectId: "${pr_id}"}) {
 			commentEdge {
 				node {
 					url
@@ -119605,7 +119605,7 @@ function get_type_from_linked_issues(closes) {
 function get_client(token, owner, repo) {
   const octokit = getOctokit_1(token);
   return {
-    async get_pr(pr_number2) {
+    async get_pr(pr_number) {
       let {
         repository: {
           pullRequest: {
@@ -119622,7 +119622,7 @@ function get_client(token, owner, repo) {
           }
         }
       } = await octokit.graphql(
-        gql_get_pr(owner, repo, pr_number2)
+        gql_get_pr(owner, repo, pr_number)
       );
       return {
         id,
@@ -119660,7 +119660,7 @@ function get_client(token, owner, repo) {
             }
           }
         } = await octokit.graphql(
-          gql_create_issue_comment(pr_number, body)
+          gql_create_issue_comment(pr_id, body)
         );
         return url;
       }
