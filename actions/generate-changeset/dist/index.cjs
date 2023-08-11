@@ -119732,7 +119732,6 @@ const dev_only_ignore_globs = [
   "!**/requirements.txt"
 ];
 async function run() {
-  console.log(JSON.stringify(context, null, 2));
   const branch_name = coreExports.getInput("branch_name");
   if (branch_name === "changeset-release/main") {
     coreExports.info("Release PR. Skipping changeset generation.");
@@ -119892,7 +119891,7 @@ async function get_changed_files(base_sha) {
     }
   };
   await exec_2("git", ["merge-base", "main"], options_base);
-  console.log({ options_base });
+  console.log({ output_base });
   let output2 = "";
   let error2 = "";
   const options = {
