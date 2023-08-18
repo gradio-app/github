@@ -119372,67 +119372,62 @@ function find(tree, condition) {
   });
   return result;
 }
-function gql_get_pr(owner, repo, pr_number) {
-  return `{
-    repository(owner: "${owner}", name: "${repo}") {
-      pullRequest(number: ${pr_number}) {
-        id
-        baseRefName
-        headRefName
-        baseRefOid
-        headRefOid
-        headRepository {
-          nameWithOwner
-        }
-        closingIssuesReferences(first: 50) {
-          nodes {
-            labels(after: "", first: 10) {
-              nodes {
-                name
-              }
-            }
-            id
-            body
-            number
-            title
-          }
-        }
-        labels(first: 10) {
-          nodes {
-            name
-            id
-            description
-            color
-          }
-        }
-        title
-        comments(first: 50) {
-          nodes {
-            id
-            author {
-              login
-            }
-            body
-            fullDatabaseId
-						url
-          }
-        }
-      }
-    }
-  }`;
-}
-function gql_update_issue_comment(comment_id, body) {
-  return `mutation {
-		updateIssueComment(input: {id: "${comment_id}", body: "${body}"}) {
+const GQL_GET_PR = `query RepoData($owner: String!, $name: String!, $pr_number: Int!) {
+	repository(owner: $owner, name: $name) {
+		pullRequest(number: $pr_number) {
+			id
+			baseRefName
+			headRefName
+			baseRefOid
+			headRefOid
+			headRepository {
+				nameWithOwner
+			}
+			closingIssuesReferences(first: 50) {
+				nodes {
+					labels(first: 10) {
+						nodes {
+							name
+						}
+					}
+					id
+					body
+					number
+					title
+				}
+			}
+			labels(first: 10) {
+				nodes {
+					name
+					id
+					description
+					color
+				}
+			}
+			title
+			comments(first: 50) {
+				nodes {
+					id
+					author {
+						login
+					}
+					body
+					fullDatabaseId
+					url
+				}
+			}
+		}
+	}
+}`;
+const GQL_UPDATE_ISSUE_COMMENT = `mutation UpdateComment($comment_id: ID!, $body: String!){
+		updateIssueComment(input: {id: $comment_id, body: $body}) {
 			issueComment {
 				url
 			}
 		}
 	}`;
-}
-function gql_create_issue_comment(pr_id, body) {
-  return `mutation {
-		addComment(input: {body: "${body}", subjectId: "${pr_id}"}) {
+const GQL_CREATE_ISSUE_COMMENT = `mutation CreateComment($body: String!, $pr_id: ID!){
+		addComment(input: {body: $body, subjectId: $pr_id}) {
 			commentEdge {
 				node {
 					url
@@ -119440,7 +119435,6 @@ function gql_create_issue_comment(pr_id, body) {
 			}
 		}
 	}`;
-}
 function get_title(packages) {
   return packages.length ? `change detected` : `no changes detected`;
 }
@@ -119626,9 +119620,11 @@ function get_client(token, owner, repo) {
             comments: { nodes: comments }
           }
         }
-      } = await octokit.graphql(
-        gql_get_pr(owner, repo, pr_number)
-      );
+      } = await octokit.graphql(GQL_GET_PR, {
+        owner,
+        name: repo,
+        pr_number
+      });
       return {
         id,
         base_branch_name,
@@ -119654,7 +119650,8 @@ function get_client(token, owner, repo) {
             issueComment: { url }
           }
         } = await octokit.graphql(
-          gql_update_issue_comment(comment_id, body)
+          GQL_UPDATE_ISSUE_COMMENT,
+          { comment_id, body }
         );
         return url;
       } else {
@@ -119665,7 +119662,8 @@ function get_client(token, owner, repo) {
             }
           }
         } = await octokit.graphql(
-          gql_create_issue_comment(pr_id, body)
+          GQL_CREATE_ISSUE_COMMENT,
+          { pr_id, body }
         );
         return url;
       }
