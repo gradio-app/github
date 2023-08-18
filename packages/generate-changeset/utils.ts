@@ -10,6 +10,28 @@ import { visit } from "unist-util-visit";
 import { find } from "unist-util-find";
 import { ListItem, Text } from "mdast";
 
+export function validate_feat_fix(changelog: string) {
+	let ast = unified().use(remarkParse).parse(changelog);
+
+	if (
+		ast.children &&
+		ast.children.length == 2 &&
+		ast.children[0].type === "paragraph" &&
+		ast.children[1].type === "list"
+	) {
+		return true;
+	}
+	if (
+		ast.children &&
+		ast.children.length == 1 &&
+		ast.children[0].type === "paragraph"
+	) {
+		return true;
+	}
+
+	return false;
+}
+
 export const GQL_GET_PR = `query RepoData($owner: String!, $name: String!, $pr_number: Int!) {
 	repository(owner: $owner, name: $name) {
 		pullRequest(number: $pr_number) {
@@ -459,7 +481,7 @@ ${formatted_type}
 const RE_FEAT_FIX_REGEX = /^(feat|fix)\s*:/i;
 const RE_HIGHLIGHT_REGEX = /^highlight\s*:/i;
 
-const RE_VALID_FEAT_FIX_REGEX = /^(feat|fix)\s*:.*$/i;
+const RE_VALID_FEAT_FIX_REGEX = /^(feat|fix)\s*:[^]*$/i;
 const RE_VALID_HIGHLIGHT_REGEX = /^highlight\s*:\n\n####[^]*$/i;
 
 export function validate_changelog(changelog: string): {
@@ -470,10 +492,26 @@ export function validate_changelog(changelog: string): {
 
 	if (RE_FEAT_FIX_REGEX.test(changelog_content)) {
 		return {
-			valid: RE_VALID_FEAT_FIX_REGEX.test(changelog_content),
+			valid:
+				RE_VALID_FEAT_FIX_REGEX.test(changelog_content) &&
+				validate_feat_fix(changelog_content),
 			message: `⚠️ Warning invalid changelog entry.
 
-Changelog entry must be in the format \`feat: <description>\` or \`fix: <description>\`. Entries fior fixes or features cannot span multiple lines. If you wish to add a longer description, please created a \`highlight\` entry instead.`,
+Changelog entry must be either a paragraph or a paragraph followed by a list:
+
+\`<type>: <description>\` 
+
+Or
+
+\`\`\`
+<type>:<description>
+
+- <change-one>
+- <change-two>
+- <change-three>
+\`\`\`
+
+If you wish to add a more detailed description, please created a \`highlight\` entry instead.`,
 		};
 	} else if (RE_HIGHLIGHT_REGEX.test(changelog_content)) {
 		return {
