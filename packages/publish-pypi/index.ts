@@ -110,6 +110,7 @@ async function run() {
 		}
 	);
 
+	await exec("chmod", ["og-rw", "/home/runner/.netrc"]);
 	await exec("pip", ["install", "secretstorage", "dbus-python"]);
 
 	let publishes: boolean[] = [];
