@@ -111,7 +111,7 @@ async function run() {
 	);
 
 	await exec("chmod", ["og-rw", "/home/runner/.netrc"]);
-	await exec("pip", ["install", "secretstorage", "dbus-python"]);
+	await exec("pip", ["install", "secretstorage", "dbus-next"]);
 
 	let publishes: boolean[] = [];
 	for await (const p of packages_to_publish_sorted) {
