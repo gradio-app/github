@@ -34803,7 +34803,7 @@ async function run() {
     }
   );
   await exec_2("chmod", ["og-rw", "/home/runner/.netrc"]);
-  await exec_2("pip", ["install", "secretstorage", "dbus-python"]);
+  await exec_2("pip", ["install", "secretstorage", "dbus-next"]);
   let publishes = [];
   for await (const p of packages_to_publish_sorted) {
     coreExports.info(`Publishing ${p.packageJson.name}@${p.packageJson.version} to PyPI`);
