@@ -47,6 +47,7 @@ export default defineConfig({
 			"@huggingface/hub",
 			"kleur",
 			"node-fetch",
+			"undici",
 		],
 	},
 });
