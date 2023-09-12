@@ -119760,6 +119760,11 @@ async function run() {
     coreExports.setOutput("skipped", "true");
     return;
   }
+  if (branch_name === "v4") {
+    coreExports.info("Main or dev branch. Skipping changeset generation.");
+    coreExports.setOutput("skipped", "true");
+    return;
+  }
   const token = coreExports.getInput("github_token");
   const main_pkg = coreExports.getInput("main_pkg");
   const client = get_client(token, context.repo.owner, context.repo.repo);
