@@ -52,6 +52,12 @@ async function run() {
 		return;
 	}
 
+	if (branch_name === "v4") {
+		info("Main or dev branch. Skipping changeset generation.");
+		setOutput("skipped", "true");
+		return;
+	}
+
 	const token = getInput("github_token");
 	const main_pkg = getInput("main_pkg");
 	const client = get_client(token, context.repo.owner, context.repo.repo);
