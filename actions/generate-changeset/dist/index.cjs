@@ -119755,7 +119755,7 @@ const dev_only_ignore_globs = [
 ];
 async function run() {
   const branch_name = coreExports.getInput("branch_name");
-  if (branch_name === "changeset-release/main") {
+  if (branch_name.startsWith("changeset-release/")) {
     coreExports.info("Release PR. Skipping changeset generation.");
     coreExports.setOutput("skipped", "true");
     return;
