@@ -46,7 +46,7 @@ async function run() {
 	// console.log(JSON.stringify(context, null, 2));
 	const branch_name = getInput("branch_name");
 
-	if (branch_name === "changeset-release/main") {
+	if (branch_name.startsWidth("changeset-release/")) {
 		info("Release PR. Skipping changeset generation.");
 		setOutput("skipped", "true");
 		return;
