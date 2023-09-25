@@ -24,6 +24,7 @@ interface PullRequestResponse {
 type PullRequests = PullRequestResponse["repository"]["pullRequests"]["edges"];
 
 async function run() {
+	console.log(JSON.stringify(context, null, 2));
 	const octokit = getOctokit(getInput("github_token"));
 	const { repo, owner } = context.repo;
 
