@@ -85285,6 +85285,7 @@ function getOctokit(token, options, ...additionalPlugins) {
 getOctokit_1 = github.getOctokit = getOctokit;
 async function run() {
   var _a, _b, _c, _d, _e;
+  console.log(JSON.stringify(context, null, 2));
   const octokit = getOctokit_1(coreExports.getInput("github_token"));
   const { repo, owner } = context.repo;
   const open_pull_requests = await get_prs(octokit, repo, owner);
