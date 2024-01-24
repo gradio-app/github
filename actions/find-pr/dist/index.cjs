@@ -85290,7 +85290,7 @@ async function run() {
   const { repo, owner } = context.repo;
   const open_pull_requests = await get_prs(octokit, repo, owner);
   if (context.eventName === "push") {
-    const [source_repo, source_branch, pr_number] = get_pr_details_from_sha(open_pull_requests);
+    const [source_repo, source_branch, pr_number, sha] = get_pr_details_from_sha(open_pull_requests);
     coreExports.setOutput("source_repo", source_repo);
     coreExports.setOutput("source_branch", source_branch);
     coreExports.setOutput("pr_number", pr_number);
@@ -85375,13 +85375,19 @@ async function get_prs(octokit, repo, owner) {
 }
 function get_pr_details_from_number(pull_requests, pr_number) {
   if (!pr_number)
-    return [null, null, null];
-  const [source_repo, source_branch] = pull_requests.map((pr) => [
+    return [void 0, void 0, void 0, void 0];
+  const [source_repo, source_branch, , sha] = pull_requests.map((pr) => [
     pr.node.headRepository.nameWithOwner,
     pr.node.headRefName,
-    pr.node.number
-  ]).find(([, , number]) => number === pr_number) || [null, null];
-  return [source_repo, source_branch, pr_number];
+    pr.node.number,
+    pr.node.headRefOid
+  ]).find(([, , number]) => number === pr_number) || [
+    void 0,
+    void 0,
+    void 0,
+    void 0
+  ];
+  return [source_repo, source_branch, pr_number, sha];
 }
 function get_pr_details_from_sha(pull_requests) {
   var _a, _b, _c;
@@ -85394,29 +85400,36 @@ function get_pr_details_from_sha(pull_requests) {
   ]).find(([, , , headRefOid]) => headRefOid === head_sha) || [
     (_b = context.payload.repository) == null ? void 0 : _b.full_name,
     (_c = context.payload.ref) == null ? void 0 : _c.split("/").slice(2).join("/"),
-    null
+    void 0
   ];
-  return [source_repo, source_branch, pr_number];
+  return [source_repo, source_branch, pr_number, head_sha];
 }
 function get_pr_details_from_title(pull_requests, title) {
-  const [source_repo, source_branch, pr_number] = pull_requests.map((pr) => [
+  const [source_repo, source_branch, pr_number, sha] = pull_requests.map((pr) => [
     pr.node.headRepository.nameWithOwner,
     pr.node.headRefName,
     pr.node.number,
+    pr.node.headRefOid,
     pr.node.title
-  ]).find(([, , , _title]) => _title === title) || [null, null, null];
-  return [source_repo, source_branch, pr_number];
+  ]).find(([, , , , _title]) => _title === title) || [
+    void 0,
+    void 0,
+    void 0,
+    void 0
+  ];
+  return [source_repo, source_branch, pr_number, sha];
 }
 function get_pr_details_from_refs(pull_requests) {
   var _a, _b, _c;
-  const source_repo = (_b = (_a = context.payload.workflow_run) == null ? void 0 : _a.head_repository) == null ? void 0 : _b.full_name;
-  const source_branch = (_c = context.payload.workflow_run) == null ? void 0 : _c.head_branch;
-  const [, , pr_number] = pull_requests.map((pr) => [
+  const source_repo = ((_b = (_a = context.payload.workflow_run) == null ? void 0 : _a.head_repository) == null ? void 0 : _b.full_name) || void 0;
+  const source_branch = ((_c = context.payload.workflow_run) == null ? void 0 : _c.head_branch) || void 0;
+  const [, , pr_number, sha] = pull_requests.map((pr) => [
     pr.node.headRepository.nameWithOwner,
     pr.node.headRefName,
-    pr.node.number
+    pr.node.number,
+    pr.node.headRefOid
   ]).find(
     ([repo, branch]) => source_repo === repo && source_branch === branch
-  ) || [null, null, null];
-  return [source_repo, source_branch, pr_number];
+  ) || [void 0, void 0, void 0, void 0];
+  return [source_repo, source_branch, pr_number, sha];
 }
