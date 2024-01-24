@@ -85422,9 +85422,10 @@ function get_pr_details_from_title(pull_requests, title) {
   return [source_repo, source_branch, pr_number, sha];
 }
 function get_pr_details_from_refs(pull_requests) {
-  var _a, _b, _c;
+  var _a, _b, _c, _d;
   const source_repo = ((_b = (_a = context.payload.workflow_run) == null ? void 0 : _a.head_repository) == null ? void 0 : _b.full_name) || void 0;
   const source_branch = ((_c = context.payload.workflow_run) == null ? void 0 : _c.head_branch) || void 0;
+  const _sha = ((_d = context.payload.workflow_run) == null ? void 0 : _d.head_sha) || void 0;
   const [, , pr_number, sha] = pull_requests.map((pr) => [
     pr.node.headRepository.nameWithOwner,
     pr.node.headRefName,
@@ -85432,6 +85433,6 @@ function get_pr_details_from_refs(pull_requests) {
     pr.node.headRefOid
   ]).find(
     ([repo, branch]) => source_repo === repo && source_branch === branch
-  ) || [void 0, void 0, void 0, void 0];
+  ) || [void 0, void 0, void 0, _sha];
   return [source_repo, source_branch, pr_number, sha];
 }
