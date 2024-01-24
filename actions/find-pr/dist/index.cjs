@@ -85284,7 +85284,7 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 getOctokit_1 = github.getOctokit = getOctokit;
 async function run() {
-  var _a, _b, _c, _d, _e;
+  var _a, _b, _c, _d, _e, _f;
   console.log(JSON.stringify(context, null, 2));
   const octokit = getOctokit_1(coreExports.getInput("github_token"));
   const { repo, owner } = context.repo;
@@ -85294,6 +85294,7 @@ async function run() {
     coreExports.setOutput("source_repo", source_repo);
     coreExports.setOutput("source_branch", source_branch);
     coreExports.setOutput("pr_number", pr_number);
+    coreExports.setOutput("sha", sha);
     coreExports.setOutput("found_pr", !!(source_repo && source_branch && pr_number));
     return;
   } else if (context.eventName === "pull_request") {
@@ -85303,37 +85304,38 @@ async function run() {
     coreExports.setOutput("source_repo", source_repo);
     coreExports.setOutput("source_branch", source_branch);
     coreExports.setOutput("pr_number", pr_number);
+    coreExports.setOutput("sha", (_d = context.payload.pull_request) == null ? void 0 : _d.head.sha);
     coreExports.setOutput("found_pr", !!(source_repo && source_branch && pr_number));
     return;
   } else if (context.eventName === "issue_comment") {
     console.log(JSON.stringify(context, null, 2));
-    const [source_repo, source_branch, pr_number] = get_pr_details_from_number(
+    const [source_repo, source_branch, pr_number, sha] = get_pr_details_from_number(
       open_pull_requests,
-      (_d = context.payload.issue) == null ? void 0 : _d.number
+      (_e = context.payload.issue) == null ? void 0 : _e.number
     );
     coreExports.setOutput("source_repo", source_repo);
     coreExports.setOutput("source_branch", source_branch);
     coreExports.setOutput("pr_number", pr_number);
+    coreExports.setOutput("sha", sha);
     coreExports.setOutput("found_pr", !!(source_repo && source_branch && pr_number));
     return;
   }
   if (!context.payload.workflow_run)
     return;
   if (context.payload.workflow_run.event === "pull_request" || context.payload.workflow_run.event === "push") {
-    const [source_repo, source_branch, pr_number] = get_pr_details_from_refs(open_pull_requests);
+    const [source_repo, source_branch, pr_number, sha] = get_pr_details_from_refs(open_pull_requests);
     coreExports.setOutput("source_repo", source_repo);
     coreExports.setOutput("source_branch", source_branch);
     coreExports.setOutput("pr_number", pr_number);
+    coreExports.setOutput("sha", sha);
     coreExports.setOutput("found_pr", !!(source_repo && source_branch && pr_number));
   } else if (context.payload.workflow_run.event === "issue_comment") {
-    const title = (_e = context.payload.workflow_run) == null ? void 0 : _e.display_title;
-    const [source_repo, source_branch, pr_number] = get_pr_details_from_title(
-      open_pull_requests,
-      title
-    );
+    const title = (_f = context.payload.workflow_run) == null ? void 0 : _f.display_title;
+    const [source_repo, source_branch, pr_number, sha] = get_pr_details_from_title(open_pull_requests, title);
     coreExports.setOutput("source_repo", source_repo);
     coreExports.setOutput("source_branch", source_branch);
     coreExports.setOutput("pr_number", pr_number);
+    coreExports.setOutput("sha", sha);
     coreExports.setOutput("found_pr", !!(source_repo && source_branch && pr_number));
   } else {
     coreExports.setFailed(
