@@ -31,7 +31,7 @@ async function run() {
 	const open_pull_requests = await get_prs(octokit, repo, owner);
 
 	if (context.eventName === "push") {
-		const [source_repo, source_branch, pr_number] =
+		const [source_repo, source_branch, pr_number, sha] =
 			get_pr_details_from_sha(open_pull_requests);
 
 		setOutput("source_repo", source_repo);
@@ -130,24 +130,37 @@ async function get_prs(octokit: Client, repo: string, owner: string) {
 	return pull_requests;
 }
 
+type PRDetails = [
+	string | undefined,
+	string | undefined,
+	number | undefined,
+	string | undefined,
+];
+
 function get_pr_details_from_number(
 	pull_requests: PullRequests,
 	pr_number: number | undefined
-) {
-	if (!pr_number) return [null, null, null];
-	const [source_repo, source_branch] = (
+): PRDetails {
+	if (!pr_number) return [undefined, undefined, undefined, undefined];
+	const [source_repo, source_branch, , sha] = (
 		pull_requests.map((pr) => [
 			pr.node.headRepository.nameWithOwner,
 			pr.node.headRefName,
 			pr.node.number,
-		]) as [string, string, number][]
-	).find(([, , number]) => number === pr_number) || [null, null];
+			pr.node.headRefOid,
+		]) as [string, string, number, string][]
+	).find(([, , number]) => number === pr_number) || [
+		undefined,
+		undefined,
+		undefined,
+		undefined,
+	];
 
-	return [source_repo, source_branch, pr_number];
+	return [source_repo, source_branch, pr_number, sha];
 }
 
-function get_pr_details_from_sha(pull_requests: PullRequests) {
-	const head_sha = context.payload.head_commit?.id;
+function get_pr_details_from_sha(pull_requests: PullRequests): PRDetails {
+	const head_sha: string = context.payload.head_commit?.id;
 
 	const [source_repo, source_branch, pr_number] = (
 		pull_requests.map((pr) => [
@@ -159,40 +172,50 @@ function get_pr_details_from_sha(pull_requests: PullRequests) {
 	).find(([, , , headRefOid]) => headRefOid === head_sha) || [
 		context.payload.repository?.full_name,
 		context.payload.ref?.split("/").slice(2).join("/"),
-		null,
+		undefined,
 	];
 
-	return [source_repo, source_branch, pr_number];
+	return [source_repo, source_branch, pr_number, head_sha];
 }
 
-function get_pr_details_from_title(pull_requests: PullRequests, title: string) {
-	const [source_repo, source_branch, pr_number] = (
+function get_pr_details_from_title(
+	pull_requests: PullRequests,
+	title: string
+): PRDetails {
+	const [source_repo, source_branch, pr_number, sha] = (
 		pull_requests.map((pr) => [
 			pr.node.headRepository.nameWithOwner,
 			pr.node.headRefName,
 			pr.node.number,
+			pr.node.headRefOid,
 			pr.node.title,
-		]) as [string, string, number, string][]
-	).find(([, , , _title]) => _title === title) || [null, null, null];
+		]) as [string, string, number, string, string][]
+	).find(([, , , , _title]) => _title === title) || [
+		undefined,
+		undefined,
+		undefined,
+		undefined,
+	];
 
-	return [source_repo, source_branch, pr_number];
+	return [source_repo, source_branch, pr_number, sha];
 }
 
-function get_pr_details_from_refs(pull_requests: PullRequests) {
-	const source_repo: string | null =
-		context.payload.workflow_run?.head_repository?.full_name;
-	const source_branch: string | null =
-		context.payload.workflow_run?.head_branch;
+function get_pr_details_from_refs(pull_requests: PullRequests): PRDetails {
+	const source_repo: string | undefined =
+		context.payload.workflow_run?.head_repository?.full_name || undefined;
+	const source_branch: string | undefined =
+		context.payload.workflow_run?.head_branch || undefined;
 
-	const [, , pr_number] = (
+	const [, , pr_number, sha] = (
 		pull_requests.map((pr) => [
 			pr.node.headRepository.nameWithOwner,
 			pr.node.headRefName,
 			pr.node.number,
-		]) as [string, string, number][]
+			pr.node.headRefOid,
+		]) as [string, string, number, string][]
 	).find(
 		([repo, branch]) => source_repo === repo && source_branch === branch
-	) || [null, null, null];
+	) || [undefined, undefined, undefined, undefined];
 
-	return [source_repo, source_branch, pr_number];
+	return [source_repo, source_branch, pr_number, sha];
 }
