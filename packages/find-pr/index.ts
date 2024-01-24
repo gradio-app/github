@@ -37,6 +37,7 @@ async function run() {
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
 		setOutput("pr_number", pr_number);
+		setOutput("sha", sha);
 		setOutput("found_pr", !!(source_repo && source_branch && pr_number));
 		return;
 	} else if (context.eventName === "pull_request") {
@@ -47,18 +48,21 @@ async function run() {
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
 		setOutput("pr_number", pr_number);
+		setOutput("sha", context.payload.pull_request?.head.sha);
 		setOutput("found_pr", !!(source_repo && source_branch && pr_number));
 		return;
 	} else if (context.eventName === "issue_comment") {
 		console.log(JSON.stringify(context, null, 2));
-		const [source_repo, source_branch, pr_number] = get_pr_details_from_number(
-			open_pull_requests,
-			context.payload.issue?.number
-		);
+		const [source_repo, source_branch, pr_number, sha] =
+			get_pr_details_from_number(
+				open_pull_requests,
+				context.payload.issue?.number
+			);
 
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
 		setOutput("pr_number", pr_number);
+		setOutput("sha", sha);
 		setOutput("found_pr", !!(source_repo && source_branch && pr_number));
 		return;
 	}
@@ -69,23 +73,23 @@ async function run() {
 		context.payload.workflow_run.event === "pull_request" ||
 		context.payload.workflow_run.event === "push"
 	) {
-		const [source_repo, source_branch, pr_number] =
+		const [source_repo, source_branch, pr_number, sha] =
 			get_pr_details_from_refs(open_pull_requests);
 
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
 		setOutput("pr_number", pr_number);
+		setOutput("sha", sha);
 		setOutput("found_pr", !!(source_repo && source_branch && pr_number));
 	} else if (context.payload.workflow_run.event === "issue_comment") {
 		const title = context.payload.workflow_run?.display_title;
-		const [source_repo, source_branch, pr_number] = get_pr_details_from_title(
-			open_pull_requests,
-			title
-		);
+		const [source_repo, source_branch, pr_number, sha] =
+			get_pr_details_from_title(open_pull_requests, title);
 
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
 		setOutput("pr_number", pr_number);
+		setOutput("sha", sha);
 		setOutput("found_pr", !!(source_repo && source_branch && pr_number));
 	} else {
 		setFailed(
