@@ -209,6 +209,7 @@ function get_pr_details_from_refs(pull_requests: PullRequests): PRDetails {
 		context.payload.workflow_run?.head_repository?.full_name || undefined;
 	const source_branch: string | undefined =
 		context.payload.workflow_run?.head_branch || undefined;
+	const _sha = context.payload.workflow_run?.head_sha || undefined;
 
 	const [, , pr_number, sha] = (
 		pull_requests.map((pr) => [
@@ -219,7 +220,7 @@ function get_pr_details_from_refs(pull_requests: PullRequests): PRDetails {
 		]) as [string, string, number, string][]
 	).find(
 		([repo, branch]) => source_repo === repo && source_branch === branch
-	) || [undefined, undefined, undefined, undefined];
+	) || [undefined, undefined, undefined, _sha];
 
 	return [source_repo, source_branch, pr_number, sha];
 }
