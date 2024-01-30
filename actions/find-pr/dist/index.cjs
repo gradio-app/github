@@ -85285,7 +85285,6 @@ function getOctokit(token, options, ...additionalPlugins) {
 getOctokit_1 = github.getOctokit = getOctokit;
 async function run() {
   var _a, _b, _c, _d, _e, _f, _g, _h;
-  console.log(JSON.stringify(context, null, 2));
   const octokit = getOctokit_1(coreExports.getInput("github_token"));
   const { repo, owner } = context.repo;
   const open_pull_requests = await get_prs(octokit, repo, owner);
@@ -85337,6 +85336,15 @@ async function run() {
     return;
   if (context.payload.workflow_run.event === "pull_request" || context.payload.workflow_run.event === "push") {
     const [source_repo, source_branch, pr_number, sha, mergeable, merge_sha] = get_pr_details_from_refs(open_pull_requests);
+    console.log({
+      source_repo,
+      source_branch,
+      pr_number,
+      sha,
+      mergeable,
+      merge_sha
+    });
+    console.log(JSON.stringify(open_pull_requests, null, 2));
     if (mergeable === "CONFLICTING" || mergeable === "UNKNOWN") {
       coreExports.setOutput("mergeable", false);
     } else if (mergeable === "MERGEABLE") {
