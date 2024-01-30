@@ -16,6 +16,10 @@ outputs:
     description: "Found PR."
   sha:
     description: "SHA."
+  mergeable:
+    description: "Mergeable."
+  merge_sha:
+    description: "Merge SHA."
 
 runs:
   using: "node16"
