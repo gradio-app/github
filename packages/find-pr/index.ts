@@ -29,7 +29,6 @@ interface PullRequestResponse {
 type PullRequests = PullRequestResponse["repository"]["pullRequests"]["edges"];
 
 async function run() {
-	console.log(JSON.stringify(context, null, 2));
 	const octokit = getOctokit(getInput("github_token"));
 	const { repo, owner } = context.repo;
 
@@ -95,6 +94,16 @@ async function run() {
 	) {
 		const [source_repo, source_branch, pr_number, sha, mergeable, merge_sha] =
 			get_pr_details_from_refs(open_pull_requests);
+		console.log({
+			source_repo,
+			source_branch,
+			pr_number,
+			sha,
+			mergeable,
+			merge_sha,
+		});
+
+		console.log(JSON.stringify(open_pull_requests, null, 2));
 
 		if (mergeable === "CONFLICTING" || mergeable === "UNKNOWN") {
 			setOutput("mergeable", false);
