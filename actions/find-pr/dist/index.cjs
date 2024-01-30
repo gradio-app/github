@@ -85407,14 +85407,17 @@ async function get_prs(octokit, repo, owner) {
 function get_pr_details_from_number(pull_requests, pr_number) {
   if (!pr_number)
     return [void 0, void 0, void 0, void 0, void 0, void 0];
-  const [source_repo, source_branch, , sha, mergeable, merge_sha] = pull_requests.map((pr) => [
-    pr.node.headRepository.nameWithOwner,
-    pr.node.headRefName,
-    pr.node.number,
-    pr.node.headRefOid,
-    pr.node.mergeable,
-    pr.node.potentialMergeCommit.oid
-  ]).find(([, , number]) => number === pr_number) || [
+  const [source_repo, source_branch, , sha, mergeable, merge_sha] = pull_requests.map((pr) => {
+    var _a;
+    return [
+      pr.node.headRepository.nameWithOwner,
+      pr.node.headRefName,
+      pr.node.number,
+      pr.node.headRefOid,
+      pr.node.mergeable,
+      (_a = pr.node.potentialMergeCommit) == null ? void 0 : _a.oid
+    ];
+  }).find(([, , number]) => number === pr_number) || [
     void 0,
     void 0,
     void 0,
@@ -85427,14 +85430,17 @@ function get_pr_details_from_number(pull_requests, pr_number) {
 function get_pr_details_from_sha(pull_requests) {
   var _a, _b, _c;
   const head_sha = (_a = context.payload.head_commit) == null ? void 0 : _a.id;
-  const [source_repo, source_branch, pr_number, , mergeable, merge_sha] = pull_requests.map((pr) => [
-    pr.node.headRepository.nameWithOwner,
-    pr.node.headRefName,
-    pr.node.number,
-    pr.node.headRefOid,
-    pr.node.mergeable,
-    pr.node.potentialMergeCommit.oid
-  ]).find(([, , , headRefOid]) => headRefOid === head_sha) || [
+  const [source_repo, source_branch, pr_number, , mergeable, merge_sha] = pull_requests.map((pr) => {
+    var _a2;
+    return [
+      pr.node.headRepository.nameWithOwner,
+      pr.node.headRefName,
+      pr.node.number,
+      pr.node.headRefOid,
+      pr.node.mergeable,
+      (_a2 = pr.node.potentialMergeCommit) == null ? void 0 : _a2.oid
+    ];
+  }).find(([, , , headRefOid]) => headRefOid === head_sha) || [
     (_b = context.payload.repository) == null ? void 0 : _b.full_name,
     (_c = context.payload.ref) == null ? void 0 : _c.split("/").slice(2).join("/"),
     void 0,
@@ -85451,15 +85457,18 @@ function get_pr_details_from_sha(pull_requests) {
   ];
 }
 function get_pr_details_from_title(pull_requests, title) {
-  const [source_repo, source_branch, pr_number, sha, , mergeable, merge_sha] = pull_requests.map((pr) => [
-    pr.node.headRepository.nameWithOwner,
-    pr.node.headRefName,
-    pr.node.number,
-    pr.node.headRefOid,
-    pr.node.title,
-    pr.node.mergeable,
-    pr.node.potentialMergeCommit.oid
-  ]).find(([, , , , _title]) => _title === title) || [
+  const [source_repo, source_branch, pr_number, sha, , mergeable, merge_sha] = pull_requests.map((pr) => {
+    var _a;
+    return [
+      pr.node.headRepository.nameWithOwner,
+      pr.node.headRefName,
+      pr.node.number,
+      pr.node.headRefOid,
+      pr.node.title,
+      pr.node.mergeable,
+      (_a = pr.node.potentialMergeCommit) == null ? void 0 : _a.oid
+    ];
+  }).find(([, , , , _title]) => _title === title) || [
     void 0,
     void 0,
     void 0,
@@ -85472,14 +85481,17 @@ function get_pr_details_from_refs(pull_requests) {
   const source_repo = ((_b = (_a = context.payload.workflow_run) == null ? void 0 : _a.head_repository) == null ? void 0 : _b.full_name) || void 0;
   const source_branch = ((_c = context.payload.workflow_run) == null ? void 0 : _c.head_branch) || void 0;
   const _sha = ((_d = context.payload.workflow_run) == null ? void 0 : _d.head_sha) || void 0;
-  const [, , pr_number, sha, mergeable, merge_sha] = pull_requests.map((pr) => [
-    pr.node.headRepository.nameWithOwner,
-    pr.node.headRefName,
-    pr.node.number,
-    pr.node.headRefOid,
-    pr.node.mergeable,
-    pr.node.potentialMergeCommit.oid
-  ]).find(
+  const [, , pr_number, sha, mergeable, merge_sha] = pull_requests.map((pr) => {
+    var _a2;
+    return [
+      pr.node.headRepository.nameWithOwner,
+      pr.node.headRefName,
+      pr.node.number,
+      pr.node.headRefOid,
+      pr.node.mergeable,
+      (_a2 = pr.node.potentialMergeCommit) == null ? void 0 : _a2.oid
+    ];
+  }).find(
     ([repo, branch]) => source_repo === repo && source_branch === branch
   ) || [void 0, void 0, void 0, _sha, void 0, void 0];
   return [source_repo, source_branch, pr_number, sha, mergeable, merge_sha];
