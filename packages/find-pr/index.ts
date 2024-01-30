@@ -194,7 +194,7 @@ function get_pr_details_from_number(
 			pr.node.number,
 			pr.node.headRefOid,
 			pr.node.mergeable,
-			pr.node.potentialMergeCommit.oid,
+			pr.node.potentialMergeCommit?.oid,
 		]) as [
 			string,
 			string,
@@ -225,7 +225,7 @@ function get_pr_details_from_sha(pull_requests: PullRequests): PRDetails {
 			pr.node.number,
 			pr.node.headRefOid,
 			pr.node.mergeable,
-			pr.node.potentialMergeCommit.oid,
+			pr.node.potentialMergeCommit?.oid,
 		]) as [
 			string,
 			string,
@@ -264,7 +264,7 @@ function get_pr_details_from_title(
 			pr.node.headRefOid,
 			pr.node.title,
 			pr.node.mergeable,
-			pr.node.potentialMergeCommit.oid,
+			pr.node.potentialMergeCommit?.oid,
 		]) as [
 			string,
 			string,
@@ -298,7 +298,7 @@ function get_pr_details_from_refs(pull_requests: PullRequests): PRDetails {
 			pr.node.number,
 			pr.node.headRefOid,
 			pr.node.mergeable,
-			pr.node.potentialMergeCommit.oid,
+			pr.node.potentialMergeCommit?.oid,
 		]) as [
 			string,
 			string,
