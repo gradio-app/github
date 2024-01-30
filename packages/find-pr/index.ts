@@ -12,8 +12,13 @@ interface PullRequestResponse {
 					headRepository: {
 						nameWithOwner: string;
 					};
+
 					headRefName: string;
 					headRefOid: string;
+					mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
+					potentialMergeCommit: {
+						oid: string;
+					};
 					title: string;
 				};
 			}[];
@@ -31,8 +36,15 @@ async function run() {
 	const open_pull_requests = await get_prs(octokit, repo, owner);
 
 	if (context.eventName === "push") {
-		const [source_repo, source_branch, pr_number, sha] =
+		const [source_repo, source_branch, pr_number, sha, mergeable, merge_sha] =
 			get_pr_details_from_sha(open_pull_requests);
+
+		if (mergeable === "CONFLICTING" || mergeable === "UNKNOWN") {
+			setOutput("mergeable", false);
+		} else if (mergeable === "MERGEABLE") {
+			setOutput("mergeable", true);
+			setOutput("merge_sha", merge_sha);
+		}
 
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
@@ -45,6 +57,8 @@ async function run() {
 		const source_branch = context.payload.pull_request?.head.ref;
 		const pr_number = context.payload.pull_request?.number;
 
+		setOutput("mergeable", context.payload.pull_request?.mergeable);
+		setOutput("merge_sha", context.payload.pull_request?.merge_commit_sha);
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
 		setOutput("pr_number", pr_number);
@@ -52,12 +66,18 @@ async function run() {
 		setOutput("found_pr", !!(source_repo && source_branch && pr_number));
 		return;
 	} else if (context.eventName === "issue_comment") {
-		console.log(JSON.stringify(context, null, 2));
-		const [source_repo, source_branch, pr_number, sha] =
+		const [source_repo, source_branch, pr_number, sha, mergeable, merge_sha] =
 			get_pr_details_from_number(
 				open_pull_requests,
 				context.payload.issue?.number
 			);
+
+		if (mergeable === "CONFLICTING" || mergeable === "UNKNOWN") {
+			setOutput("mergeable", false);
+		} else if (mergeable === "MERGEABLE") {
+			setOutput("mergeable", true);
+			setOutput("merge_sha", merge_sha);
+		}
 
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
@@ -73,8 +93,15 @@ async function run() {
 		context.payload.workflow_run.event === "pull_request" ||
 		context.payload.workflow_run.event === "push"
 	) {
-		const [source_repo, source_branch, pr_number, sha] =
+		const [source_repo, source_branch, pr_number, sha, mergeable, merge_sha] =
 			get_pr_details_from_refs(open_pull_requests);
+
+		if (mergeable === "CONFLICTING" || mergeable === "UNKNOWN") {
+			setOutput("mergeable", false);
+		} else if (mergeable === "MERGEABLE") {
+			setOutput("mergeable", true);
+			setOutput("merge_sha", merge_sha);
+		}
 
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
@@ -83,8 +110,15 @@ async function run() {
 		setOutput("found_pr", !!(source_repo && source_branch && pr_number));
 	} else if (context.payload.workflow_run.event === "issue_comment") {
 		const title = context.payload.workflow_run?.display_title;
-		const [source_repo, source_branch, pr_number, sha] =
+		const [source_repo, source_branch, pr_number, sha, mergeable, merge_sha] =
 			get_pr_details_from_title(open_pull_requests, title);
+
+		if (mergeable === "CONFLICTING" || mergeable === "UNKNOWN") {
+			setOutput("mergeable", false);
+		} else if (mergeable === "MERGEABLE") {
+			setOutput("mergeable", true);
+			setOutput("merge_sha", merge_sha);
+		}
 
 		setOutput("source_repo", source_repo);
 		setOutput("source_branch", source_branch);
@@ -120,6 +154,10 @@ async function get_prs(octokit: Client, repo: string, owner: string) {
 					headRefName
 					headRefOid
 					title
+					mergeable
+					potentialMergeCommit {
+						oid
+					}
 				}
 			}
 		}
@@ -139,61 +177,103 @@ type PRDetails = [
 	string | undefined,
 	number | undefined,
 	string | undefined,
+	"MERGEABLE" | "CONFLICTING" | "UNKNOWN" | undefined,
+	string | undefined,
 ];
 
 function get_pr_details_from_number(
 	pull_requests: PullRequests,
 	pr_number: number | undefined
 ): PRDetails {
-	if (!pr_number) return [undefined, undefined, undefined, undefined];
-	const [source_repo, source_branch, , sha] = (
+	if (!pr_number)
+		return [undefined, undefined, undefined, undefined, undefined, undefined];
+	const [source_repo, source_branch, , sha, mergeable, merge_sha] = (
 		pull_requests.map((pr) => [
 			pr.node.headRepository.nameWithOwner,
 			pr.node.headRefName,
 			pr.node.number,
 			pr.node.headRefOid,
-		]) as [string, string, number, string][]
+			pr.node.mergeable,
+			pr.node.potentialMergeCommit.oid,
+		]) as [
+			string,
+			string,
+			number,
+			string,
+			"MERGEABLE" | "CONFLICTING" | "UNKNOWN",
+			string,
+		][]
 	).find(([, , number]) => number === pr_number) || [
 		undefined,
 		undefined,
 		undefined,
 		undefined,
+		undefined,
+		undefined,
 	];
 
-	return [source_repo, source_branch, pr_number, sha];
+	return [source_repo, source_branch, pr_number, sha, mergeable, merge_sha];
 }
 
 function get_pr_details_from_sha(pull_requests: PullRequests): PRDetails {
 	const head_sha: string = context.payload.head_commit?.id;
 
-	const [source_repo, source_branch, pr_number] = (
+	const [source_repo, source_branch, pr_number, , mergeable, merge_sha] = (
 		pull_requests.map((pr) => [
 			pr.node.headRepository.nameWithOwner,
 			pr.node.headRefName,
 			pr.node.number,
 			pr.node.headRefOid,
-		]) as [string, string, number, string][]
+			pr.node.mergeable,
+			pr.node.potentialMergeCommit.oid,
+		]) as [
+			string,
+			string,
+			number,
+			string,
+			"MERGEABLE" | "CONFLICTING" | "UNKNOWN",
+			string,
+		][]
 	).find(([, , , headRefOid]) => headRefOid === head_sha) || [
 		context.payload.repository?.full_name,
 		context.payload.ref?.split("/").slice(2).join("/"),
 		undefined,
+		undefined,
+		undefined,
 	];
 
-	return [source_repo, source_branch, pr_number, head_sha];
+	return [
+		source_repo,
+		source_branch,
+		pr_number,
+		head_sha,
+		mergeable,
+		merge_sha,
+	];
 }
 
 function get_pr_details_from_title(
 	pull_requests: PullRequests,
 	title: string
 ): PRDetails {
-	const [source_repo, source_branch, pr_number, sha] = (
+	const [source_repo, source_branch, pr_number, sha, , mergeable, merge_sha] = (
 		pull_requests.map((pr) => [
 			pr.node.headRepository.nameWithOwner,
 			pr.node.headRefName,
 			pr.node.number,
 			pr.node.headRefOid,
 			pr.node.title,
-		]) as [string, string, number, string, string][]
+			pr.node.mergeable,
+			pr.node.potentialMergeCommit.oid,
+		]) as [
+			string,
+			string,
+			number,
+			string,
+			string,
+			"MERGEABLE" | "CONFLICTING" | "UNKNOWN",
+			string,
+		][]
 	).find(([, , , , _title]) => _title === title) || [
 		undefined,
 		undefined,
@@ -201,7 +281,7 @@ function get_pr_details_from_title(
 		undefined,
 	];
 
-	return [source_repo, source_branch, pr_number, sha];
+	return [source_repo, source_branch, pr_number, sha, mergeable, merge_sha];
 }
 
 function get_pr_details_from_refs(pull_requests: PullRequests): PRDetails {
@@ -211,16 +291,25 @@ function get_pr_details_from_refs(pull_requests: PullRequests): PRDetails {
 		context.payload.workflow_run?.head_branch || undefined;
 	const _sha = context.payload.workflow_run?.head_sha || undefined;
 
-	const [, , pr_number, sha] = (
+	const [, , pr_number, sha, mergeable, merge_sha] = (
 		pull_requests.map((pr) => [
 			pr.node.headRepository.nameWithOwner,
 			pr.node.headRefName,
 			pr.node.number,
 			pr.node.headRefOid,
-		]) as [string, string, number, string][]
+			pr.node.mergeable,
+			pr.node.potentialMergeCommit.oid,
+		]) as [
+			string,
+			string,
+			number,
+			string,
+			"MERGEABLE" | "CONFLICTING" | "UNKNOWN",
+			string,
+		][]
 	).find(
 		([repo, branch]) => source_repo === repo && source_branch === branch
-	) || [undefined, undefined, undefined, _sha];
+	) || [undefined, undefined, undefined, _sha, undefined, undefined];
 
-	return [source_repo, source_branch, pr_number, sha];
+	return [source_repo, source_branch, pr_number, sha, mergeable, merge_sha];
 }
