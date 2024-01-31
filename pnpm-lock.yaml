@@ -47,6 +47,8 @@ importers:
 
   packages/comment-pr: {}
 
+  packages/commit-status: {}
+
   packages/deploy-space:
     dependencies:
       '@huggingface/hub':
