@@ -99,11 +99,11 @@ async function run() {
 	}
 
 	console.log("EVENT NAME", context.eventName);
-	console.log("WORKFLOW EVENT TYPE", context.payload.workflow_run.event);
+	console.log("WORKFLOW EVENT TYPE", context.payload?.workflow_run?.event);
 
 	if (
-		context.payload.workflow_run.event === "pull_request" ||
-		context.payload.workflow_run.event === "push"
+		context.payload?.workflow_run?.event === "pull_request" ||
+		context.payload?.workflow_run?.event === "push"
 	) {
 		const { source_repo, source_branch, pr_number, sha, mergeable, merge_sha } =
 			get_pr_details_from_refs(open_pull_requests);
@@ -124,7 +124,7 @@ async function run() {
 		outputs.found_pr = !!(source_repo && source_branch && pr_number);
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
-	} else if (context.payload.workflow_run.event === "issue_comment") {
+	} else if (context.payload?.workflow_run?.event === "issue_comment") {
 		const title = context.payload.workflow_run?.display_title;
 		const { source_repo, source_branch, pr_number, sha, mergeable, merge_sha } =
 			get_pr_details_from_title(open_pull_requests, title);
