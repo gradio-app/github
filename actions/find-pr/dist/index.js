@@ -85368,6 +85368,8 @@ async function run() {
       "This action can only be run on pull_request, push, or issue_comment events or workflow_run events triggered from those events."
     );
   }
+  console.log("PULL_REQUESTS", JSON.stringify(open_pull_requests, null, 2));
+  console.log("OUTPUTS", outputs);
   for (const [key, value] of Object.entries(outputs)) {
     coreExports.setOutput(key, value);
   }
