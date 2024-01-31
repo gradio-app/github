@@ -142,6 +142,9 @@ async function run() {
 		);
 	}
 
+	console.log("PULL_REQUESTS", JSON.stringify(open_pull_requests, null, 2));
+	console.log("OUTPUTS", outputs);
+
 	for (const [key, value] of Object.entries(outputs)) {
 		setOutput(key, value);
 	}
