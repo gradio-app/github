@@ -85328,8 +85328,7 @@ async function run() {
     outputs.found_pr = !!(source_repo && source_branch && pr_number);
     outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
     outputs.merge_sha = merge_sha || sha || false;
-  }
-  if (!context.payload.workflow_run) {
+  } else if (!context.payload.workflow_run) {
     coreExports.setFailed(
       "This action must be run from the following events: pull_request, pull_request_target, push, workflow_run."
     );

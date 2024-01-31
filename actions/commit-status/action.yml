@@ -27,6 +27,8 @@ inputs:
     default: "false"
   job_id:
     description: "Job id"
+  mergeable:
+    description: "Whether the PR is mergeable"
 runs:
   using: "node20"
   main: "dist/index.js"
