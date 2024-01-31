@@ -73,12 +73,16 @@ async function run() {
 		const source_branch = context.payload.pull_request?.head.ref;
 		const pr_number = context.payload.pull_request?.number;
 
+		const mergeable =
+			open_pull_requests.find(({ node: { number } }) => number === pr_number)
+				?.node.mergeable === "MERGEABLE";
+
 		outputs.source_repo = source_repo || false;
 		outputs.source_branch = source_branch || false;
 		outputs.pr_number = pr_number ?? false;
 		outputs.sha = context.payload.pull_request?.head.sha || false;
 		outputs.found_pr = !!(source_repo && source_branch && pr_number);
-		outputs.mergeable = context.payload.pull_request?.mergeable === "MERGEABLE";
+		outputs.mergeable = mergeable;
 		outputs.merge_sha =
 			context.payload.pull_request?.merge_commit_sha || outputs.sha || false;
 	} else if (context.eventName === "issue_comment") {
