@@ -32,7 +32,8 @@ async function run() {
 	});
 	const octokit = getOctokit(token);
 
-	let _workflow_name = name || context.workflow || "Unknown Workflow";
+	let _workflow_name =
+		(name === "false" ? false : name) || context.workflow || "Unknown Workflow";
 
 	const workflow_run = await octokit.rest.actions.getWorkflowRun({
 		owner: context.repo.owner,
