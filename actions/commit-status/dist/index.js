@@ -85294,6 +85294,8 @@ async function run() {
   const job_id = coreExports.getInput("job_id");
   const mergeable = coreExports.getInput("mergeable");
   const commit_status = coreExports.getInput("commit_status");
+  const url = coreExports.getInput("url");
+  let _url = url === "false" ? false : url;
   if (commit_status === "false") {
     return;
   }
@@ -85327,7 +85329,7 @@ async function run() {
         mergeable === "true" ? result2 : "failure",
         `test / python / linux`,
         mergeable === "true" ? context2 : "Cannot check out PR as it is not mergeable",
-        workflow_run.data.html_url
+        _url || workflow_run.data.html_url
       );
     } else {
       const context2 = has_changes ? "Running checks" : "Skipped — No changes detected";
@@ -85338,7 +85340,7 @@ async function run() {
         mergeable === "true" ? result2 : "failure",
         _workflow_name,
         mergeable === "true" ? context2 : "Cannot check out PR as it is not mergeable",
-        workflow_run.data.html_url
+        _url || workflow_run.data.html_url
       );
     }
     return;
@@ -85383,7 +85385,7 @@ async function run() {
     state,
     _workflow_name,
     duration,
-    html_url || workflow_run.data.html_url
+    _url || html_url || workflow_run.data.html_url
   );
 }
 run();
