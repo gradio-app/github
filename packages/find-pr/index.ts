@@ -100,12 +100,24 @@ async function run() {
 		return;
 	}
 
+	console.log("EVENT NAME", context.eventName);
+	console.log("WORKFLOW EVENT TYPE", context.payload.workflow_run.event);
+
 	if (
 		context.payload.workflow_run.event === "pull_request" ||
 		context.payload.workflow_run.event === "push"
 	) {
 		const { source_repo, source_branch, pr_number, sha, mergeable, merge_sha } =
 			get_pr_details_from_refs(open_pull_requests);
+
+		console.log({
+			source_repo,
+			source_branch,
+			pr_number,
+			sha,
+			mergeable,
+			merge_sha,
+		});
 
 		outputs.source_repo = source_repo || false;
 		outputs.source_branch = source_branch || false;
@@ -234,6 +246,8 @@ function get_pr_details_from_sha(pull_requests: PullRequests): PRDetails {
 		source_branch: context.payload.ref?.split("/").slice(2).join("/"),
 		sha: head_sha,
 	};
+
+	console.log("get_pr_details_from_sha", outputs);
 
 	return { ...empty_pr_details, ...outputs };
 }
