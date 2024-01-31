@@ -5,7 +5,7 @@ export default defineConfig({
 		// minify: true,
 		lib: {
 			entry: "index.ts",
-			formats: ["cjs"],
+			formats: ["es"],
 		},
 		rollupOptions: {
 			input: "index.ts",

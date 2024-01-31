@@ -1,0 +1,32 @@
+name: "Create a check with a status on a PR"
+
+inputs:
+  token:
+    description: Github token"
+    required: true
+  pr:
+    description: "PR number"
+    required: true
+  sha:
+    description: "SHA of the commit to create the check on"
+    required: true
+  result:
+    description: "Result of the check"
+    required: true
+  name:
+    description: "Name of the check"
+    required: true
+  type:
+    description: "Type of workflow"
+    required: true
+  changes:
+    description: "Changed types"
+    required: true
+  init:
+    description: "Whether the check is initialising a commit status"
+    default: "false"
+  job_id:
+    description: "Job id"
+runs:
+  using: "node20"
+  main: "dist/index.js"
