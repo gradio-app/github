@@ -85283,7 +85283,7 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 getOctokit_1 = github.getOctokit = getOctokit;
 async function run() {
-  var _a, _b, _c, _d, _e, _f, _g, _h;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
   const octokit = getOctokit_1(coreExports.getInput("github_token"));
   const { repo, owner } = context.repo;
   const outputs = {
@@ -85335,8 +85335,8 @@ async function run() {
     return;
   }
   console.log("EVENT NAME", context.eventName);
-  console.log("WORKFLOW EVENT TYPE", context.payload.workflow_run.event);
-  if (context.payload.workflow_run.event === "pull_request" || context.payload.workflow_run.event === "push") {
+  console.log("WORKFLOW EVENT TYPE", (_i = (_h = context.payload) == null ? void 0 : _h.workflow_run) == null ? void 0 : _i.event);
+  if (((_k = (_j = context.payload) == null ? void 0 : _j.workflow_run) == null ? void 0 : _k.event) === "pull_request" || ((_m = (_l = context.payload) == null ? void 0 : _l.workflow_run) == null ? void 0 : _m.event) === "push") {
     const { source_repo, source_branch, pr_number, sha, mergeable, merge_sha } = get_pr_details_from_refs(open_pull_requests);
     console.log({
       source_repo,
@@ -85353,8 +85353,8 @@ async function run() {
     outputs.found_pr = !!(source_repo && source_branch && pr_number);
     outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
     outputs.merge_sha = merge_sha || sha || false;
-  } else if (context.payload.workflow_run.event === "issue_comment") {
-    const title = (_h = context.payload.workflow_run) == null ? void 0 : _h.display_title;
+  } else if (((_o = (_n = context.payload) == null ? void 0 : _n.workflow_run) == null ? void 0 : _o.event) === "issue_comment") {
+    const title = (_p = context.payload.workflow_run) == null ? void 0 : _p.display_title;
     const { source_repo, source_branch, pr_number, sha, mergeable, merge_sha } = get_pr_details_from_title(open_pull_requests, title);
     outputs.source_repo = source_repo || false;
     outputs.source_branch = source_branch || false;
