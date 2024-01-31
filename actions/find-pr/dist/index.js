@@ -85489,5 +85489,6 @@ function get_pr_details_from_refs(pull_requests) {
   }).find(
     ({ source_repo: repo, source_branch: branch }) => source_repo === repo && source_branch === branch
   ) || empty_pr_details;
-  return { ...outputs, sha: _sha };
+  console.log("get_pr_details_from_refs", outputs);
+  return { ...outputs, sha: _sha, source_repo, source_branch };
 }
