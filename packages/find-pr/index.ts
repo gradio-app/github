@@ -65,6 +65,7 @@ async function run() {
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
 	} else if (context.eventName === "pull_request") {
+		console.log("PULL REQUEST", JSON.stringify(context.payload.pull_request));
 		const source_repo = context.payload.pull_request?.head.repo.full_name;
 		const source_branch = context.payload.pull_request?.head.ref;
 		const pr_number = context.payload.pull_request?.number;
@@ -74,7 +75,7 @@ async function run() {
 		outputs.pr_number = pr_number ?? false;
 		outputs.sha = context.payload.pull_request?.head.sha || false;
 		outputs.found_pr = !!(source_repo && source_branch && pr_number);
-		outputs.mergeable = context.payload.pull_request?.mergeable === true;
+		outputs.mergeable = context.payload.pull_request?.mergeable === "MERGEABLE";
 		outputs.merge_sha =
 			context.payload.pull_request?.merge_commit_sha || outputs.sha || false;
 	} else if (context.eventName === "issue_comment") {
