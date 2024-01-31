@@ -38,24 +38,22 @@ async function run() {
 	if (init === "true") {
 		const has_changes = JSON.parse(changes).includes(type) || type == "all";
 
-		if (type == "gradio" || type == "python-client") {
+		if (type == "gradio") {
 			const context = has_changes
 				? "Running checks"
 				: "Skipped — No changes detected";
 			const result = has_changes ? "pending" : "success";
 
-			["3.8", "3.10"].forEach((version) => {
-				create_commit_status(
-					octokit,
-					sha,
-					mergeable === "true" ? result : "failure",
-					`test / ${type == "gradio" ? "" : "client / "}python ${version} `,
-					mergeable === "true"
-						? context
-						: "Cannot check out PR as it is not mergeable",
-					workflow_run.data.html_url,
-				);
-			});
+			create_commit_status(
+				octokit,
+				sha,
+				mergeable === "true" ? result : "failure",
+				`test / python / linux`,
+				mergeable === "true"
+					? context
+					: "Cannot check out PR as it is not mergeable",
+				workflow_run.data.html_url
+			);
 		} else {
 			const context = has_changes
 				? "Running checks"
@@ -69,7 +67,7 @@ async function run() {
 				mergeable === "true"
 					? context
 					: "Cannot check out PR as it is not mergeable",
-				workflow_run.data.html_url,
+				workflow_run.data.html_url
 			);
 		}
 
@@ -111,7 +109,7 @@ async function run() {
 	}
 
 	const { html_url, started_at } = jobs?.data.jobs.find(
-		(job) => job.name === job_id,
+		(job) => job.name === job_id
 	) || { html_url: null, created_at: null };
 
 	const current = new Date().toISOString();
@@ -119,7 +117,7 @@ async function run() {
 	const duration = started_at
 		? `${state === "success" ? "Successful in" : "Failed after"} ${get_duration(
 				current,
-				started_at,
+				started_at
 		  )}`
 		: `${state === "success" ? "Successful" : "Failed"}`;
 
@@ -129,7 +127,7 @@ async function run() {
 		state,
 		_workflow_name,
 		duration,
-		html_url || workflow_run.data.html_url,
+		html_url || workflow_run.data.html_url
 	);
 }
 
@@ -141,7 +139,7 @@ function create_commit_status(
 	state: "pending" | "success" | "failure" | "error",
 	_workflow_name: string,
 	description: string,
-	target_url?: string,
+	target_url?: string
 ) {
 	octokit.rest.repos.createCommitStatus({
 		owner: context.repo.owner,
