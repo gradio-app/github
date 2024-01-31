@@ -28,6 +28,9 @@ inputs:
     description: "Job id"
   mergeable:
     description: "Whether the PR is mergeable"
+  commit_status:
+    description: "Whether to create a commit status"
+    default: "true"
 runs:
   using: "node20"
   main: "dist/index.js"

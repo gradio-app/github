@@ -12,6 +12,11 @@ async function run() {
 	const type = getInput("type");
 	const job_id = getInput("job_id");
 	const mergeable = getInput("mergeable");
+	const commit_status = getInput("commit_status");
+
+	if (commit_status === "false") {
+		return;
+	}
 
 	console.log({
 		token,
