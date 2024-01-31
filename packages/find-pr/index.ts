@@ -19,6 +19,11 @@ interface PullRequestResponse {
 						oid: string;
 					};
 					title: string;
+					labels: {
+						nodes: {
+							name: string;
+						}[];
+					};
 				};
 			}[];
 		};
@@ -35,6 +40,7 @@ interface Outputs {
 	mergeable: boolean;
 	merge_sha: string | false;
 	found_pr: boolean;
+	labels: string[];
 }
 
 async function run() {
@@ -49,13 +55,21 @@ async function run() {
 		mergeable: false,
 		merge_sha: false,
 		found_pr: false,
+		labels: [],
 	};
 
 	const open_pull_requests = await get_prs(octokit, repo, owner);
 
 	if (context.eventName === "push") {
-		const { source_repo, source_branch, pr_number, sha, mergeable, merge_sha } =
-			get_pr_details_from_sha(open_pull_requests);
+		const {
+			source_repo,
+			source_branch,
+			pr_number,
+			sha,
+			mergeable,
+			merge_sha,
+			labels,
+		} = get_pr_details_from_sha(open_pull_requests);
 
 		outputs.source_repo = source_repo || false;
 		outputs.source_branch = source_branch || false;
@@ -64,6 +78,7 @@ async function run() {
 		outputs.found_pr = !!(source_repo && source_branch && pr_number);
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
+		outputs.labels = labels;
 	} else if (context.eventName === "pull_request") {
 		console.log(
 			"PULL REQUEST",
@@ -85,12 +100,23 @@ async function run() {
 		outputs.mergeable = mergeable;
 		outputs.merge_sha =
 			context.payload.pull_request?.merge_commit_sha || outputs.sha || false;
+		outputs.labels =
+			(context.payload.pull_request?.labels as { name: string }[])?.map(
+				({ name }) => name
+			) || [];
 	} else if (context.eventName === "issue_comment") {
-		const { source_repo, source_branch, pr_number, sha, mergeable, merge_sha } =
-			get_pr_details_from_number(
-				open_pull_requests,
-				context.payload.issue?.number
-			);
+		const {
+			source_repo,
+			source_branch,
+			pr_number,
+			sha,
+			mergeable,
+			merge_sha,
+			labels,
+		} = get_pr_details_from_number(
+			open_pull_requests,
+			context.payload.issue?.number
+		);
 
 		outputs.source_repo = source_repo || false;
 		outputs.source_branch = source_branch || false;
@@ -99,6 +125,7 @@ async function run() {
 		outputs.found_pr = !!(source_repo && source_branch && pr_number);
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
+		outputs.labels = labels;
 	} else if (!context.payload.workflow_run) {
 		setFailed(
 			"This action must be run from the following events: pull_request, pull_request_target, push, workflow_run."
@@ -113,8 +140,15 @@ async function run() {
 		context.payload?.workflow_run?.event === "pull_request" ||
 		context.payload?.workflow_run?.event === "push"
 	) {
-		const { source_repo, source_branch, pr_number, sha, mergeable, merge_sha } =
-			get_pr_details_from_refs(open_pull_requests);
+		const {
+			source_repo,
+			source_branch,
+			pr_number,
+			sha,
+			mergeable,
+			merge_sha,
+			labels,
+		} = get_pr_details_from_refs(open_pull_requests);
 
 		console.log({
 			source_repo,
@@ -132,10 +166,18 @@ async function run() {
 		outputs.found_pr = !!(source_repo && source_branch && pr_number);
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
+		outputs.labels = labels;
 	} else if (context.payload?.workflow_run?.event === "issue_comment") {
 		const title = context.payload.workflow_run?.display_title;
-		const { source_repo, source_branch, pr_number, sha, mergeable, merge_sha } =
-			get_pr_details_from_title(open_pull_requests, title);
+		const {
+			source_repo,
+			source_branch,
+			pr_number,
+			sha,
+			mergeable,
+			merge_sha,
+			labels,
+		} = get_pr_details_from_title(open_pull_requests, title);
 
 		outputs.source_repo = source_repo || false;
 		outputs.source_branch = source_branch || false;
@@ -144,6 +186,7 @@ async function run() {
 		outputs.found_pr = !!(source_repo && source_branch && pr_number);
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
+		outputs.labels = labels;
 	} else if (context.payload?.workflow_run?.event) {
 		setFailed(
 			"This action can only be run on pull_request, push, or issue_comment events or workflow_run events triggered from those events."
@@ -184,6 +227,11 @@ async function get_prs(octokit: Client, repo: string, owner: string) {
 					potentialMergeCommit {
 						oid
 					}
+					labels(first: 50) {
+						nodes {
+							name
+						}
+					}
 				}
 			}
 		}
@@ -206,6 +254,7 @@ interface PRDetails {
 	mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN" | undefined;
 	merge_sha: string | undefined;
 	title: string | undefined;
+	labels: string[];
 }
 
 const empty_pr_details: PRDetails = {
@@ -216,6 +265,7 @@ const empty_pr_details: PRDetails = {
 	mergeable: undefined,
 	merge_sha: undefined,
 	title: undefined,
+	labels: [],
 };
 
 function get_pr_details_from_number(
@@ -232,6 +282,7 @@ function get_pr_details_from_number(
 				sha: pr.node.headRefOid,
 				mergeable: pr.node.mergeable,
 				merge_sha: pr.node.potentialMergeCommit?.oid,
+				labels: pr.node.labels.nodes.map(({ name }) => name),
 			})) as PRDetails[]
 		).find(({ pr_number: number }) => number === pr_number) || empty_pr_details;
 
@@ -249,6 +300,7 @@ function get_pr_details_from_sha(pull_requests: PullRequests): PRDetails {
 			sha: pr.node.headRefOid,
 			mergeable: pr.node.mergeable,
 			merge_sha: pr.node.potentialMergeCommit?.oid,
+			labels: pr.node.labels.nodes.map(({ name }) => name),
 		})) as PRDetails[]
 	).find(({ sha }) => sha === head_sha) || {
 		source_repo: context.payload.repository?.full_name,
@@ -275,6 +327,7 @@ function get_pr_details_from_title(
 				mergeable: pr.node.mergeable,
 				merge_sha: pr.node.potentialMergeCommit?.oid,
 				title: pr.node.title,
+				labels: pr.node.labels.nodes.map(({ name }) => name),
 			})) as PRDetails[]
 		).find(({ title: _title }) => _title === title) || empty_pr_details;
 
@@ -298,6 +351,7 @@ function get_pr_details_from_refs(pull_requests: PullRequests): PRDetails {
 				mergeable: pr.node.mergeable,
 				merge_sha: pr.node.potentialMergeCommit?.oid,
 				title: pr.node.title,
+				labels: pr.node.labels.nodes.map(({ name }) => name),
 			})) as PRDetails[]
 		).find(
 			({ source_repo: repo, source_branch: branch }) =>
