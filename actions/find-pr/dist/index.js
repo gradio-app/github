@@ -85306,7 +85306,10 @@ async function run() {
     outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
     outputs.merge_sha = merge_sha || sha || false;
   } else if (context.eventName === "pull_request") {
-    console.log("PULL REQUEST", JSON.stringify(context.payload.pull_request));
+    console.log(
+      "PULL REQUEST",
+      JSON.stringify(context.payload.pull_request, null, 2)
+    );
     const source_repo = (_a = context.payload.pull_request) == null ? void 0 : _a.head.repo.full_name;
     const source_branch = (_b = context.payload.pull_request) == null ? void 0 : _b.head.ref;
     const pr_number = (_c = context.payload.pull_request) == null ? void 0 : _c.number;
