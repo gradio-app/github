@@ -136,9 +136,9 @@ async function run() {
 		outputs.found_pr = !!(source_repo && source_branch && pr_number);
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
-	} else {
+	} else if (context.payload?.workflow_run?.event) {
 		setFailed(
-			"This action can only be run on pull_request, push, or issue_comment events."
+			"This action can only be run on pull_request, push, or issue_comment events or workflow_run events triggered from those events."
 		);
 	}
 
