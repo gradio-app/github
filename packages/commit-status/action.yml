@@ -31,6 +31,8 @@ inputs:
   commit_status:
     description: "Whether to create a commit status"
     default: "true"
+  url:
+    description: "URL to link to"
 runs:
   using: "node20"
   main: "dist/index.js"

@@ -13,7 +13,8 @@ async function run() {
 	const job_id = getInput("job_id");
 	const mergeable = getInput("mergeable");
 	const commit_status = getInput("commit_status");
-
+	const url = getInput("url");
+	let _url = url === "false" ? false : url;
 	if (commit_status === "false") {
 		return;
 	}
@@ -58,7 +59,7 @@ async function run() {
 				mergeable === "true"
 					? context
 					: "Cannot check out PR as it is not mergeable",
-				workflow_run.data.html_url
+				_url || workflow_run.data.html_url
 			);
 		} else {
 			const context = has_changes
@@ -73,7 +74,7 @@ async function run() {
 				mergeable === "true"
 					? context
 					: "Cannot check out PR as it is not mergeable",
-				workflow_run.data.html_url
+				_url || workflow_run.data.html_url
 			);
 		}
 
@@ -133,7 +134,7 @@ async function run() {
 		state,
 		_workflow_name,
 		duration,
-		html_url || workflow_run.data.html_url
+		_url || html_url || workflow_run.data.html_url
 	);
 }
 
