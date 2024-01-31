@@ -85293,6 +85293,10 @@ async function run() {
   const type = coreExports.getInput("type");
   const job_id = coreExports.getInput("job_id");
   const mergeable = coreExports.getInput("mergeable");
+  const commit_status = coreExports.getInput("commit_status");
+  if (commit_status === "false") {
+    return;
+  }
   console.log({
     token,
     pr,
