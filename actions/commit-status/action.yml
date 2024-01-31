@@ -21,7 +21,6 @@ inputs:
     required: true
   changes:
     description: "Changed types"
-    required: true
   init:
     description: "Whether the check is initialising a commit status"
     default: "false"

@@ -85314,19 +85314,17 @@ async function run() {
   });
   if (init === "true") {
     const has_changes = JSON.parse(changes).includes(type) || type == "all";
-    if (type == "gradio" || type == "python-client") {
+    if (type == "gradio") {
       const context2 = has_changes ? "Running checks" : "Skipped — No changes detected";
       const result2 = has_changes ? "pending" : "success";
-      ["3.8", "3.10"].forEach((version2) => {
-        create_commit_status(
-          octokit,
-          sha,
-          mergeable === "true" ? result2 : "failure",
-          `test / ${type == "gradio" ? "" : "client / "}python ${version2} `,
-          mergeable === "true" ? context2 : "Cannot check out PR as it is not mergeable",
-          workflow_run.data.html_url
-        );
-      });
+      create_commit_status(
+        octokit,
+        sha,
+        mergeable === "true" ? result2 : "failure",
+        `test / python / linux`,
+        mergeable === "true" ? context2 : "Cannot check out PR as it is not mergeable",
+        workflow_run.data.html_url
+      );
     } else {
       const context2 = has_changes ? "Running checks" : "Skipped — No changes detected";
       const result2 = has_changes ? "pending" : "success";
