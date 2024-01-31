@@ -1,4 +1,4 @@
-name: "Create a check with a status on a PR"
+name: "Create a commit status"
 
 inputs:
   token:

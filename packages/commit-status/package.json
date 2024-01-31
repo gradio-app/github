@@ -1,5 +1,5 @@
 {
-	"name": "@gradio-action/do-check",
+	"name": "@gradio-action/commit-status",
 	"version": "0.1.0",
 	"description": "",
 	"main": "index.js",
