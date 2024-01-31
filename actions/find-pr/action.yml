@@ -20,6 +20,8 @@ outputs:
     description: "Mergeable."
   merge_sha:
     description: "Merge SHA."
+  labels:
+    description: "Labels."
 
 runs:
   using: "node20"
