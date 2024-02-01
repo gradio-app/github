@@ -85411,6 +85411,6 @@ function format_milliseconds(milliseconds) {
   if (minutes === 0) {
     return `${seconds}s`;
   } else {
-    return `${minutes}m${seconds}s`;
+    return `${minutes}m ${seconds}s`;
   }
 }
