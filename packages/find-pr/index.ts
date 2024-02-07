@@ -191,23 +191,13 @@ async function run() {
 		outputs.source_repo = `${owner}/${repo}`;
 		outputs.source_branch = "main";
 		outputs.pr_number = false;
-		outputs.sha = "main";
+		outputs.sha = context.sha;
 		outputs.mergeable = false;
-		outputs.merge_sha = "main";
+		outputs.merge_sha = context.sha;
 		outputs.labels = [];
 		warning(
 			"This action is not being run from a pull_request, push, or issue_comment event or a workflow_run event triggered from those events and so everything is defaulting to 'main' branch."
 		);
-	}
-
-	if (
-		outputs.source_branch === "main" &&
-		outputs.source_repo === `${owner}/${repo}`
-	) {
-		outputs.found_pr = false;
-
-		outputs.sha = "main";
-		outputs.merge_sha = "main";
 	}
 
 	console.log("PULL_REQUESTS", JSON.stringify(open_pull_requests, null, 2));
