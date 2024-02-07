@@ -126,11 +126,6 @@ async function run() {
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
 		outputs.labels = labels;
-	} else if (!context.payload.workflow_run) {
-		setFailed(
-			"This action must be run from the following events: pull_request, pull_request_target, push, workflow_run."
-		);
-		return;
 	}
 
 	console.log("EVENT NAME", context.eventName);
@@ -191,6 +186,28 @@ async function run() {
 		setFailed(
 			"This action can only be run on pull_request, push, or issue_comment events or workflow_run events triggered from those events."
 		);
+	} else {
+		outputs.found_pr = false;
+		outputs.source_repo = `${owner}/${repo}`;
+		outputs.source_branch = "main";
+		outputs.pr_number = false;
+		outputs.sha = "main";
+		outputs.mergeable = false;
+		outputs.merge_sha = "main";
+		outputs.labels = [];
+		warning(
+			"This action is not being run from a pull_request, push, or issue_comment event or a workflow_run event triggered from those events and so everything is defaulting to 'main' branch."
+		);
+	}
+
+	if (
+		outputs.source_branch === "main" &&
+		outputs.source_repo === `${owner}/${repo}`
+	) {
+		outputs.found_pr = false;
+
+		outputs.sha = "main";
+		outputs.merge_sha = "main";
 	}
 
 	console.log("PULL_REQUESTS", JSON.stringify(open_pull_requests, null, 2));
