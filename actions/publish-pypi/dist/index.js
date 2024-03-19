@@ -34744,9 +34744,7 @@ async function run() {
       return p;
     })
   )).filter(Boolean);
-  const packages_to_publish_sorted = await topological_sort(
-    packages_to_publish
-  );
+  const packages_to_publish_sorted = await topological_sort(packages_to_publish);
   if (packages_to_publish_sorted.length === 0) {
     coreExports.info("No packages to publish.");
     return;
@@ -34769,7 +34767,7 @@ async function run() {
     "pip",
     [
       "install",
-      "twine",
+      "twine==4",
       "--user",
       "--upgrade",
       "--no-cache-dir",
