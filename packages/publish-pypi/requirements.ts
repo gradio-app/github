@@ -57,7 +57,7 @@ keyring==23.11.0
     # via twine
 more-itertools==9.0.0
     # via jaraco-classes
-pkginfo==1.9.2
+pkginfo==1.10.0
     # via
     #   -r runtime.in
     #   twine
