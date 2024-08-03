@@ -48,6 +48,7 @@ export default defineConfig({
 			"kleur",
 			"node-fetch",
 			"undici",
+			"picomatch",
 		],
 	},
 });
