@@ -86805,6 +86805,7 @@ async function run() {
   )) {
     files = [...files, ...parse_data(response.data)];
   }
+  files = files.map((f) => f.filename);
   const result = match_filter(filter, files);
   console.log(result);
   coreExports.setOutput("match", result);
