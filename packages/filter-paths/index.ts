@@ -29,8 +29,8 @@ async function run() {
 	for await (const response of octokit.paginate.iterator(
 		octokit.rest.pulls.listFiles,
 		{
-			owner: "octokit",
-			repo: "rest.js",
+			owner: context.repo.owner,
+			repo: context.repo.repo,
 			pull_number: context.payload.pull_request?.number as number,
 			per_page: 100,
 		}
