@@ -163,6 +163,8 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0
 
+  packages/set-commit-status: {}
+
   packages/util:
     dependencies:
       '@huggingface/hub':

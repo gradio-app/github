@@ -1,0 +1,20 @@
+name: "Create a commit status"
+
+inputs:
+  token:
+    description: Github token"
+    required: true
+  sha:
+    description: "SHA of the commit to create the check on"
+    required: true
+  name:
+    description: "Name of the check"
+    required: true
+  url:
+    description: "URL to link to"
+  run_id:
+    description: "Run id"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
