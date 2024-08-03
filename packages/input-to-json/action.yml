@@ -1,0 +1,13 @@
+name: "Convert inputs to a json file"
+
+inputs:
+  path:
+    description: "Path to the json file"
+    required: true
+outputs:
+  json:
+    description: "The json file"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
