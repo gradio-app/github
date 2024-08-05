@@ -1,0 +1,38 @@
+name: "Create a commit status"
+
+inputs:
+  token:
+    description: Github token"
+    required: true
+  pr:
+    description: "PR number"
+    required: true
+  sha:
+    description: "SHA of the commit to create the check on"
+    required: true
+  result:
+    description: "Result of the check"
+    required: true
+  name:
+    description: "Name of the check"
+    required: true
+  type:
+    description: "Type of workflow"
+    required: true
+  changes:
+    description: "Changed types"
+  init:
+    description: "Whether the check is initialising a commit status"
+    default: "false"
+  job_id:
+    description: "Job id"
+  mergeable:
+    description: "Whether the PR is mergeable"
+  commit_status:
+    description: "Whether to create a commit status"
+    default: "true"
+  url:
+    description: "URL to link to"
+runs:
+  using: "node20"
+  main: "dist/index.js"

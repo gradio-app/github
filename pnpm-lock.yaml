@@ -49,6 +49,8 @@ importers:
 
   packages/commit-status: {}
 
+  packages/copy-demos: {}
+
   packages/deploy-space:
     dependencies:
       '@huggingface/hub':

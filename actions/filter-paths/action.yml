@@ -1,0 +1,19 @@
+name: "filter paths"
+
+inputs:
+  filter:
+    description: "Name of the filter to apply"
+    required: true
+  path:
+    description: "Path to the json file containing the filters"
+    required: true
+  token:
+    description: "GitHub token to read pull requests"
+    required: true
+outputs:
+  match:
+    description: "Boolean indicating if the filter matched"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"

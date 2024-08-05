@@ -1,0 +1,16 @@
+name: "Publish to PyPI"
+
+description: "Publish packages to PyPI"
+
+inputs:
+  user:
+    description: "the username for PyPI"
+    required: true
+    default: "__token__"
+  passwords:
+    description: "the passwords for each package. Each package should be on a new line. Passwords should be in the format `package_name:password`"
+    required: true
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
