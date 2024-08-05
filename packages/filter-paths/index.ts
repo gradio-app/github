@@ -50,25 +50,20 @@ async function run() {
 run();
 
 function parse_data(data: any): any[] {
-	// If the data is an array, return that
 	if (Array.isArray(data)) {
 		return data;
 	}
 
-	// Some endpoints respond with 204 No Content instead of empty array
-	//   when there is no data. In that case, return an empty array.
 	if (!data) {
 		return [];
 	}
 
-	// Otherwise, the array of items that we want is in an object
-	// Delete keys that don't include the array of items
 	delete data.incomplete_results;
 	delete data.repository_selection;
 	delete data.total_count;
-	// Pull out the array of items
-	const namespaceKey = Object.keys(data)[0];
-	data = data[namespaceKey];
+
+	const namespace_key = Object.keys(data)[0];
+	data = data[namespace_key];
 
 	return data;
 }

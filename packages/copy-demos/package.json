@@ -1,5 +1,5 @@
 {
-	"name": "@gradio-action/set-commit-status",
+	"name": "@gradio-action/copy-demos",
 	"version": "0.1.0",
 	"description": "",
 	"main": "index.js",

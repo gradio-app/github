@@ -1,7 +1,7 @@
 name: "filter paths"
 
 inputs:
-  name:
+  filter:
     description: "Name of the filter to apply"
     required: true
   path:
