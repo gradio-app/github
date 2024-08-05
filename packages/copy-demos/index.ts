@@ -32,7 +32,7 @@ async function run() {
 	const gradio_version = getInput("gradio_version");
 	const gradio_client_version = getInput("gradio_client_version");
 	const config_path =
-		getInput("config_path") || path.join(__dirname, ".config", "demos.json");
+		getInput("config_path") || path.join(root, ".config", "demos.json");
 
 	if (!gradio_version || !gradio_client_version) {
 		console.error(
