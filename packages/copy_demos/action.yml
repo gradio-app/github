@@ -1,0 +1,15 @@
+name: "Copy gradio demos"
+
+inputs:
+  gradio_version:
+    description: URL to the gradio version"
+    required: true
+  gradio_client_version:
+    description: "URL to the gradio client version"
+    required: true
+  config_path:
+    description: "Path to the config file"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
