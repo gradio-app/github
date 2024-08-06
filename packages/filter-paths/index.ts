@@ -10,6 +10,7 @@ function match_filter(patterns: string[], files: string[]) {
 }
 
 async function run() {
+	console.log(JSON.stringify(context, null, 2));
 	const filter_name = getInput("filter");
 	const path = getInput("path") || ".github/filters.json";
 	const token = getInput("token");
