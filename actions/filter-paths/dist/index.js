@@ -86782,6 +86782,7 @@ function match_filter(patterns, files) {
 }
 async function run() {
   var _a;
+  console.log(JSON.stringify(context, null, 2));
   const filter_name = coreExports.getInput("filter");
   const path = coreExports.getInput("path") || ".github/filters.json";
   const token = coreExports.getInput("token");
