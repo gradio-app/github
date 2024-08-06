@@ -28,7 +28,7 @@ async function run() {
 
 	let files: any[] = [];
 
-	if (context.payload.event_name === "pull_request") {
+	if (context.eventName === "pull_request") {
 		for await (const response of octokit.paginate.iterator(
 			octokit.rest.pulls.listFiles,
 			{
@@ -40,7 +40,7 @@ async function run() {
 		)) {
 			files = [...files, ...parse_data(response.data)];
 		}
-	} else if (context.payload.event_name === "push") {
+	} else if (context.eventName === "push") {
 		const response = await octokit.rest.repos.getCommit({
 			owner: context.repo.owner,
 			repo: context.repo.repo,
