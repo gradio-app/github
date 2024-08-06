@@ -86807,7 +86807,7 @@ async function run() {
     )) {
       files = [...files, ...parse_data(response.data)];
     }
-  } else if (context.eventName === "push") {
+  } else if (context.eventName === "push" || context.eventName === "workflow_dispatch") {
     const response = await octokit.rest.repos.getCommit({
       owner: context.repo.owner,
       repo: context.repo.repo,
