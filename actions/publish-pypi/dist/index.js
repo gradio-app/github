@@ -34672,7 +34672,7 @@ keyring==23.11.0
     # via twine
 more-itertools==9.0.0
     # via jaraco-classes
-pkginfo==1.10.0
+pkginfo==1.12.0
     # via
     #   -r runtime.in
     #   twine
@@ -34767,7 +34767,7 @@ async function run() {
     "pip",
     [
       "install",
-      "twine==4",
+      "twine==6",
       "--user",
       "--upgrade",
       "--no-cache-dir",
