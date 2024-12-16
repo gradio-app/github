@@ -75,7 +75,7 @@ async function run() {
 		"pip",
 		[
 			"install",
-			"twine==4",
+			"twine==6",
 			"--user",
 			"--upgrade",
 			"--no-cache-dir",
