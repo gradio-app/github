@@ -59,6 +59,7 @@ ${gradio_client_version}
 ${gradio_version}
 pypistats==1.1.0
 plotly
+matplotlib
 altair
 vega_datasets
 	`.trim();
