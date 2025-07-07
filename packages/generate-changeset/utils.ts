@@ -209,18 +209,8 @@ ${format_changelog_preview(changelog, packages, changelog_entry_type)}
 ---
 
 ${
-	packages.length
-		? manual_mode
-			? "⚠️ _The changeset file for this pull request has been modified manually, so the changeset generation bot has been disabled. To go back into automatic mode, delete the changeset file._"
-			: "_Maintainers or the PR author can modify the PR title to modify this entry._"
-		: ""
-}
-
----
-
-${
 	approved
-		? `✅ Approved by @${approved_by || "maintainer"}`
+		? `✅ Approved by ${"@" + approved_by || "a  maintainer"}.`
 		: "‼️ Changeset not approved by maintainers. Ensure the version bump is appropriate for all packages before approving."
 }
 

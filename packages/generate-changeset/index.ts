@@ -101,7 +101,10 @@ async function run() {
 
 			if (approved) {
 				const actor = getInput("actor");
-				approved_by = actor.length ? actor : selection.approved_by;
+				approved_by =
+					actor && actor.length && actor !== "false"
+						? actor
+						: selection.approved_by;
 			}
 		}
 
