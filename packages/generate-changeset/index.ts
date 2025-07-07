@@ -25,6 +25,7 @@ import {
 	generate_changeset,
 	validate_changelog,
 } from "./utils";
+import { createShorthandPropertyAssignment } from "typescript";
 
 const dev_only_ignore_globs = [
 	"!**/test/**",
@@ -92,20 +93,28 @@ async function run() {
 		);
 
 		let approved = false;
+		let approved_by: string | undefined = undefined;
 
 		if (comment?.body) {
-			approved = check_for_manual_selection_and_approval(
-				comment?.body
-			).approved;
+			const selection = check_for_manual_selection_and_approval(comment?.body);
+			approved = selection.approved;
+
+			if (approved) {
+				const actor = getInput("actor");
+				approved_by = actor.length ? actor : selection.approved_by;
+			}
 		}
 
 		const versions = get_frontmatter_versions(old_changeset_content) || [];
 
-		const changelog_entry = old_changeset_content
-			.split("---")[2]
-			.trim()
+		const changelog_entry = old_changeset_content.split("---")[2].trim();
+
+		const changelog_entry_message = changelog_entry
 			.replace(/^(feat:|fix:|highlight:)/im, "")
 			.trim();
+
+		const changelog_entry_type =
+			changelog_entry.match(/^(feat:|fix:|highlight:)/im)?.[0] || "unknown";
 
 		const { valid, message } = validate_changelog(old_changeset_content);
 
@@ -118,13 +127,15 @@ async function run() {
 
 		const { pr_comment_content, changes } = create_changeset_comment({
 			packages: versions,
-			changelog: !valid ? message : changelog_entry,
+			changelog: !valid ? message : changelog_entry_message,
 			manual_package_selection: false,
 			manual_mode: true,
 			changeset_content: old_changeset_content,
 			changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 			previous_comment: comment?.body,
 			approved,
+			approved_by,
+			changelog_entry_type,
 		});
 
 		if (changes) {
@@ -152,6 +163,8 @@ async function run() {
 	let packages_versions: undefined | [string, string | boolean][] = undefined;
 	let manual_package_selection = false;
 	let approved = false;
+	let approved_by: string | undefined = undefined;
+
 	if (comment?.body) {
 		const selection = check_for_manual_selection_and_approval(comment.body);
 
@@ -166,6 +179,11 @@ async function run() {
 		}
 
 		approved = selection.approved;
+
+		if (approved) {
+			const actor = getInput("actor");
+			approved_by = actor.length ? actor : selection.approved_by;
+		}
 	}
 
 	let version =
@@ -237,6 +255,8 @@ async function run() {
 		changeset_content,
 		changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 		approved,
+		approved_by,
+		changelog_entry_type: type || "unknown",
 	});
 
 	// is pr body and generate body different?

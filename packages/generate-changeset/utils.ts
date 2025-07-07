@@ -81,22 +81,22 @@ export const GQL_GET_PR = `query RepoData($owner: String!, $name: String!, $pr_n
 }`;
 
 const GQL_UPDATE_ISSUE_COMMENT = `mutation UpdateComment($comment_id: ID!, $body: String!){
-		updateIssueComment(input: {id: $comment_id, body: $body}) {
-			issueComment {
-				url
-			}
-		}
-	}`;
+	 updateIssueComment(input: {id: $comment_id, body: $body}) {
+		 issueComment {
+			 url
+		 }
+	 }
+ }`;
 
 const GQL_CREATE_ISSUE_COMMENT = `mutation CreateComment($body: String!, $pr_id: ID!){
-		addComment(input: {body: $body, subjectId: $pr_id}) {
-			commentEdge {
-				node {
-					url
-				}
-			}
-		}
-	}`;
+	 addComment(input: {body: $body, subjectId: $pr_id}) {
+		 commentEdge {
+			 node {
+				 url
+			 }
+		 }
+	 }
+ }`;
 
 function get_title(packages: [string, string | boolean][]) {
 	return packages.length ? `change detected` : `no changes detected`;
@@ -137,13 +137,19 @@ function get_version_interaction_text(manual_version: boolean) {
 
 function format_changelog_preview(
 	changelog: string,
-	pacakges: [string, string | boolean][]
+	pacakges: [string, string | boolean][],
+	changelog_entry_type: string
 ) {
 	if (!pacakges.length) return "";
 	return changelog
-		.split("\n")
-		.map((line) => `> ${line}`)
-		.join("\n");
+		.split("\n\n")
+		.map((line) => {
+			if (changelog_entry_type === "highlight") {
+				return `#### ${line}`;
+			}
+			return `- ${line}`;
+		})
+		.join("\n\n");
 }
 
 function generate_mode_description(
@@ -170,6 +176,8 @@ export function create_changeset_comment({
 	changeset_url,
 	previous_comment,
 	approved,
+	approved_by,
+	changelog_entry_type,
 }: {
 	packages: [string, string | boolean][];
 	changelog: string;
@@ -179,6 +187,8 @@ export function create_changeset_comment({
 	changeset_url: string;
 	previous_comment?: string;
 	approved: boolean;
+	approved_by?: string;
+	changelog_entry_type: string;
 }) {
 	const new_comment = `<!-- tag=changesets_gradio -->
 
@@ -194,7 +204,7 @@ ${create_version_table(packages)}
 
 ---
 
-${format_changelog_preview(changelog, packages)}
+${format_changelog_preview(changelog, packages, changelog_entry_type)}
 
 ---
 
@@ -210,8 +220,8 @@ ${
 
 ${
 	approved
-		? "✅ Approved by maintainers."
-		: "‼️ Changeset not approved by maintainers."
+		? `✅ Approved by @${approved_by || "maintainer"}`
+		: "‼️ Changeset not approved by maintainers. Ensure the version bump is appropriate for all packages before approving."
 }
 
 ${
@@ -272,6 +282,7 @@ export function check_for_manual_selection_and_approval(md_src: string): {
 	manual_package_selection: boolean;
 	versions?: [string, boolean][];
 	approved: boolean;
+	approved_by?: string;
 } {
 	if (!md_src) return { manual_package_selection: false, approved: false };
 
@@ -325,10 +336,22 @@ export function check_for_manual_selection_and_approval(md_src: string): {
 		);
 	}) as ListItem | undefined;
 
+	// Extract approved_by username from existing comment text
+	let approved_by: string | undefined = undefined;
+	if (!!approved_node?.checked) {
+		const approvedByMatch = md_src.match(
+			/✅ Approved by @([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9]))*)/
+		);
+		if (approvedByMatch) {
+			approved_by = approvedByMatch[1];
+		}
+	}
+
 	return {
 		manual_package_selection: !!manual_node?.checked,
 		versions: manual_node ? versions : undefined,
 		approved: !!approved_node?.checked,
+		approved_by,
 	};
 }
 

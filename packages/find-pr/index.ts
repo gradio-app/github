@@ -41,6 +41,7 @@ interface Outputs {
 	merge_sha: string | false;
 	found_pr: boolean;
 	labels: string[];
+	actor: string | false;
 }
 
 async function run() {
@@ -56,6 +57,7 @@ async function run() {
 		merge_sha: false,
 		found_pr: false,
 		labels: [],
+		actor: false,
 	};
 
 	const open_pull_requests = await get_prs(octokit, repo, owner);
@@ -174,6 +176,8 @@ async function run() {
 			labels,
 		} = get_pr_details_from_title(open_pull_requests, title);
 
+		console.log(JSON.stringify(context, null, 2));
+
 		outputs.source_repo = source_repo || false;
 		outputs.source_branch = source_branch || false;
 		outputs.pr_number = pr_number ?? false;
@@ -182,6 +186,7 @@ async function run() {
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
 		outputs.labels = labels;
+		outputs.actor = context.actor;
 	} else if (context.payload?.workflow_run?.event) {
 		setFailed(
 			"This action can only be run on pull_request, push, or issue_comment events or workflow_run events triggered from those events."
