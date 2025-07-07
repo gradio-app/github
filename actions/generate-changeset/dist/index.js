@@ -119456,31 +119456,10 @@ function create_version_table(packages) {
 |--------|--------|
 ${rendered_packages}`;
 }
-function create_package_checklist(packages) {
-  const changed_packages_list = packages.sort((a, b) => a[0].localeCompare(b[0])).map(([p, v]) => `- [${!!v ? "x" : " "}] \`${p}\``);
-  return `
-#### Select the correct packages:
-${changed_packages_list.join("\n")}
-
-\\-
-`;
-}
-function get_version_interaction_text(manual_version) {
-  return manual_version ? "enable automatic package selection" : "manually select packages to update";
-}
 function format_changelog_preview(changelog, pacakges) {
   if (!pacakges.length)
     return "";
   return changelog.split("\n").map((line) => `> ${line}`).join("\n");
-}
-function generate_mode_description(manual_package_selection, manual_mode) {
-  if (manual_mode) {
-    return ``;
-  } else {
-    return `- [${manual_package_selection ? "x" : " "}] Maintainers can ${manual_package_selection ? "de" : " "}select this checkbox to ${get_version_interaction_text(
-      manual_package_selection
-    )}.`;
-  }
 }
 function create_changeset_comment({
   packages,
@@ -119489,7 +119468,8 @@ function create_changeset_comment({
   manual_mode = false,
   changeset_content,
   changeset_url,
-  previous_comment
+  previous_comment,
+  approved
 }) {
   const new_comment = `<!-- tag=changesets_gradio -->
 
@@ -119498,15 +119478,21 @@ function create_changeset_comment({
 #### ${packages.length ? "This Pull Request includes changes to the following packages. " : "This Pull Request does not include changes to any packages."}
 
 ${create_version_table(packages)}
-${manual_package_selection ? create_package_checklist(packages) : ""}
-${generate_mode_description(manual_package_selection, manual_mode)}
 
-
-#### ${packages.length ? "With the following changelog entry." : ""}
+---
 
 ${format_changelog_preview(changelog, packages)}
 
+---
+
 ${packages.length ? manual_mode ? "⚠️ _The changeset file for this pull request has been modified manually, so the changeset generation bot has been disabled. To go back into automatic mode, delete the changeset file._" : "_Maintainers or the PR author can modify the PR title to modify this entry._" : ""}
+
+---
+
+${approved ? "✅ Approved by maintainers." : "‼️ Changeset not approved by maintainers."}
+
+${approved ? "- [x] Maintainers can unapprove the changeset by selecting this checkbox." : "- [ ] Maintainers can approve the changeset by selecting this checkbox."}
+
 <details><summary>
 
 #### Something isn't right?</summary>
@@ -119533,9 +119519,9 @@ function get_frontmatter_versions(md) {
   }
   return false;
 }
-function check_for_manual_selection(md_src) {
+function check_for_manual_selection_and_approval(md_src) {
   if (!md_src)
-    return { manual_package_selection: false };
+    return { manual_package_selection: false, approved: false };
   const new_ast = md_parser.parse(md_src);
   const manual_node = find(new_ast, (node2) => {
     return node2.type === "listItem" && (node2 == null ? void 0 : node2.checked) != null && //@ts-ignore
@@ -119559,9 +119545,22 @@ function check_for_manual_selection(md_src) {
       }
     });
   }
+  const approved_node = find(new_ast, (node2) => {
+    return node2.type === "listItem" && (node2 == null ? void 0 : node2.checked) != null && !!find(
+      //@ts-ignore
+      node2 == null ? void 0 : node2.children[0],
+      (inner_node) => {
+        var _a, _b, _c, _d;
+        return ((_b = (_a = inner_node == null ? void 0 : inner_node.value) == null ? void 0 : _a.trim()) == null ? void 0 : _b.startsWith("Maintainers can approve the changeset")) || ((_d = (_c = inner_node == null ? void 0 : inner_node.value) == null ? void 0 : _c.trim()) == null ? void 0 : _d.startsWith(
+          "Maintainers can unnaprove the changeset by selecting this checkbox."
+        ));
+      }
+    );
+  });
   return {
     manual_package_selection: !!(manual_node == null ? void 0 : manual_node.checked),
-    versions: manual_node ? versions : void 0
+    versions: manual_node ? versions : void 0,
+    approved: !!(approved_node == null ? void 0 : approved_node.checked)
   };
 }
 function get_version_from_label(labels) {
@@ -119789,6 +119788,12 @@ async function run() {
     coreExports.warning(
       `Changeset file was edited manually. Skipping changeset generation.`
     );
+    let approved2 = false;
+    if (comment == null ? void 0 : comment.body) {
+      approved2 = check_for_manual_selection_and_approval(
+        comment == null ? void 0 : comment.body
+      ).approved;
+    }
     const versions = get_frontmatter_versions(old_changeset_content) || [];
     const changelog_entry = old_changeset_content.split("---")[2].trim().replace(/^(feat:|fix:|highlight:)/im, "").trim();
     const { valid, message } = validate_changelog(old_changeset_content);
@@ -119805,7 +119810,8 @@ async function run() {
       manual_mode: true,
       changeset_content: old_changeset_content,
       changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
-      previous_comment: comment == null ? void 0 : comment.body
+      previous_comment: comment == null ? void 0 : comment.body,
+      approved: approved2
     });
     if (changes2) {
       coreExports.info("Changeset comment updated.");
@@ -119826,12 +119832,14 @@ async function run() {
   const { packages: pkgs } = manypkgGetPackages_cjsExports.getPackagesSync(process.cwd());
   let packages_versions = void 0;
   let manual_package_selection = false;
+  let approved = false;
   if (comment == null ? void 0 : comment.body) {
-    const selection = check_for_manual_selection(comment.body);
+    const selection = check_for_manual_selection_and_approval(comment.body);
     manual_package_selection = selection.manual_package_selection;
     if (manual_package_selection && selection.versions && selection.versions.length) {
       packages_versions = selection.versions;
     }
+    approved = selection.approved;
   }
   let version2 = get_version_from_label(labels) || get_version_from_linked_issues(closes);
   if (!packages_versions) {
@@ -119886,7 +119894,8 @@ async function run() {
     changelog: title,
     manual_package_selection,
     changeset_content,
-    changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`
+    changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
+    approved
   });
   if (changes) {
     coreExports.info("Changeset comment updated.");
@@ -119901,6 +119910,7 @@ async function run() {
     coreExports.setOutput("comment_url", comment == null ? void 0 : comment.url);
   }
   coreExports.setOutput("skipped", "false");
+  coreExports.setOutput("approved", approved.toString());
 }
 run();
 async function get_changed_files(base_sha) {
