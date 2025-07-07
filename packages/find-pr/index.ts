@@ -186,7 +186,7 @@ async function run() {
 		outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
 		outputs.merge_sha = merge_sha || sha || false;
 		outputs.labels = labels;
-		outputs.actor = context.actor;
+		outputs.actor = context.payload.workflow_run?.actor?.login || false;
 	} else if (context.payload?.workflow_run?.event) {
 		setFailed(
 			"This action can only be run on pull_request, push, or issue_comment events or workflow_run events triggered from those events."
