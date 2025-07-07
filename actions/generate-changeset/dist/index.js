@@ -119429,21 +119429,21 @@ const GQL_GET_PR = `query RepoData($owner: String!, $name: String!, $pr_number: 
 	}
 }`;
 const GQL_UPDATE_ISSUE_COMMENT = `mutation UpdateComment($comment_id: ID!, $body: String!){
-		updateIssueComment(input: {id: $comment_id, body: $body}) {
-			issueComment {
-				url
-			}
-		}
-	}`;
+	 updateIssueComment(input: {id: $comment_id, body: $body}) {
+		 issueComment {
+			 url
+		 }
+	 }
+ }`;
 const GQL_CREATE_ISSUE_COMMENT = `mutation CreateComment($body: String!, $pr_id: ID!){
-		addComment(input: {body: $body, subjectId: $pr_id}) {
-			commentEdge {
-				node {
-					url
-				}
-			}
-		}
-	}`;
+	 addComment(input: {body: $body, subjectId: $pr_id}) {
+		 commentEdge {
+			 node {
+				 url
+			 }
+		 }
+	 }
+ }`;
 function get_title(packages) {
   return packages.length ? `change detected` : `no changes detected`;
 }
@@ -119456,10 +119456,15 @@ function create_version_table(packages) {
 |--------|--------|
 ${rendered_packages}`;
 }
-function format_changelog_preview(changelog, pacakges) {
+function format_changelog_preview(changelog, pacakges, changelog_entry_type) {
   if (!pacakges.length)
     return "";
-  return changelog.split("\n").map((line) => `> ${line}`).join("\n");
+  return changelog.split("\n\n").map((line) => {
+    if (changelog_entry_type === "highlight") {
+      return `#### ${line}`;
+    }
+    return `- ${line}`;
+  }).join("\n\n");
 }
 function create_changeset_comment({
   packages,
@@ -119469,7 +119474,9 @@ function create_changeset_comment({
   changeset_content,
   changeset_url,
   previous_comment,
-  approved
+  approved,
+  approved_by,
+  changelog_entry_type
 }) {
   const new_comment = `<!-- tag=changesets_gradio -->
 
@@ -119481,7 +119488,7 @@ ${create_version_table(packages)}
 
 ---
 
-${format_changelog_preview(changelog, packages)}
+${format_changelog_preview(changelog, packages, changelog_entry_type)}
 
 ---
 
@@ -119489,7 +119496,7 @@ ${packages.length ? manual_mode ? "⚠️ _The changeset file for this pull requ
 
 ---
 
-${approved ? "✅ Approved by maintainers." : "‼️ Changeset not approved by maintainers."}
+${approved ? `✅ Approved by @${approved_by || "maintainer"}` : "‼️ Changeset not approved by maintainers. Ensure the version bump is appropriate for all packages before approving."}
 
 ${approved ? "- [x] Maintainers can unapprove the changeset by selecting this checkbox." : "- [ ] Maintainers can approve the changeset by selecting this checkbox."}
 
@@ -119557,10 +119564,20 @@ function check_for_manual_selection_and_approval(md_src) {
       }
     );
   });
+  let approved_by = void 0;
+  if (!!(approved_node == null ? void 0 : approved_node.checked)) {
+    const approvedByMatch = md_src.match(
+      /✅ Approved by @([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9]))*)/
+    );
+    if (approvedByMatch) {
+      approved_by = approvedByMatch[1];
+    }
+  }
   return {
     manual_package_selection: !!(manual_node == null ? void 0 : manual_node.checked),
     versions: manual_node ? versions : void 0,
-    approved: !!(approved_node == null ? void 0 : approved_node.checked)
+    approved: !!(approved_node == null ? void 0 : approved_node.checked),
+    approved_by
   };
 }
 function get_version_from_label(labels) {
@@ -119752,6 +119769,7 @@ const dev_only_ignore_globs = [
   "!**/requirements.txt"
 ];
 async function run() {
+  var _a;
   const branch_name = coreExports.getInput("branch_name");
   if (branch_name.startsWith("changeset-release/")) {
     coreExports.info("Release PR. Skipping changeset generation.");
@@ -119789,13 +119807,19 @@ async function run() {
       `Changeset file was edited manually. Skipping changeset generation.`
     );
     let approved2 = false;
+    let approved_by2 = void 0;
     if (comment == null ? void 0 : comment.body) {
-      approved2 = check_for_manual_selection_and_approval(
-        comment == null ? void 0 : comment.body
-      ).approved;
+      const selection = check_for_manual_selection_and_approval(comment == null ? void 0 : comment.body);
+      approved2 = selection.approved;
+      if (approved2) {
+        const actor = coreExports.getInput("actor");
+        approved_by2 = actor.length ? actor : selection.approved_by;
+      }
     }
     const versions = get_frontmatter_versions(old_changeset_content) || [];
-    const changelog_entry = old_changeset_content.split("---")[2].trim().replace(/^(feat:|fix:|highlight:)/im, "").trim();
+    const changelog_entry = old_changeset_content.split("---")[2].trim();
+    const changelog_entry_message = changelog_entry.replace(/^(feat:|fix:|highlight:)/im, "").trim();
+    const changelog_entry_type = ((_a = changelog_entry.match(/^(feat:|fix:|highlight:)/im)) == null ? void 0 : _a[0]) || "unknown";
     const { valid, message } = validate_changelog(old_changeset_content);
     if (message === false) {
       coreExports.setFailed(
@@ -119805,13 +119829,15 @@ async function run() {
     }
     const { pr_comment_content: pr_comment_content2, changes: changes2 } = create_changeset_comment({
       packages: versions,
-      changelog: !valid ? message : changelog_entry,
+      changelog: !valid ? message : changelog_entry_message,
       manual_package_selection: false,
       manual_mode: true,
       changeset_content: old_changeset_content,
       changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
       previous_comment: comment == null ? void 0 : comment.body,
-      approved: approved2
+      approved: approved2,
+      approved_by: approved_by2,
+      changelog_entry_type
     });
     if (changes2) {
       coreExports.info("Changeset comment updated.");
@@ -119833,6 +119859,7 @@ async function run() {
   let packages_versions = void 0;
   let manual_package_selection = false;
   let approved = false;
+  let approved_by = void 0;
   if (comment == null ? void 0 : comment.body) {
     const selection = check_for_manual_selection_and_approval(comment.body);
     manual_package_selection = selection.manual_package_selection;
@@ -119840,6 +119867,10 @@ async function run() {
       packages_versions = selection.versions;
     }
     approved = selection.approved;
+    if (approved) {
+      const actor = coreExports.getInput("actor");
+      approved_by = actor.length ? actor : selection.approved_by;
+    }
   }
   let version2 = get_version_from_label(labels) || get_version_from_linked_issues(closes);
   if (!packages_versions) {
@@ -119857,10 +119888,10 @@ async function run() {
   }
   if (manual_package_selection) {
     packages_versions = pkgs.map(({ packageJson: { name } }) => {
-      var _a;
+      var _a2;
       return [
         name,
-        ((_a = packages_versions == null ? void 0 : packages_versions.find(([pkg]) => pkg === name)) == null ? void 0 : _a[1]) ? version2 : false
+        ((_a2 = packages_versions == null ? void 0 : packages_versions.find(([pkg]) => pkg === name)) == null ? void 0 : _a2[1]) ? version2 : false
       ];
     });
   }
@@ -119895,7 +119926,9 @@ async function run() {
     manual_package_selection,
     changeset_content,
     changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
-    approved
+    approved,
+    approved_by,
+    changelog_entry_type: type2 || "unknown"
   });
   if (changes) {
     coreExports.info("Changeset comment updated.");
