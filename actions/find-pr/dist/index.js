@@ -85283,7 +85283,7 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 getOctokit_1 = github.getOctokit = getOctokit;
 async function run() {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v;
   const octokit = getOctokit_1(coreExports.getInput("github_token"));
   const { repo, owner } = context.repo;
   const outputs = {
@@ -85405,8 +85405,8 @@ async function run() {
     outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
     outputs.merge_sha = merge_sha || sha || false;
     outputs.labels = labels;
-    outputs.actor = context.actor;
-  } else if ((_t = (_s = context.payload) == null ? void 0 : _s.workflow_run) == null ? void 0 : _t.event) {
+    outputs.actor = ((_t = (_s = context.payload.workflow_run) == null ? void 0 : _s.actor) == null ? void 0 : _t.login) || false;
+  } else if ((_v = (_u = context.payload) == null ? void 0 : _u.workflow_run) == null ? void 0 : _v.event) {
     coreExports.setFailed(
       "This action can only be run on pull_request, push, or issue_comment events or workflow_run events triggered from those events."
     );
