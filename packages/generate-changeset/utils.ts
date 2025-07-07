@@ -169,6 +169,7 @@ export function create_changeset_comment({
 	changeset_content,
 	changeset_url,
 	previous_comment,
+	approved,
 }: {
 	packages: [string, string | boolean][];
 	changelog: string;
@@ -177,6 +178,7 @@ export function create_changeset_comment({
 	changeset_content: string;
 	changeset_url: string;
 	previous_comment?: string;
+	approved: boolean;
 }) {
 	const new_comment = `<!-- tag=changesets_gradio -->
 
@@ -189,13 +191,12 @@ export function create_changeset_comment({
 	}
 
 ${create_version_table(packages)}
-${manual_package_selection ? create_package_checklist(packages) : ""}
-${generate_mode_description(manual_package_selection, manual_mode)}
 
-
-#### ${packages.length ? "With the following changelog entry." : ""}
+---
 
 ${format_changelog_preview(changelog, packages)}
+
+---
 
 ${
 	packages.length
@@ -204,6 +205,21 @@ ${
 			: "_Maintainers or the PR author can modify the PR title to modify this entry._"
 		: ""
 }
+
+---
+
+${
+	approved
+		? "✅ Approved by maintainers."
+		: "‼️ Changeset not approved by maintainers."
+}
+
+${
+	approved
+		? "- [x] Maintainers can unapprove the changeset by selecting this checkbox."
+		: "- [ ] Maintainers can approve the changeset by selecting this checkbox."
+}
+
 <details><summary>
 
 #### Something isn't right?</summary>
@@ -252,11 +268,12 @@ export function get_frontmatter_versions(
 	return false;
 }
 
-export function check_for_manual_selection(md_src: string): {
+export function check_for_manual_selection_and_approval(md_src: string): {
 	manual_package_selection: boolean;
 	versions?: [string, boolean][];
+	approved: boolean;
 } {
-	if (!md_src) return { manual_package_selection: false };
+	if (!md_src) return { manual_package_selection: false, approved: false };
 
 	const new_ast = md_parser.parse(md_src);
 
@@ -288,9 +305,30 @@ export function check_for_manual_selection(md_src: string): {
 		});
 	}
 
+	const approved_node: ListItem | undefined = find(new_ast, (node) => {
+		return (
+			node.type === "listItem" &&
+			(node as ListItem)?.checked != null &&
+			!!find(
+				//@ts-ignore
+				(node as ListItem)?.children[0],
+				(inner_node) =>
+					(inner_node as Text)?.value
+						?.trim()
+						?.startsWith("Maintainers can approve the changeset") ||
+					(inner_node as Text)?.value
+						?.trim()
+						?.startsWith(
+							"Maintainers can unnaprove the changeset by selecting this checkbox."
+						)
+			)
+		);
+	}) as ListItem | undefined;
+
 	return {
 		manual_package_selection: !!manual_node?.checked,
 		versions: manual_node ? versions : undefined,
+		approved: !!approved_node?.checked,
 	};
 }
 

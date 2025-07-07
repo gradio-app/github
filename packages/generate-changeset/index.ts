@@ -15,7 +15,7 @@ import * as human_id from "human-id";
 import {
 	create_changeset_comment,
 	get_frontmatter_versions,
-	check_for_manual_selection,
+	check_for_manual_selection_and_approval,
 	get_type_from_linked_issues,
 	get_version_from_linked_issues,
 	get_version_from_label,
@@ -91,6 +91,14 @@ async function run() {
 			`Changeset file was edited manually. Skipping changeset generation.`
 		);
 
+		let approved = false;
+
+		if (comment?.body) {
+			approved = check_for_manual_selection_and_approval(
+				comment?.body
+			).approved;
+		}
+
 		const versions = get_frontmatter_versions(old_changeset_content) || [];
 
 		const changelog_entry = old_changeset_content
@@ -116,6 +124,7 @@ async function run() {
 			changeset_content: old_changeset_content,
 			changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 			previous_comment: comment?.body,
+			approved,
 		});
 
 		if (changes) {
@@ -142,9 +151,9 @@ async function run() {
 
 	let packages_versions: undefined | [string, string | boolean][] = undefined;
 	let manual_package_selection = false;
-
+	let approved = false;
 	if (comment?.body) {
-		const selection = check_for_manual_selection(comment.body);
+		const selection = check_for_manual_selection_and_approval(comment.body);
 
 		manual_package_selection = selection.manual_package_selection;
 
@@ -155,6 +164,8 @@ async function run() {
 		) {
 			packages_versions = selection.versions;
 		}
+
+		approved = selection.approved;
 	}
 
 	let version =
@@ -225,6 +236,7 @@ async function run() {
 		manual_package_selection,
 		changeset_content,
 		changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
+		approved,
 	});
 
 	// is pr body and generate body different?
@@ -243,6 +255,7 @@ async function run() {
 
 	// this always happens
 	setOutput("skipped", "false");
+	setOutput("approved", approved.toString());
 }
 
 run();
