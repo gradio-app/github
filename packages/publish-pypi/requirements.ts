@@ -7,7 +7,7 @@ export const runtime_prerequisites_txt = [
 	`pip-with-requires-python==1.0.1
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==22.3.1`,
+pip>=23.3.1`,
 ];
 
 export const runtime_in = [

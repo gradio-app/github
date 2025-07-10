@@ -75,6 +75,17 @@ async function run() {
 		"pip",
 		[
 			"install",
+			"--user",
+			"--upgrade",
+			"--no-cache-dir",
+			"pip>=23.3.1",
+		]
+	);
+
+	await exec(
+		"pip",
+		[
+			"install",
 			"twine==6",
 			"--user",
 			"--upgrade",
