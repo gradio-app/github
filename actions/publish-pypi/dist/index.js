@@ -34623,7 +34623,7 @@ const runtime_prerequisites_txt = [
   `pip-with-requires-python==1.0.1
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==22.3.1`
+pip>=23.3.1`
 ];
 const runtime_in = [
   "runtime.in",
@@ -34762,6 +34762,16 @@ async function run() {
     Object.values(files).map(
       ([name, content]) => promises.writeFile(`_action_temp/requirements/${name}`, content)
     )
+  );
+  await exec_2(
+    "pip",
+    [
+      "install",
+      "--user",
+      "--upgrade",
+      "--no-cache-dir",
+      "pip>=23.3.1"
+    ]
   );
   await exec_2(
     "pip",
