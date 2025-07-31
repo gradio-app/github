@@ -23,6 +23,8 @@ outpus:
     description: "Whether the changeset was skipped or not"
   comment_url:
     description: "The url of the comment that was created"
+  approved:
+    description: "Whether the changeset was approved or not"
 
 runs:
   using: "node20"
