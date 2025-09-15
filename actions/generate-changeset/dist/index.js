@@ -119864,11 +119864,8 @@ async function run() {
     const has_approved_label2 = labels.some(
       (l) => l.name === "changeset:approved"
     );
-<<<<<<< HEAD
-=======
     let updated_has_approved_label2 = has_approved_label2;
     let selection2 = null;
->>>>>>> 2fb413e (changes)
     coreExports.info(`[Manual Mode] Full context:`);
     coreExports.info(
       JSON.stringify(
@@ -119901,25 +119898,15 @@ async function run() {
           {
             wasEdited,
             editor: comment.editor,
-<<<<<<< HEAD
-            checkbox_checked: selection.checkbox_checked,
-            has_approved_label: has_approved_label2,
-            should_toggle_label: selection.should_toggle_label
-=======
             checkbox_checked: selection2.checkbox_checked,
             has_approved_label: has_approved_label2,
             should_toggle_label: selection2.should_toggle_label
->>>>>>> 2fb413e (changes)
           },
           null,
           2
         )
       );
-<<<<<<< HEAD
-      if (selection.should_toggle_label) {
-=======
       if (selection2.should_toggle_label) {
->>>>>>> 2fb413e (changes)
         const approved_label_id = await client.get_or_create_label(
           "changeset:approved"
         );
@@ -119985,11 +119972,8 @@ async function run() {
   const has_approved_label = labels.some(
     (l) => l.name === "changeset:approved"
   );
-<<<<<<< HEAD
-=======
   let updated_has_approved_label = has_approved_label;
   let selection = null;
->>>>>>> 2fb413e (changes)
   coreExports.info(`[Normal Mode] Full context:`);
   coreExports.info(
     JSON.stringify(
