@@ -2049,7 +2049,7 @@ function read_demos_from_json(json_path) {
 async function run() {
   const gradio_version = coreExports.getInput("gradio_version");
   const gradio_client_version = coreExports.getInput("gradio_client_version");
-  const config_path = coreExports.getInput("config_path") || path.join(root, ".config", "demos.json");
+  const config_path = coreExports.getInput("config_path") || path.join(__dirname, ".config", "demos.json");
   if (!gradio_version || !gradio_client_version) {
     console.error(
       "Usage: node script.js <gradio_version> <gradio_client_version> [config_path]"
@@ -2072,7 +2072,6 @@ ${gradio_client_version}
 ${gradio_version}
 pypistats==1.1.0
 plotly
-matplotlib
 altair
 vega_datasets
 	`.trim();

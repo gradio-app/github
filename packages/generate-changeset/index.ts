@@ -95,6 +95,10 @@ async function run() {
 		const has_approved_label = labels.some(
 			(l) => l.name === "changeset:approved"
 		);
+		
+		// Variables for tracking state changes
+		let updated_has_approved_label = has_approved_label;
+		let selection: any = null;
 
 		info(`[Manual Mode] Full context:`);
 		info(
@@ -118,7 +122,7 @@ async function run() {
 		if (comment?.body) {
 			const wasEdited = comment.lastEditedAt !== null;
 
-			const selection = check_for_manual_selection_and_approval(
+			selection = check_for_manual_selection_and_approval(
 				comment.body,
 				wasEdited,
 				comment.editor,
@@ -149,9 +153,11 @@ async function run() {
 					if (selection.checkbox_checked) {
 						info(`[Manual Mode] Adding changeset:approved label`);
 						await client.add_label(pr_id, approved_label_id);
+						updated_has_approved_label = true;
 					} else {
 						info(`[Manual Mode] Removing changeset:approved label`);
 						await client.remove_label(pr_id, approved_label_id);
+						updated_has_approved_label = false;
 					}
 				} else {
 					warning(
@@ -181,6 +187,11 @@ async function run() {
 			return;
 		}
 
+		// Use the updated label state after potential toggling
+		const final_has_approved_label = comment?.body && selection?.should_toggle_label 
+			? updated_has_approved_label 
+			: has_approved_label;
+		
 		const { pr_comment_content, changes } = create_changeset_comment({
 			packages: versions,
 			changelog: !valid ? message : changelog_entry_message,
@@ -189,7 +200,7 @@ async function run() {
 			changeset_content: old_changeset_content,
 			changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 			previous_comment: comment?.body,
-			has_approved_label: labels.some((l) => l.name === "changeset:approved"),
+			has_approved_label: final_has_approved_label,
 			changelog_entry_type,
 		});
 
@@ -221,6 +232,10 @@ async function run() {
 	const has_approved_label = labels.some(
 		(l) => l.name === "changeset:approved"
 	);
+	
+	// Variables for tracking state changes
+	let updated_has_approved_label = has_approved_label;
+	let selection: any = null;
 
 	info(`[Normal Mode] Full context:`);
 	info(
@@ -244,7 +259,7 @@ async function run() {
 	if (comment?.body) {
 		const wasEdited = comment.lastEditedAt !== null;
 
-		const selection = check_for_manual_selection_and_approval(
+		selection = check_for_manual_selection_and_approval(
 			comment.body,
 			wasEdited,
 			comment.editor,
@@ -287,9 +302,11 @@ async function run() {
 				if (selection.checkbox_checked) {
 					info(`[Normal Mode] Adding changeset:approved label`);
 					await client.add_label(pr_id, approved_label_id);
+					updated_has_approved_label = true;
 				} else {
 					info(`[Normal Mode] Removing changeset:approved label`);
 					await client.remove_label(pr_id, approved_label_id);
+					updated_has_approved_label = false;
 				}
 			} else {
 				warning(
@@ -361,6 +378,11 @@ async function run() {
 		await exec("git", ["push"]);
 	}
 
+	// Use the updated label state after potential toggling
+	const final_has_approved_label = comment?.body && selection?.should_toggle_label 
+		? updated_has_approved_label 
+		: has_approved_label;
+	
 	const { pr_comment_content, changes } = create_changeset_comment({
 		packages: packages_versions,
 		changelog: title,
@@ -368,7 +390,7 @@ async function run() {
 		changeset_content,
 		changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 		previous_comment: comment?.body,
-		has_approved_label,
+		has_approved_label: final_has_approved_label,
 		changelog_entry_type: type || "unknown",
 	});
 
@@ -389,7 +411,7 @@ async function run() {
 
 	// this always happens
 	setOutput("skipped", "false");
-	setOutput("approved", has_approved_label.toString());
+	setOutput("approved", final_has_approved_label.toString());
 }
 
 run();
