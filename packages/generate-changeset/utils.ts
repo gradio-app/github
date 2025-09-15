@@ -103,6 +103,26 @@ const GQL_CREATE_ISSUE_COMMENT = `mutation CreateComment($body: String!, $pr_id:
 	 }
  }`;
 
+const GQL_ADD_LABELS = `mutation AddLabels($pr_id: ID!, $label_ids: [ID!]!) {
+	addLabelsToLabelable(input: {labelableId: $pr_id, labelIds: $label_ids}) {
+		clientMutationId
+	}
+}`;
+
+const GQL_REMOVE_LABELS = `mutation RemoveLabels($pr_id: ID!, $label_ids: [ID!]!) {
+	removeLabelsFromLabelable(input: {labelableId: $pr_id, labelIds: $label_ids}) {
+		clientMutationId
+	}
+}`;
+
+const GQL_GET_LABEL = `query GetLabel($owner: String!, $name: String!, $label_name: String!) {
+	repository(owner: $owner, name: $name) {
+		label(name: $label_name) {
+			id
+		}
+	}
+}`;
+
 function get_title(packages: [string, string | boolean][]) {
 	return packages.length ? `change detected` : `no changes detected`;
 }
@@ -180,8 +200,7 @@ export function create_changeset_comment({
 	changeset_content,
 	changeset_url,
 	previous_comment,
-	approved,
-	approved_by,
+	has_approved_label,
 	changelog_entry_type,
 }: {
 	packages: [string, string | boolean][];
@@ -191,8 +210,7 @@ export function create_changeset_comment({
 	changeset_content: string;
 	changeset_url: string;
 	previous_comment?: string;
-	approved: boolean;
-	approved_by?: string;
+	has_approved_label: boolean;
 	changelog_entry_type: string;
 }) {
 	const new_comment = `<!-- tag=changesets_gradio -->
@@ -214,15 +232,15 @@ ${format_changelog_preview(changelog, packages, changelog_entry_type)}
 ---
 
 ${
-	approved
-		? `✅ Approved by ${"@" + approved_by || "a  maintainer"}.`
-		: "‼️ Changeset not approved by maintainers. Ensure the version bump is appropriate for all packages before approving."
+	has_approved_label
+		? `✅ Changeset approved (label: \`changeset:approved\`)`
+		: "‼️ Changeset not approved. Ensure the version bump is appropriate for all packages before approving."
 }
 
 ${
-	approved
-		? "- [x] Maintainers can unapprove the changeset by selecting this checkbox."
-		: "- [ ] Maintainers can approve the changeset by selecting this checkbox."
+	has_approved_label
+		? "- [x] Maintainers can remove approval by unchecking this checkbox."
+		: "- [ ] Maintainers can approve the changeset by checking this checkbox."
 }
 
 <details><summary>
@@ -284,15 +302,15 @@ export function get_frontmatter_versions(
 export function check_for_manual_selection_and_approval(
 	md_src: string,
 	wasEdited?: boolean,
-	editor?: string | null
+	editor?: string | null,
+	has_approved_label?: boolean
 ): {
 	manual_package_selection: boolean;
 	versions?: [string, boolean][];
-	approved: boolean;
-	approved_by?: string;
-	was_checkbox_edit?: boolean;
+	checkbox_checked: boolean;
+	should_toggle_label?: boolean;
 } {
-	if (!md_src) return { manual_package_selection: false, approved: false };
+	if (!md_src) return { manual_package_selection: false, checkbox_checked: false };
 
 	const new_ast = md_parser.parse(md_src);
 
@@ -324,6 +342,7 @@ export function check_for_manual_selection_and_approval(
 		});
 	}
 
+	// Find the approval checkbox
 	const approved_node: ListItem | undefined = find(new_ast, (node) => {
 		return (
 			node.type === "listItem" &&
@@ -334,62 +353,43 @@ export function check_for_manual_selection_and_approval(
 				(inner_node) =>
 					(inner_node as Text)?.value
 						?.trim()
-						?.startsWith("Maintainers can approve the changeset") ||
+						?.includes("approve") &&
 					(inner_node as Text)?.value
 						?.trim()
-						?.startsWith(
-							"Maintainers can unnaprove the changeset by selecting this checkbox."
-						)
+						?.includes("checkbox")
 			)
 		);
 	}) as ListItem | undefined;
 
-	// Extract approved_by username from existing comment text
-	let approved_by: string | undefined = undefined;
-	if (!!approved_node?.checked) {
-		const approvedByMatch = md_src.match(
-			/✅ Approved by @([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9]))*)/
-		);
-		if (approvedByMatch) {
-			approved_by = approvedByMatch[1];
+	const checkbox_checked = !!approved_node?.checked;
+	
+	// Determine if we should toggle the label
+	// We should toggle if:
+	// 1. The comment was edited by a human (not gradio-pr-bot)
+	// 2. The checkbox state doesn't match the label state
+	let should_toggle_label = false;
+	
+	if (wasEdited && editor && editor !== 'gradio-pr-bot') {
+		// Human edit - check if checkbox state differs from label state
+		if (has_approved_label !== undefined && checkbox_checked !== has_approved_label) {
+			should_toggle_label = true;
+			console.log(`[check_for_manual_selection_and_approval] Label toggle needed: checkbox=${checkbox_checked}, label=${has_approved_label}`);
 		}
 	}
-
-	// Detect if this was a checkbox-only edit
-	// We consider it a checkbox edit only if:
-	// 1. The comment was edited
-	// 2. The editor is NOT gradio-pr-bot (the bot doesn't tick checkboxes, humans do)
-	// 3. OR if the editor is gradio-pr-bot but we can detect the checkbox state changed
-	let was_checkbox_edit = false;
 	
-	if (wasEdited && editor) {
-		// If the editor is NOT the bot, it's likely a human ticking a checkbox
-		if (editor !== 'gradio-pr-bot') {
-			was_checkbox_edit = true;
-			console.log(`[check_for_manual_selection_and_approval] Detected checkbox edit by human: ${editor}`);
-		} else {
-			// If the bot edited it, it's likely regenerating the comment, not a checkbox tick
-			was_checkbox_edit = false;
-			console.log(`[check_for_manual_selection_and_approval] Bot edit detected (not a checkbox edit): ${editor}`);
-		}
-	} else if (wasEdited) {
-		console.log(`[check_for_manual_selection_and_approval] Edit detected but no editor field`);
-	} else {
-		console.log(`[check_for_manual_selection_and_approval] No edit detected`);
-	}
-	
-	console.log(`[check_for_manual_selection_and_approval] Checkbox states:`, {
+	console.log(`[check_for_manual_selection_and_approval] States:`, {
 		manual_package_selection: !!manual_node?.checked,
-		approved: !!approved_node?.checked,
-		was_checkbox_edit
+		checkbox_checked,
+		has_approved_label,
+		should_toggle_label,
+		editor
 	});
 
 	return {
 		manual_package_selection: !!manual_node?.checked,
 		versions: manual_node ? versions : undefined,
-		approved: !!approved_node?.checked,
-		approved_by,
-		was_checkbox_edit,
+		checkbox_checked,
+		should_toggle_label,
 	};
 }
 
@@ -555,6 +555,35 @@ export function get_client(token: string, owner: string, repo: string) {
 
 				return url;
 			}
+		},
+		
+		async get_or_create_label(label_name: string): Promise<string | null> {
+			try {
+				const { repository: { label } } = await octokit.graphql<Record<string, any>>(
+					GQL_GET_LABEL,
+					{ owner, name: repo, label_name }
+				);
+				return label?.id || null;
+			} catch (error) {
+				console.log(`Label "${label_name}" not found, will need to be created manually`);
+				return null;
+			}
+		},
+		
+		async add_label(pr_id: string, label_id: string) {
+			console.log(`Adding label with ID ${label_id} to PR`);
+			await octokit.graphql(GQL_ADD_LABELS, {
+				pr_id,
+				label_ids: [label_id]
+			});
+		},
+		
+		async remove_label(pr_id: string, label_id: string) {
+			console.log(`Removing label with ID ${label_id} from PR`);
+			await octokit.graphql(GQL_REMOVE_LABELS, {
+				pr_id,
+				label_ids: [label_id]
+			});
 		},
 	};
 }
