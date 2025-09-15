@@ -34623,7 +34623,7 @@ const runtime_prerequisites_txt = [
   `pip-with-requires-python==1.0.1
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==22.3.1`
+pip>=23.3.1`
 ];
 const runtime_in = [
   "runtime.in",
@@ -34672,7 +34672,7 @@ keyring==23.11.0
     # via twine
 more-itertools==9.0.0
     # via jaraco-classes
-pkginfo==1.10.0
+pkginfo==1.12.0
     # via
     #   -r runtime.in
     #   twine
@@ -34767,7 +34767,17 @@ async function run() {
     "pip",
     [
       "install",
-      "twine==4",
+      "--user",
+      "--upgrade",
+      "--no-cache-dir",
+      "pip>=23.3.1"
+    ]
+  );
+  await exec_2(
+    "pip",
+    [
+      "install",
+      "twine==6",
       "--user",
       "--upgrade",
       "--no-cache-dir",

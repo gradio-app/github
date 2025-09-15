@@ -86782,6 +86782,7 @@ function match_filter(patterns, files) {
 }
 async function run() {
   var _a;
+  console.log(JSON.stringify(context, null, 2));
   const filter_name = coreExports.getInput("filter");
   const path = coreExports.getInput("path") || ".github/filters.json";
   const token = coreExports.getInput("token");
@@ -86794,16 +86795,27 @@ async function run() {
   }
   const filter = filters[filter_name];
   let files = [];
-  for await (const response of octokit.paginate.iterator(
-    octokit.rest.pulls.listFiles,
-    {
+  if (context.eventName === "pull_request") {
+    for await (const response of octokit.paginate.iterator(
+      octokit.rest.pulls.listFiles,
+      {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        pull_number: (_a = context.payload.pull_request) == null ? void 0 : _a.number,
+        per_page: 100
+      }
+    )) {
+      files = [...files, ...parse_data(response.data)];
+    }
+  } else if (context.eventName === "push" || context.eventName === "workflow_dispatch") {
+    const response = await octokit.rest.repos.getCommit({
       owner: context.repo.owner,
       repo: context.repo.repo,
-      pull_number: (_a = context.payload.pull_request) == null ? void 0 : _a.number,
-      per_page: 100
-    }
-  )) {
-    files = [...files, ...parse_data(response.data)];
+      ref: context.ref
+    });
+    files = [...files, ...parse_data(response.data.files)];
+  } else {
+    throw new Error("Unsupported event");
   }
   files = files.map((f) => f.filename);
   const result = match_filter(filter, files);
