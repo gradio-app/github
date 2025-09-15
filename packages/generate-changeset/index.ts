@@ -97,11 +97,23 @@ async function run() {
 
 		if (comment?.body) {
 			const wasEdited = comment.lastEditedAt !== null;
+			
+			info(`[Manual Mode] Comment edit status:`);
+			info(`  - Was edited: ${wasEdited}`);
+			info(`  - Last edited at: ${comment.lastEditedAt || 'never'}`);
+			info(`  - Editor: ${comment.editor || 'N/A'}`);
+			info(`  - Original author: ${comment.author}`);
+			
 			const selection = check_for_manual_selection_and_approval(
 				comment.body,
 				wasEdited,
 				comment.editor
 			);
+			
+			info(`[Manual Mode] Checkbox detection results:`);
+			info(`  - Was checkbox edit: ${selection.was_checkbox_edit}`);
+			info(`  - Approved checkbox state: ${selection.approved}`);
+			info(`  - Existing approved_by: ${selection.approved_by || 'none'}`);
 
 			if (selection.was_checkbox_edit || !wasEdited) {
 				approved = selection.approved;
@@ -112,13 +124,22 @@ async function run() {
 						actor && actor.length && actor !== "false"
 							? actor
 							: comment.editor || selection.approved_by;
+					info(`[Manual Mode] Checkbox edit approved - using approver: ${approved_by}`);
 				} else if (approved) {
 					approved_by = selection.approved_by;
+					info(`[Manual Mode] Already approved - keeping approver: ${approved_by}`);
 				}
 			} else {
 				approved = selection.approved;
 				approved_by = selection.approved_by;
+				info(`[Manual Mode] Non-checkbox edit detected - preserving state:`);
+				info(`  - Approved: ${approved}`);
+				info(`  - Approved by: ${approved_by || 'none'}`);
 			}
+			
+			info(`[Manual Mode] Final state:`);
+			info(`  - Approved: ${approved}`);
+			info(`  - Approved by: ${approved_by || 'none'}`);
 		}
 
 		const versions = get_frontmatter_versions(old_changeset_content) || [];
@@ -183,11 +204,24 @@ async function run() {
 
 	if (comment?.body) {
 		const wasEdited = comment.lastEditedAt !== null;
+		
+		info(`[Normal Mode] Comment edit status:`);
+		info(`  - Was edited: ${wasEdited}`);
+		info(`  - Last edited at: ${comment.lastEditedAt || 'never'}`);
+		info(`  - Editor: ${comment.editor || 'N/A'}`);
+		info(`  - Original author: ${comment.author}`);
+		
 		const selection = check_for_manual_selection_and_approval(
 			comment.body,
 			wasEdited,
 			comment.editor
 		);
+		
+		info(`[Normal Mode] Checkbox detection results:`);
+		info(`  - Was checkbox edit: ${selection.was_checkbox_edit}`);
+		info(`  - Manual package selection: ${selection.manual_package_selection}`);
+		info(`  - Approved checkbox state: ${selection.approved}`);
+		info(`  - Existing approved_by: ${selection.approved_by || 'none'}`);
 
 		manual_package_selection = selection.manual_package_selection;
 
@@ -197,6 +231,7 @@ async function run() {
 			selection.versions.length
 		) {
 			packages_versions = selection.versions;
+			info(`[Normal Mode] Using manual package versions from comment`);
 		}
 
 		if (selection.was_checkbox_edit || !wasEdited) {
@@ -208,13 +243,22 @@ async function run() {
 					actor && actor.length && actor !== "false"
 						? actor
 						: comment.editor || selection.approved_by;
+				info(`[Normal Mode] Checkbox edit approved - using approver: ${approved_by}`);
 			} else if (approved) {
 				approved_by = selection.approved_by;
+				info(`[Normal Mode] Already approved - keeping approver: ${approved_by}`);
 			}
 		} else {
 			approved = selection.approved;
 			approved_by = selection.approved_by;
+			info(`[Normal Mode] Non-checkbox edit detected - preserving state:`);
+			info(`  - Approved: ${approved}`);
+			info(`  - Approved by: ${approved_by || 'none'}`);
 		}
+		
+		info(`[Normal Mode] Final state:`);
+		info(`  - Approved: ${approved}`);
+		info(`  - Approved by: ${approved_by || 'none'}`);
 	}
 
 	let version =

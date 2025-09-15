@@ -350,7 +350,18 @@ export function check_for_manual_selection_and_approval(
 	let was_checkbox_edit = false;
 	if (wasEdited && editor) {
 		was_checkbox_edit = true;
+		console.log(`[check_for_manual_selection_and_approval] Detected checkbox edit by ${editor}`);
+	} else if (wasEdited) {
+		console.log(`[check_for_manual_selection_and_approval] Edit detected but no editor field`);
+	} else {
+		console.log(`[check_for_manual_selection_and_approval] No edit detected`);
 	}
+	
+	console.log(`[check_for_manual_selection_and_approval] Checkbox states:`, {
+		manual_package_selection: !!manual_node?.checked,
+		approved: !!approved_node?.checked,
+		was_checkbox_edit
+	});
 
 	return {
 		manual_package_selection: !!manual_node?.checked,

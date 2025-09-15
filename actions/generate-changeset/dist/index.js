@@ -119577,7 +119577,17 @@ function check_for_manual_selection_and_approval(md_src, wasEdited, editor) {
   let was_checkbox_edit = false;
   if (wasEdited && editor) {
     was_checkbox_edit = true;
+    console.log(`[check_for_manual_selection_and_approval] Detected checkbox edit by ${editor}`);
+  } else if (wasEdited) {
+    console.log(`[check_for_manual_selection_and_approval] Edit detected but no editor field`);
+  } else {
+    console.log(`[check_for_manual_selection_and_approval] No edit detected`);
   }
+  console.log(`[check_for_manual_selection_and_approval] Checkbox states:`, {
+    manual_package_selection: !!(manual_node == null ? void 0 : manual_node.checked),
+    approved: !!(approved_node == null ? void 0 : approved_node.checked),
+    was_checkbox_edit
+  });
   return {
     manual_package_selection: !!(manual_node == null ? void 0 : manual_node.checked),
     versions: manual_node ? versions : void 0,
@@ -119818,23 +119828,40 @@ async function run() {
     let approved_by2 = void 0;
     if (comment == null ? void 0 : comment.body) {
       const wasEdited = comment.lastEditedAt !== null;
+      coreExports.info(`[Manual Mode] Comment edit status:`);
+      coreExports.info(`  - Was edited: ${wasEdited}`);
+      coreExports.info(`  - Last edited at: ${comment.lastEditedAt || "never"}`);
+      coreExports.info(`  - Editor: ${comment.editor || "N/A"}`);
+      coreExports.info(`  - Original author: ${comment.author}`);
       const selection = check_for_manual_selection_and_approval(
         comment.body,
         wasEdited,
         comment.editor
       );
+      coreExports.info(`[Manual Mode] Checkbox detection results:`);
+      coreExports.info(`  - Was checkbox edit: ${selection.was_checkbox_edit}`);
+      coreExports.info(`  - Approved checkbox state: ${selection.approved}`);
+      coreExports.info(`  - Existing approved_by: ${selection.approved_by || "none"}`);
       if (selection.was_checkbox_edit || !wasEdited) {
         approved2 = selection.approved;
         if (approved2 && selection.was_checkbox_edit) {
           const actor = coreExports.getInput("actor");
           approved_by2 = actor && actor.length && actor !== "false" ? actor : comment.editor || selection.approved_by;
+          coreExports.info(`[Manual Mode] Checkbox edit approved - using approver: ${approved_by2}`);
         } else if (approved2) {
           approved_by2 = selection.approved_by;
+          coreExports.info(`[Manual Mode] Already approved - keeping approver: ${approved_by2}`);
         }
       } else {
         approved2 = selection.approved;
         approved_by2 = selection.approved_by;
+        coreExports.info(`[Manual Mode] Non-checkbox edit detected - preserving state:`);
+        coreExports.info(`  - Approved: ${approved2}`);
+        coreExports.info(`  - Approved by: ${approved_by2 || "none"}`);
       }
+      coreExports.info(`[Manual Mode] Final state:`);
+      coreExports.info(`  - Approved: ${approved2}`);
+      coreExports.info(`  - Approved by: ${approved_by2 || "none"}`);
     }
     const versions = get_frontmatter_versions(old_changeset_content) || [];
     const changelog_entry = old_changeset_content.split("---")[2].trim();
@@ -119882,27 +119909,46 @@ async function run() {
   let approved_by = void 0;
   if (comment == null ? void 0 : comment.body) {
     const wasEdited = comment.lastEditedAt !== null;
+    coreExports.info(`[Normal Mode] Comment edit status:`);
+    coreExports.info(`  - Was edited: ${wasEdited}`);
+    coreExports.info(`  - Last edited at: ${comment.lastEditedAt || "never"}`);
+    coreExports.info(`  - Editor: ${comment.editor || "N/A"}`);
+    coreExports.info(`  - Original author: ${comment.author}`);
     const selection = check_for_manual_selection_and_approval(
       comment.body,
       wasEdited,
       comment.editor
     );
+    coreExports.info(`[Normal Mode] Checkbox detection results:`);
+    coreExports.info(`  - Was checkbox edit: ${selection.was_checkbox_edit}`);
+    coreExports.info(`  - Manual package selection: ${selection.manual_package_selection}`);
+    coreExports.info(`  - Approved checkbox state: ${selection.approved}`);
+    coreExports.info(`  - Existing approved_by: ${selection.approved_by || "none"}`);
     manual_package_selection = selection.manual_package_selection;
     if (manual_package_selection && selection.versions && selection.versions.length) {
       packages_versions = selection.versions;
+      coreExports.info(`[Normal Mode] Using manual package versions from comment`);
     }
     if (selection.was_checkbox_edit || !wasEdited) {
       approved = selection.approved;
       if (approved && selection.was_checkbox_edit) {
         const actor = coreExports.getInput("actor");
         approved_by = actor && actor.length && actor !== "false" ? actor : comment.editor || selection.approved_by;
+        coreExports.info(`[Normal Mode] Checkbox edit approved - using approver: ${approved_by}`);
       } else if (approved) {
         approved_by = selection.approved_by;
+        coreExports.info(`[Normal Mode] Already approved - keeping approver: ${approved_by}`);
       }
     } else {
       approved = selection.approved;
       approved_by = selection.approved_by;
+      coreExports.info(`[Normal Mode] Non-checkbox edit detected - preserving state:`);
+      coreExports.info(`  - Approved: ${approved}`);
+      coreExports.info(`  - Approved by: ${approved_by || "none"}`);
     }
+    coreExports.info(`[Normal Mode] Final state:`);
+    coreExports.info(`  - Approved: ${approved}`);
+    coreExports.info(`  - Approved by: ${approved_by || "none"}`);
   }
   let version2 = get_version_from_label(labels) || get_version_from_linked_issues(closes);
   if (!packages_versions) {
