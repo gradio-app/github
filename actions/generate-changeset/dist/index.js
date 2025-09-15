@@ -119824,6 +119824,7 @@ const dev_only_ignore_globs = [
 ];
 async function run() {
   var _a;
+  console.log(JSON.stringify(context, null, 2));
   const branch_name = coreExports.getInput("branch_name");
   if (branch_name.startsWith("changeset-release/")) {
     coreExports.info("Release PR. Skipping changeset generation.");
@@ -119860,19 +119861,27 @@ async function run() {
     coreExports.warning(
       `Changeset file was edited manually. Skipping changeset generation.`
     );
-    const has_approved_label2 = labels.some((l) => l.name === "changeset:approved");
+    const has_approved_label2 = labels.some(
+      (l) => l.name === "changeset:approved"
+    );
     coreExports.info(`[Manual Mode] Full context:`);
-    coreExports.info(JSON.stringify({
-      pr_number: pull_request_number,
-      labels: labels.map((l) => l.name),
-      has_approved_label: has_approved_label2,
-      comment_exists: !!comment,
-      comment_id: comment == null ? void 0 : comment.id,
-      comment_author: comment == null ? void 0 : comment.author,
-      comment_editor: comment == null ? void 0 : comment.editor,
-      comment_lastEditedAt: comment == null ? void 0 : comment.lastEditedAt,
-      changeset_path
-    }, null, 2));
+    coreExports.info(
+      JSON.stringify(
+        {
+          pr_number: pull_request_number,
+          labels: labels.map((l) => l.name),
+          has_approved_label: has_approved_label2,
+          comment_exists: !!comment,
+          comment_id: comment == null ? void 0 : comment.id,
+          comment_author: comment == null ? void 0 : comment.author,
+          comment_editor: comment == null ? void 0 : comment.editor,
+          comment_lastEditedAt: comment == null ? void 0 : comment.lastEditedAt,
+          changeset_path
+        },
+        null,
+        2
+      )
+    );
     if (comment == null ? void 0 : comment.body) {
       const wasEdited = comment.lastEditedAt !== null;
       const selection = check_for_manual_selection_and_approval(
@@ -119882,15 +119891,23 @@ async function run() {
         has_approved_label2
       );
       coreExports.info(`[Manual Mode] Checkbox analysis:`);
-      coreExports.info(JSON.stringify({
-        wasEdited,
-        editor: comment.editor,
-        checkbox_checked: selection.checkbox_checked,
-        has_approved_label: has_approved_label2,
-        should_toggle_label: selection.should_toggle_label
-      }, null, 2));
+      coreExports.info(
+        JSON.stringify(
+          {
+            wasEdited,
+            editor: comment.editor,
+            checkbox_checked: selection.checkbox_checked,
+            has_approved_label: has_approved_label2,
+            should_toggle_label: selection.should_toggle_label
+          },
+          null,
+          2
+        )
+      );
       if (selection.should_toggle_label) {
-        const approved_label_id = await client.get_or_create_label("changeset:approved");
+        const approved_label_id = await client.get_or_create_label(
+          "changeset:approved"
+        );
         if (approved_label_id) {
           if (selection.checkbox_checked) {
             coreExports.info(`[Manual Mode] Adding changeset:approved label`);
@@ -119900,7 +119917,9 @@ async function run() {
             await client.remove_label(pr_id, approved_label_id);
           }
         } else {
-          coreExports.warning(`[Manual Mode] Could not find or create changeset:approved label`);
+          coreExports.warning(
+            `[Manual Mode] Could not find or create changeset:approved label`
+          );
         }
       }
     }
@@ -119945,19 +119964,27 @@ async function run() {
   const { packages: pkgs } = manypkgGetPackages_cjsExports.getPackagesSync(process.cwd());
   let packages_versions = void 0;
   let manual_package_selection = false;
-  const has_approved_label = labels.some((l) => l.name === "changeset:approved");
+  const has_approved_label = labels.some(
+    (l) => l.name === "changeset:approved"
+  );
   coreExports.info(`[Normal Mode] Full context:`);
-  coreExports.info(JSON.stringify({
-    pr_number: pull_request_number,
-    labels: labels.map((l) => l.name),
-    has_approved_label,
-    comment_exists: !!comment,
-    comment_id: comment == null ? void 0 : comment.id,
-    comment_author: comment == null ? void 0 : comment.author,
-    comment_editor: comment == null ? void 0 : comment.editor,
-    comment_lastEditedAt: comment == null ? void 0 : comment.lastEditedAt,
-    changeset_path
-  }, null, 2));
+  coreExports.info(
+    JSON.stringify(
+      {
+        pr_number: pull_request_number,
+        labels: labels.map((l) => l.name),
+        has_approved_label,
+        comment_exists: !!comment,
+        comment_id: comment == null ? void 0 : comment.id,
+        comment_author: comment == null ? void 0 : comment.author,
+        comment_editor: comment == null ? void 0 : comment.editor,
+        comment_lastEditedAt: comment == null ? void 0 : comment.lastEditedAt,
+        changeset_path
+      },
+      null,
+      2
+    )
+  );
   if (comment == null ? void 0 : comment.body) {
     const wasEdited = comment.lastEditedAt !== null;
     const selection = check_for_manual_selection_and_approval(
@@ -119967,21 +119994,29 @@ async function run() {
       has_approved_label
     );
     coreExports.info(`[Normal Mode] Checkbox analysis:`);
-    coreExports.info(JSON.stringify({
-      wasEdited,
-      editor: comment.editor,
-      checkbox_checked: selection.checkbox_checked,
-      has_approved_label,
-      should_toggle_label: selection.should_toggle_label,
-      manual_package_selection: selection.manual_package_selection
-    }, null, 2));
+    coreExports.info(
+      JSON.stringify(
+        {
+          wasEdited,
+          editor: comment.editor,
+          checkbox_checked: selection.checkbox_checked,
+          has_approved_label,
+          should_toggle_label: selection.should_toggle_label,
+          manual_package_selection: selection.manual_package_selection
+        },
+        null,
+        2
+      )
+    );
     manual_package_selection = selection.manual_package_selection;
     if (manual_package_selection && selection.versions && selection.versions.length) {
       packages_versions = selection.versions;
       coreExports.info(`[Normal Mode] Using manual package versions from comment`);
     }
     if (selection.should_toggle_label) {
-      const approved_label_id = await client.get_or_create_label("changeset:approved");
+      const approved_label_id = await client.get_or_create_label(
+        "changeset:approved"
+      );
       if (approved_label_id) {
         if (selection.checkbox_checked) {
           coreExports.info(`[Normal Mode] Adding changeset:approved label`);
@@ -119991,7 +120026,9 @@ async function run() {
           await client.remove_label(pr_id, approved_label_id);
         }
       } else {
-        coreExports.warning(`[Normal Mode] Could not find or create changeset:approved label`);
+        coreExports.warning(
+          `[Normal Mode] Could not find or create changeset:approved label`
+        );
       }
     }
   }
