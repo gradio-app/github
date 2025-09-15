@@ -43,7 +43,7 @@ type PackageJson = Packages["packages"][0]["packageJson"] & {
 };
 
 async function run() {
-	console.log(JSON.stringify(context, null, 2));
+	// console.log(JSON.stringify(context, null, 2));
 	const branch_name = getInput("branch_name");
 
 	if (branch_name.startsWith("changeset-release/")) {
@@ -91,12 +91,10 @@ async function run() {
 			`Changeset file was edited manually. Skipping changeset generation.`
 		);
 
-		// Check if PR has the approved label
 		const has_approved_label = labels.some(
 			(l) => l.name === "changeset:approved"
 		);
-		
-		// Variables for tracking state changes
+
 		let updated_has_approved_label = has_approved_label;
 		let selection: any = null;
 
@@ -144,7 +142,6 @@ async function run() {
 				)
 			);
 
-			// Handle label toggling if needed
 			if (selection.should_toggle_label) {
 				const approved_label_id = await client.get_or_create_label(
 					"changeset:approved"
@@ -187,11 +184,11 @@ async function run() {
 			return;
 		}
 
-		// Use the updated label state after potential toggling
-		const final_has_approved_label = comment?.body && selection?.should_toggle_label 
-			? updated_has_approved_label 
-			: has_approved_label;
-		
+		const final_has_approved_label =
+			comment?.body && selection?.should_toggle_label
+				? updated_has_approved_label
+				: has_approved_label;
+
 		const { pr_comment_content, changes } = create_changeset_comment({
 			packages: versions,
 			changelog: !valid ? message : changelog_entry_message,
@@ -228,12 +225,10 @@ async function run() {
 	let packages_versions: undefined | [string, string | boolean][] = undefined;
 	let manual_package_selection = false;
 
-	// Check if PR has the approved label
 	const has_approved_label = labels.some(
 		(l) => l.name === "changeset:approved"
 	);
-	
-	// Variables for tracking state changes
+
 	let updated_has_approved_label = has_approved_label;
 	let selection: any = null;
 
@@ -293,7 +288,6 @@ async function run() {
 			info(`[Normal Mode] Using manual package versions from comment`);
 		}
 
-		// Handle label toggling if needed
 		if (selection.should_toggle_label) {
 			const approved_label_id = await client.get_or_create_label(
 				"changeset:approved"
@@ -378,11 +372,11 @@ async function run() {
 		await exec("git", ["push"]);
 	}
 
-	// Use the updated label state after potential toggling
-	const final_has_approved_label = comment?.body && selection?.should_toggle_label 
-		? updated_has_approved_label 
-		: has_approved_label;
-	
+	const final_has_approved_label =
+		comment?.body && selection?.should_toggle_label
+			? updated_has_approved_label
+			: has_approved_label;
+
 	const { pr_comment_content, changes } = create_changeset_comment({
 		packages: packages_versions,
 		changelog: title,
@@ -394,7 +388,6 @@ async function run() {
 		changelog_entry_type: type || "unknown",
 	});
 
-	// Check if the comment needs updating
 	if (changes) {
 		info("[Normal Mode] Changeset comment has changes, updating...");
 		const url = await client.upsert_comment({

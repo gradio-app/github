@@ -257,16 +257,18 @@ ${
 </details>
 `.trim();
 
-	// Check if the new comment is different from the previous comment
-	// We normalize by removing URLs that might change
-	const normalize = (text: string) => text.replace(/\(https:\/\/github.com[^]*\.md\)/g, "").trim();
-	
-	const changes = !previous_comment || normalize(previous_comment) !== normalize(new_comment);
-	
+	const normalize = (text: string) =>
+		text.replace(/\(https:\/\/github.com[^]*\.md\)/g, "").trim();
+
+	const changes =
+		!previous_comment || normalize(previous_comment) !== normalize(new_comment);
+
 	if (!changes && previous_comment) {
-		console.log(`[create_changeset_comment] No changes detected, skipping comment update`);
+		console.log(
+			`[create_changeset_comment] No changes detected, skipping comment update`
+		);
 	}
-	
+
 	return {
 		pr_comment_content: new_comment,
 		changes,
@@ -310,7 +312,8 @@ export function check_for_manual_selection_and_approval(
 	checkbox_checked: boolean;
 	should_toggle_label?: boolean;
 } {
-	if (!md_src) return { manual_package_selection: false, checkbox_checked: false };
+	if (!md_src)
+		return { manual_package_selection: false, checkbox_checked: false };
 
 	const new_ast = md_parser.parse(md_src);
 
@@ -342,7 +345,6 @@ export function check_for_manual_selection_and_approval(
 		});
 	}
 
-	// Find the approval checkbox
 	const approved_node: ListItem | undefined = find(new_ast, (node) => {
 		return (
 			node.type === "listItem" &&
@@ -351,38 +353,38 @@ export function check_for_manual_selection_and_approval(
 				//@ts-ignore
 				(node as ListItem)?.children[0],
 				(inner_node) =>
-					(inner_node as Text)?.value
-						?.trim()
-						?.includes("approve") &&
-					(inner_node as Text)?.value
-						?.trim()
-						?.includes("checkbox")
+					(inner_node as Text)?.value?.trim()?.includes("approve") &&
+					(inner_node as Text)?.value?.trim()?.includes("checkbox")
 			)
 		);
 	}) as ListItem | undefined;
 
 	const checkbox_checked = !!approved_node?.checked;
-	
+
 	// Determine if we should toggle the label
 	// We should toggle if:
 	// 1. The comment was edited by a human (not gradio-pr-bot)
 	// 2. The checkbox state doesn't match the label state
 	let should_toggle_label = false;
-	
-	if (wasEdited && editor && editor !== 'gradio-pr-bot') {
-		// Human edit - check if checkbox state differs from label state
-		if (has_approved_label !== undefined && checkbox_checked !== has_approved_label) {
+
+	if (wasEdited && editor && editor !== "gradio-pr-bot") {
+		if (
+			has_approved_label !== undefined &&
+			checkbox_checked !== has_approved_label
+		) {
 			should_toggle_label = true;
-			console.log(`[check_for_manual_selection_and_approval] Label toggle needed: checkbox=${checkbox_checked}, label=${has_approved_label}`);
+			console.log(
+				`[check_for_manual_selection_and_approval] Label toggle needed: checkbox=${checkbox_checked}, label=${has_approved_label}`
+			);
 		}
 	}
-	
+
 	console.log(`[check_for_manual_selection_and_approval] States:`, {
 		manual_package_selection: !!manual_node?.checked,
 		checkbox_checked,
 		has_approved_label,
 		should_toggle_label,
-		editor
+		editor,
 	});
 
 	return {
@@ -556,33 +558,38 @@ export function get_client(token: string, owner: string, repo: string) {
 				return url;
 			}
 		},
-		
+
 		async get_or_create_label(label_name: string): Promise<string | null> {
 			try {
-				const { repository: { label } } = await octokit.graphql<Record<string, any>>(
-					GQL_GET_LABEL,
-					{ owner, name: repo, label_name }
-				);
+				const {
+					repository: { label },
+				} = await octokit.graphql<Record<string, any>>(GQL_GET_LABEL, {
+					owner,
+					name: repo,
+					label_name,
+				});
 				return label?.id || null;
 			} catch (error) {
-				console.log(`Label "${label_name}" not found, will need to be created manually`);
+				console.log(
+					`Label "${label_name}" not found, will need to be created manually`
+				);
 				return null;
 			}
 		},
-		
+
 		async add_label(pr_id: string, label_id: string) {
 			console.log(`Adding label with ID ${label_id} to PR`);
 			await octokit.graphql(GQL_ADD_LABELS, {
 				pr_id,
-				label_ids: [label_id]
+				label_ids: [label_id],
 			});
 		},
-		
+
 		async remove_label(pr_id: string, label_id: string) {
 			console.log(`Removing label with ID ${label_id} from PR`);
 			await octokit.graphql(GQL_REMOVE_LABELS, {
 				pr_id,
-				label_ids: [label_id]
+				label_ids: [label_id],
 			});
 		},
 	};
