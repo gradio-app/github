@@ -239,11 +239,19 @@ ${
 </details>
 `.trim();
 
+	// Check if the new comment is different from the previous comment
+	// We normalize by removing URLs that might change
+	const normalize = (text: string) => text.replace(/\(https:\/\/github.com[^]*\.md\)/g, "").trim();
+	
+	const changes = !previous_comment || normalize(previous_comment) !== normalize(new_comment);
+	
+	if (!changes && previous_comment) {
+		console.log(`[create_changeset_comment] No changes detected, skipping comment update`);
+	}
+	
 	return {
 		pr_comment_content: new_comment,
-		changes:
-			changeset_content.replace(/\(https:\/\/github.com[^]*\.md\)/, "") !==
-			new_comment.replace(/\(https:\/\/github.com[^]*\.md\)/, ""),
+		changes,
 	};
 }
 
@@ -347,10 +355,23 @@ export function check_for_manual_selection_and_approval(
 		}
 	}
 
+	// Detect if this was a checkbox-only edit
+	// We consider it a checkbox edit only if:
+	// 1. The comment was edited
+	// 2. The editor is NOT gradio-pr-bot (the bot doesn't tick checkboxes, humans do)
+	// 3. OR if the editor is gradio-pr-bot but we can detect the checkbox state changed
 	let was_checkbox_edit = false;
+	
 	if (wasEdited && editor) {
-		was_checkbox_edit = true;
-		console.log(`[check_for_manual_selection_and_approval] Detected checkbox edit by ${editor}`);
+		// If the editor is NOT the bot, it's likely a human ticking a checkbox
+		if (editor !== 'gradio-pr-bot') {
+			was_checkbox_edit = true;
+			console.log(`[check_for_manual_selection_and_approval] Detected checkbox edit by human: ${editor}`);
+		} else {
+			// If the bot edited it, it's likely regenerating the comment, not a checkbox tick
+			was_checkbox_edit = false;
+			console.log(`[check_for_manual_selection_and_approval] Bot edit detected (not a checkbox edit): ${editor}`);
+		}
 	} else if (wasEdited) {
 		console.log(`[check_for_manual_selection_and_approval] Edit detected but no editor field`);
 	} else {

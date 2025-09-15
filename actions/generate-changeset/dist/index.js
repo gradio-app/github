@@ -119510,9 +119510,14 @@ ${approved ? "- [x] Maintainers can unapprove the changeset by selecting this ch
 
 </details>
 `.trim();
+  const normalize2 = (text2) => text2.replace(/\(https:\/\/github.com[^]*\.md\)/g, "").trim();
+  const changes = !previous_comment || normalize2(previous_comment) !== normalize2(new_comment);
+  if (!changes && previous_comment) {
+    console.log(`[create_changeset_comment] No changes detected, skipping comment update`);
+  }
   return {
     pr_comment_content: new_comment,
-    changes: changeset_content.replace(/\(https:\/\/github.com[^]*\.md\)/, "") !== new_comment.replace(/\(https:\/\/github.com[^]*\.md\)/, "")
+    changes
   };
 }
 const md_parser = unified().use(remarkParse).use(remarkFrontmatter).use(remarkGfm);
@@ -119576,8 +119581,13 @@ function check_for_manual_selection_and_approval(md_src, wasEdited, editor) {
   }
   let was_checkbox_edit = false;
   if (wasEdited && editor) {
-    was_checkbox_edit = true;
-    console.log(`[check_for_manual_selection_and_approval] Detected checkbox edit by ${editor}`);
+    if (editor !== "gradio-pr-bot") {
+      was_checkbox_edit = true;
+      console.log(`[check_for_manual_selection_and_approval] Detected checkbox edit by human: ${editor}`);
+    } else {
+      was_checkbox_edit = false;
+      console.log(`[check_for_manual_selection_and_approval] Bot edit detected (not a checkbox edit): ${editor}`);
+    }
   } else if (wasEdited) {
     console.log(`[check_for_manual_selection_and_approval] Edit detected but no editor field`);
   } else {
@@ -119847,15 +119857,17 @@ async function run() {
         if (approved2 && selection.was_checkbox_edit) {
           const actor = coreExports.getInput("actor");
           approved_by2 = actor && actor.length && actor !== "false" ? actor : comment.editor || selection.approved_by;
-          coreExports.info(`[Manual Mode] Checkbox edit approved - using approver: ${approved_by2}`);
+          coreExports.info(`[Manual Mode] Human checkbox edit approved - using approver: ${approved_by2}`);
         } else if (approved2) {
           approved_by2 = selection.approved_by;
           coreExports.info(`[Manual Mode] Already approved - keeping approver: ${approved_by2}`);
+        } else {
+          coreExports.info(`[Manual Mode] Not approved (checkbox unchecked or never checked)`);
         }
       } else {
         approved2 = selection.approved;
         approved_by2 = selection.approved_by;
-        coreExports.info(`[Manual Mode] Non-checkbox edit detected - preserving state:`);
+        coreExports.info(`[Manual Mode] Bot/non-checkbox edit detected - preserving existing state:`);
         coreExports.info(`  - Approved: ${approved2}`);
         coreExports.info(`  - Approved by: ${approved_by2 || "none"}`);
       }
@@ -119887,19 +119899,19 @@ async function run() {
       changelog_entry_type
     });
     if (changes2) {
-      coreExports.info("Changeset comment updated.");
+      coreExports.info("[Manual Mode] Changeset comment has changes, updating...");
       const url = await client.upsert_comment({
         pr_id,
         body: pr_comment_content2,
         comment_id: comment == null ? void 0 : comment.id
       });
       coreExports.setOutput("comment_url", url);
+      coreExports.info("[Manual Mode] Changeset comment updated successfully.");
     } else {
       coreExports.setOutput("comment_url", comment == null ? void 0 : comment.url);
-      coreExports.info("Changeset comment unchanged.");
+      coreExports.info("[Manual Mode] Changeset comment unchanged, skipping update.");
     }
     coreExports.setOutput("skipped", "false");
-    coreExports.info("Changeset comment updated.");
     return;
   }
   const { packages: pkgs } = manypkgGetPackages_cjsExports.getPackagesSync(process.cwd());
@@ -119934,15 +119946,17 @@ async function run() {
       if (approved && selection.was_checkbox_edit) {
         const actor = coreExports.getInput("actor");
         approved_by = actor && actor.length && actor !== "false" ? actor : comment.editor || selection.approved_by;
-        coreExports.info(`[Normal Mode] Checkbox edit approved - using approver: ${approved_by}`);
+        coreExports.info(`[Normal Mode] Human checkbox edit approved - using approver: ${approved_by}`);
       } else if (approved) {
         approved_by = selection.approved_by;
         coreExports.info(`[Normal Mode] Already approved - keeping approver: ${approved_by}`);
+      } else {
+        coreExports.info(`[Normal Mode] Not approved (checkbox unchecked or never checked)`);
       }
     } else {
       approved = selection.approved;
       approved_by = selection.approved_by;
-      coreExports.info(`[Normal Mode] Non-checkbox edit detected - preserving state:`);
+      coreExports.info(`[Normal Mode] Bot/non-checkbox edit detected - preserving existing state:`);
       coreExports.info(`  - Approved: ${approved}`);
       coreExports.info(`  - Approved by: ${approved_by || "none"}`);
     }
@@ -120004,20 +120018,22 @@ async function run() {
     manual_package_selection,
     changeset_content,
     changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
+    previous_comment: comment == null ? void 0 : comment.body,
     approved,
     approved_by,
     changelog_entry_type: type2 || "unknown"
   });
   if (changes) {
-    coreExports.info("Changeset comment updated.");
+    coreExports.info("[Normal Mode] Changeset comment has changes, updating...");
     const url = await client.upsert_comment({
       pr_id,
       body: pr_comment_content,
       comment_id: comment == null ? void 0 : comment.id
     });
     coreExports.setOutput("comment_url", url);
+    coreExports.info("[Normal Mode] Changeset comment updated successfully.");
   } else {
-    coreExports.info("Changeset comment unchanged.");
+    coreExports.info("[Normal Mode] Changeset comment unchanged, skipping update.");
     coreExports.setOutput("comment_url", comment == null ? void 0 : comment.url);
   }
   coreExports.setOutput("skipped", "false");

@@ -124,15 +124,18 @@ async function run() {
 						actor && actor.length && actor !== "false"
 							? actor
 							: comment.editor || selection.approved_by;
-					info(`[Manual Mode] Checkbox edit approved - using approver: ${approved_by}`);
+					info(`[Manual Mode] Human checkbox edit approved - using approver: ${approved_by}`);
 				} else if (approved) {
 					approved_by = selection.approved_by;
 					info(`[Manual Mode] Already approved - keeping approver: ${approved_by}`);
+				} else {
+					info(`[Manual Mode] Not approved (checkbox unchecked or never checked)`);
 				}
 			} else {
+				// Bot edit or other non-checkbox edit - preserve existing state
 				approved = selection.approved;
 				approved_by = selection.approved_by;
-				info(`[Manual Mode] Non-checkbox edit detected - preserving state:`);
+				info(`[Manual Mode] Bot/non-checkbox edit detected - preserving existing state:`);
 				info(`  - Approved: ${approved}`);
 				info(`  - Approved by: ${approved_by || 'none'}`);
 			}
@@ -176,21 +179,20 @@ async function run() {
 		});
 
 		if (changes) {
-			info("Changeset comment updated.");
+			info("[Manual Mode] Changeset comment has changes, updating...");
 			const url = await client.upsert_comment({
 				pr_id,
 				body: pr_comment_content,
 				comment_id: comment?.id,
 			});
 			setOutput("comment_url", url);
+			info("[Manual Mode] Changeset comment updated successfully.");
 		} else {
 			setOutput("comment_url", comment?.url);
-			info("Changeset comment unchanged.");
+			info("[Manual Mode] Changeset comment unchanged, skipping update.");
 		}
 
 		setOutput("skipped", "false");
-
-		info("Changeset comment updated.");
 
 		return;
 	}
@@ -243,15 +245,18 @@ async function run() {
 					actor && actor.length && actor !== "false"
 						? actor
 						: comment.editor || selection.approved_by;
-				info(`[Normal Mode] Checkbox edit approved - using approver: ${approved_by}`);
+				info(`[Normal Mode] Human checkbox edit approved - using approver: ${approved_by}`);
 			} else if (approved) {
 				approved_by = selection.approved_by;
 				info(`[Normal Mode] Already approved - keeping approver: ${approved_by}`);
+			} else {
+				info(`[Normal Mode] Not approved (checkbox unchecked or never checked)`);
 			}
 		} else {
+			// Bot edit or other non-checkbox edit - preserve existing state
 			approved = selection.approved;
 			approved_by = selection.approved_by;
-			info(`[Normal Mode] Non-checkbox edit detected - preserving state:`);
+			info(`[Normal Mode] Bot/non-checkbox edit detected - preserving existing state:`);
 			info(`  - Approved: ${approved}`);
 			info(`  - Approved by: ${approved_by || 'none'}`);
 		}
@@ -329,22 +334,24 @@ async function run() {
 		manual_package_selection,
 		changeset_content,
 		changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
+		previous_comment: comment?.body,
 		approved,
 		approved_by,
 		changelog_entry_type: type || "unknown",
 	});
 
-	// is pr body and generate body different?
+	// Check if the comment needs updating
 	if (changes) {
-		info("Changeset comment updated.");
+		info("[Normal Mode] Changeset comment has changes, updating...");
 		const url = await client.upsert_comment({
 			pr_id,
 			body: pr_comment_content,
 			comment_id: comment?.id,
 		});
 		setOutput("comment_url", url);
+		info("[Normal Mode] Changeset comment updated successfully.");
 	} else {
-		info("Changeset comment unchanged.");
+		info("[Normal Mode] Changeset comment unchanged, skipping update.");
 		setOutput("comment_url", comment?.url);
 	}
 
