@@ -96,15 +96,28 @@ async function run() {
 		let approved_by: string | undefined = undefined;
 
 		if (comment?.body) {
-			const selection = check_for_manual_selection_and_approval(comment?.body);
-			approved = selection.approved;
+			const wasEdited = comment.lastEditedAt !== null;
+			const selection = check_for_manual_selection_and_approval(
+				comment.body,
+				wasEdited,
+				comment.editor
+			);
 
-			if (approved) {
-				const actor = getInput("actor");
-				approved_by =
-					actor && actor.length && actor !== "false"
-						? actor
-						: selection.approved_by;
+			if (selection.was_checkbox_edit || !wasEdited) {
+				approved = selection.approved;
+
+				if (approved && selection.was_checkbox_edit) {
+					const actor = getInput("actor");
+					approved_by =
+						actor && actor.length && actor !== "false"
+							? actor
+							: comment.editor || selection.approved_by;
+				} else if (approved) {
+					approved_by = selection.approved_by;
+				}
+			} else {
+				approved = selection.approved;
+				approved_by = selection.approved_by;
 			}
 		}
 
@@ -169,7 +182,12 @@ async function run() {
 	let approved_by: string | undefined = undefined;
 
 	if (comment?.body) {
-		const selection = check_for_manual_selection_and_approval(comment.body);
+		const wasEdited = comment.lastEditedAt !== null;
+		const selection = check_for_manual_selection_and_approval(
+			comment.body,
+			wasEdited,
+			comment.editor
+		);
 
 		manual_package_selection = selection.manual_package_selection;
 
@@ -181,11 +199,21 @@ async function run() {
 			packages_versions = selection.versions;
 		}
 
-		approved = selection.approved;
+		if (selection.was_checkbox_edit || !wasEdited) {
+			approved = selection.approved;
 
-		if (approved) {
-			const actor = getInput("actor");
-			approved_by = actor.length ? actor : selection.approved_by;
+			if (approved && selection.was_checkbox_edit) {
+				const actor = getInput("actor");
+				approved_by =
+					actor && actor.length && actor !== "false"
+						? actor
+						: comment.editor || selection.approved_by;
+			} else if (approved) {
+				approved_by = selection.approved_by;
+			}
+		} else {
+			approved = selection.approved;
+			approved_by = selection.approved_by;
 		}
 	}
 

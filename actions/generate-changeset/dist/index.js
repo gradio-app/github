@@ -119423,6 +119423,11 @@ const GQL_GET_PR = `query RepoData($owner: String!, $name: String!, $pr_number: 
 					body
 					fullDatabaseId
 					url
+					createdAt
+					lastEditedAt
+					editor {
+						login
+					}
 				}
 			}
 		}
@@ -119522,7 +119527,7 @@ function get_frontmatter_versions(md) {
   }
   return false;
 }
-function check_for_manual_selection_and_approval(md_src) {
+function check_for_manual_selection_and_approval(md_src, wasEdited, editor) {
   if (!md_src)
     return { manual_package_selection: false, approved: false };
   const new_ast = md_parser.parse(md_src);
@@ -119569,11 +119574,16 @@ function check_for_manual_selection_and_approval(md_src) {
       approved_by = approvedByMatch[1];
     }
   }
+  let was_checkbox_edit = false;
+  if (wasEdited && editor) {
+    was_checkbox_edit = true;
+  }
   return {
     manual_package_selection: !!(manual_node == null ? void 0 : manual_node.checked),
     versions: manual_node ? versions : void 0,
     approved: !!(approved_node == null ? void 0 : approved_node.checked),
-    approved_by
+    approved_by,
+    was_checkbox_edit
   };
 }
 function get_version_from_label(labels) {
@@ -119589,13 +119599,15 @@ function get_type_from_label(labels) {
   return (_b = (_a = labels.filter((l) => l.name.startsWith("t:"))) == null ? void 0 : _a[0]) == null ? void 0 : _b.name.slice(2).trim();
 }
 function find_comment(comments) {
+  var _a;
   const comment = comments.find((comment2) => {
     const body = comment2.body;
     return body == null ? void 0 : body.includes("<!-- tag=changesets_gradio -->");
   });
   return comment ? {
     ...comment,
-    author: comment.author.login
+    author: comment.author.login,
+    editor: (_a = comment.editor) == null ? void 0 : _a.login
   } : void 0;
 }
 function get_version_from_linked_issues(closes) {
@@ -119805,11 +119817,23 @@ async function run() {
     let approved2 = false;
     let approved_by2 = void 0;
     if (comment == null ? void 0 : comment.body) {
-      const selection = check_for_manual_selection_and_approval(comment == null ? void 0 : comment.body);
-      approved2 = selection.approved;
-      if (approved2) {
-        const actor = coreExports.getInput("actor");
-        approved_by2 = actor && actor.length && actor !== "false" ? actor : selection.approved_by;
+      const wasEdited = comment.lastEditedAt !== null;
+      const selection = check_for_manual_selection_and_approval(
+        comment.body,
+        wasEdited,
+        comment.editor
+      );
+      if (selection.was_checkbox_edit || !wasEdited) {
+        approved2 = selection.approved;
+        if (approved2 && selection.was_checkbox_edit) {
+          const actor = coreExports.getInput("actor");
+          approved_by2 = actor && actor.length && actor !== "false" ? actor : comment.editor || selection.approved_by;
+        } else if (approved2) {
+          approved_by2 = selection.approved_by;
+        }
+      } else {
+        approved2 = selection.approved;
+        approved_by2 = selection.approved_by;
       }
     }
     const versions = get_frontmatter_versions(old_changeset_content) || [];
@@ -119857,15 +119881,27 @@ async function run() {
   let approved = false;
   let approved_by = void 0;
   if (comment == null ? void 0 : comment.body) {
-    const selection = check_for_manual_selection_and_approval(comment.body);
+    const wasEdited = comment.lastEditedAt !== null;
+    const selection = check_for_manual_selection_and_approval(
+      comment.body,
+      wasEdited,
+      comment.editor
+    );
     manual_package_selection = selection.manual_package_selection;
     if (manual_package_selection && selection.versions && selection.versions.length) {
       packages_versions = selection.versions;
     }
-    approved = selection.approved;
-    if (approved) {
-      const actor = coreExports.getInput("actor");
-      approved_by = actor.length ? actor : selection.approved_by;
+    if (selection.was_checkbox_edit || !wasEdited) {
+      approved = selection.approved;
+      if (approved && selection.was_checkbox_edit) {
+        const actor = coreExports.getInput("actor");
+        approved_by = actor && actor.length && actor !== "false" ? actor : comment.editor || selection.approved_by;
+      } else if (approved) {
+        approved_by = selection.approved_by;
+      }
+    } else {
+      approved = selection.approved;
+      approved_by = selection.approved_by;
     }
   }
   let version2 = get_version_from_label(labels) || get_version_from_linked_issues(closes);

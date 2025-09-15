@@ -74,6 +74,11 @@ export const GQL_GET_PR = `query RepoData($owner: String!, $name: String!, $pr_n
 					body
 					fullDatabaseId
 					url
+					createdAt
+					lastEditedAt
+					editor {
+						login
+					}
 				}
 			}
 		}
@@ -268,11 +273,16 @@ export function get_frontmatter_versions(
 	return false;
 }
 
-export function check_for_manual_selection_and_approval(md_src: string): {
+export function check_for_manual_selection_and_approval(
+	md_src: string,
+	wasEdited?: boolean,
+	editor?: string | null
+): {
 	manual_package_selection: boolean;
 	versions?: [string, boolean][];
 	approved: boolean;
 	approved_by?: string;
+	was_checkbox_edit?: boolean;
 } {
 	if (!md_src) return { manual_package_selection: false, approved: false };
 
@@ -337,11 +347,17 @@ export function check_for_manual_selection_and_approval(md_src: string): {
 		}
 	}
 
+	let was_checkbox_edit = false;
+	if (wasEdited && editor) {
+		was_checkbox_edit = true;
+	}
+
 	return {
 		manual_package_selection: !!manual_node?.checked,
 		versions: manual_node ? versions : undefined,
 		approved: !!approved_node?.checked,
 		approved_by,
+		was_checkbox_edit,
 	};
 }
 
@@ -374,6 +390,11 @@ interface Comment {
 	};
 	fullDatabaseId: string;
 	url: string;
+	createdAt: string;
+	lastEditedAt: string | null;
+	editor: {
+		login: string;
+	} | null;
 }
 
 export function find_comment(comments: Comment[]) {
@@ -386,6 +407,7 @@ export function find_comment(comments: Comment[]) {
 		? {
 				...comment,
 				author: comment.author.login,
+				editor: comment.editor?.login,
 		  }
 		: undefined;
 }
