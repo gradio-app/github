@@ -103,25 +103,6 @@ const GQL_CREATE_ISSUE_COMMENT = `mutation CreateComment($body: String!, $pr_id:
 	 }
  }`;
 
-const GQL_ADD_LABELS = `mutation AddLabels($pr_id: ID!, $label_ids: [ID!]!) {
-	addLabelsToLabelable(input: {labelableId: $pr_id, labelIds: $label_ids}) {
-		clientMutationId
-	}
-}`;
-
-const GQL_REMOVE_LABELS = `mutation RemoveLabels($pr_id: ID!, $label_ids: [ID!]!) {
-	removeLabelsFromLabelable(input: {labelableId: $pr_id, labelIds: $label_ids}) {
-		clientMutationId
-	}
-}`;
-
-const GQL_GET_LABEL = `query GetLabel($owner: String!, $name: String!, $label_name: String!) {
-	repository(owner: $owner, name: $name) {
-		label(name: $label_name) {
-			id
-		}
-	}
-}`;
 
 function get_title(packages: [string, string | boolean][]) {
 	return packages.length ? `change detected` : `no changes detected`;
@@ -200,7 +181,8 @@ export function create_changeset_comment({
 	changeset_content,
 	changeset_url,
 	previous_comment,
-	has_approved_label,
+	approved,
+	approved_by,
 	changelog_entry_type,
 }: {
 	packages: [string, string | boolean][];
@@ -210,7 +192,8 @@ export function create_changeset_comment({
 	changeset_content: string;
 	changeset_url: string;
 	previous_comment?: string;
-	has_approved_label: boolean;
+	approved: boolean;
+	approved_by?: string;
 	changelog_entry_type: string;
 }) {
 	const new_comment = `<!-- tag=changesets_gradio -->
@@ -232,16 +215,18 @@ ${format_changelog_preview(changelog, packages, changelog_entry_type)}
 ---
 
 ${
-	has_approved_label
-		? `✅ Changeset approved (label: \`changeset:approved\`)`
+	approved
+		? `✅ Changeset approved${approved_by ? ` by @${approved_by}` : ''}`
 		: "‼️ Changeset not approved. Ensure the version bump is appropriate for all packages before approving."
 }
 
 ${
-	has_approved_label
+	approved
 		? "- [x] Maintainers can remove approval by unchecking this checkbox."
 		: "- [ ] Maintainers can approve the changeset by checking this checkbox."
 }
+
+<!-- approval_state:${JSON.stringify({ approved, approved_by: approved_by || null })} -->
 
 <details><summary>
 
@@ -301,19 +286,32 @@ export function get_frontmatter_versions(
 	return false;
 }
 
+function get_previous_approval_state(md_src: string): { approved: boolean; approved_by: string | null } | null {
+	const match = md_src.match(/<!-- approval_state:({.*?}) -->/);
+	if (match) {
+		try {
+			return JSON.parse(match[1]);
+		} catch {
+			// Fallback for old format
+			const oldMatch = md_src.match(/<!-- approval_state:(true|false) -->/);
+			return oldMatch ? { approved: oldMatch[1] === 'true', approved_by: null } : null;
+		}
+	}
+	return null;
+}
+
 export function check_for_manual_selection_and_approval(
 	md_src: string,
 	wasEdited?: boolean,
-	editor?: string | null,
-	has_approved_label?: boolean
+	editor?: string | null
 ): {
 	manual_package_selection: boolean;
 	versions?: [string, boolean][];
-	checkbox_checked: boolean;
-	should_toggle_label?: boolean;
+	approved: boolean;
+	approved_by?: string | null;
 } {
 	if (!md_src)
-		return { manual_package_selection: false, checkbox_checked: false };
+		return { manual_package_selection: false, approved: false, approved_by: null };
 
 	const new_ast = md_parser.parse(md_src);
 
@@ -360,38 +358,62 @@ export function check_for_manual_selection_and_approval(
 	}) as ListItem | undefined;
 
 	const checkbox_checked = !!approved_node?.checked;
-
-	// Determine if we should toggle the label
-	// We should toggle if:
-	// 1. The comment was edited by a human (not gradio-pr-bot)
-	// 2. The checkbox state doesn't match the label state
-	let should_toggle_label = false;
-
-	if (wasEdited && editor && editor !== "gradio-pr-bot") {
-		if (
-			has_approved_label !== undefined &&
-			checkbox_checked !== has_approved_label
-		) {
-			should_toggle_label = true;
-			console.log(
-				`[check_for_manual_selection_and_approval] Label toggle needed: checkbox=${checkbox_checked}, label=${has_approved_label}`
-			);
+	const previous_state = get_previous_approval_state(md_src);
+	
+	// Determine the approval state and approver:
+	// 1. If no edit → use checkbox state
+	// 2. If bot edit → use previous state (bot doesn't change checkboxes)
+	// 3. If human edit → use new checkbox state (human changed it)
+	let approved = checkbox_checked;
+	let approved_by = previous_state?.approved_by || null;
+	
+	if (wasEdited && editor === "gradio-pr-bot" && previous_state !== null) {
+		// Bot edit: preserve previous state
+		approved = previous_state.approved;
+		approved_by = previous_state.approved_by;
+		console.log(`[check_for_manual_selection_and_approval] Bot edit detected, preserving state: approved=${previous_state.approved}, by=${previous_state.approved_by}`);
+	} else if (wasEdited && editor && editor !== "gradio-pr-bot") {
+		// Human edit: use the new checkbox state
+		approved = checkbox_checked;
+		
+		// If state changed from unchecked to checked, record who approved
+		if (checkbox_checked && (!previous_state || !previous_state.approved)) {
+			approved_by = editor;
+			console.log(`[check_for_manual_selection_and_approval] Approved by ${editor}`);
+		} else if (!checkbox_checked && previous_state?.approved) {
+			// If unchecked, clear the approver
+			approved_by = null;
+			console.log(`[check_for_manual_selection_and_approval] Approval removed by ${editor}`);
 		}
+		
+		console.log(`[check_for_manual_selection_and_approval] Human edit by ${editor}, new state: ${checkbox_checked}`);
+	} else if (!wasEdited && previous_state) {
+		// No edit but we have previous state: use it
+		approved = previous_state.approved;
+		approved_by = previous_state.approved_by;
+		console.log(`[check_for_manual_selection_and_approval] No edit, using previous state: approved=${previous_state.approved}, by=${previous_state.approved_by}`);
+	} else if (!wasEdited) {
+		// No edit and no previous state: use current checkbox state
+		approved = checkbox_checked;
+		approved_by = null;
+		console.log(`[check_for_manual_selection_and_approval] No edit, no previous state, using checkbox: ${checkbox_checked}`);
 	}
 
-	console.log(`[check_for_manual_selection_and_approval] States:`, {
+	console.log(`[check_for_manual_selection_and_approval] Final states:`, {
 		manual_package_selection: !!manual_node?.checked,
 		checkbox_checked,
-		has_approved_label,
-		should_toggle_label,
+		previous_state,
+		approved,
+		approved_by,
+		wasEdited,
 		editor,
 	});
 
 	return {
 		manual_package_selection: !!manual_node?.checked,
 		versions: manual_node ? versions : undefined,
-		checkbox_checked,
-		should_toggle_label,
+		approved,
+		approved_by,
 	};
 }
 
@@ -559,39 +581,6 @@ export function get_client(token: string, owner: string, repo: string) {
 			}
 		},
 
-		async get_or_create_label(label_name: string): Promise<string | null> {
-			try {
-				const {
-					repository: { label },
-				} = await octokit.graphql<Record<string, any>>(GQL_GET_LABEL, {
-					owner,
-					name: repo,
-					label_name,
-				});
-				return label?.id || null;
-			} catch (error) {
-				console.log(
-					`Label "${label_name}" not found, will need to be created manually`
-				);
-				return null;
-			}
-		},
-
-		async add_label(pr_id: string, label_id: string) {
-			console.log(`Adding label with ID ${label_id} to PR`);
-			await octokit.graphql(GQL_ADD_LABELS, {
-				pr_id,
-				label_ids: [label_id],
-			});
-		},
-
-		async remove_label(pr_id: string, label_id: string) {
-			console.log(`Removing label with ID ${label_id} from PR`);
-			await octokit.graphql(GQL_REMOVE_LABELS, {
-				pr_id,
-				label_ids: [label_id],
-			});
-		},
 	};
 }
 

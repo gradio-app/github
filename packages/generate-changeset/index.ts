@@ -91,12 +91,8 @@ async function run() {
 			`Changeset file was edited manually. Skipping changeset generation.`
 		);
 
-		const has_approved_label = labels.some(
-			(l) => l.name === "changeset:approved"
-		);
-
-		let updated_has_approved_label = has_approved_label;
-		let selection: any = null;
+		let approved = false;
+		let approved_by: string | null = null;
 
 		info(`[Manual Mode] Full context:`);
 		info(
@@ -104,7 +100,6 @@ async function run() {
 				{
 					pr_number: pull_request_number,
 					labels: labels.map((l) => l.name),
-					has_approved_label,
 					comment_exists: !!comment,
 					comment_id: comment?.id,
 					comment_author: comment?.author,
@@ -120,48 +115,28 @@ async function run() {
 		if (comment?.body) {
 			const wasEdited = comment.lastEditedAt !== null;
 
-			selection = check_for_manual_selection_and_approval(
+			const selection = check_for_manual_selection_and_approval(
 				comment.body,
 				wasEdited,
-				comment.editor,
-				has_approved_label
+				comment.editor
 			);
 
-			info(`[Manual Mode] Checkbox analysis:`);
+			approved = selection.approved;
+			approved_by = selection.approved_by || null;
+
+			info(`[Manual Mode] Approval analysis:`);
 			info(
 				JSON.stringify(
 					{
 						wasEdited,
 						editor: comment.editor,
-						checkbox_checked: selection.checkbox_checked,
-						has_approved_label,
-						should_toggle_label: selection.should_toggle_label,
+						approved,
+						approved_by,
 					},
 					null,
 					2
 				)
 			);
-
-			if (selection.should_toggle_label) {
-				const approved_label_id = await client.get_or_create_label(
-					"changeset:approved"
-				);
-				if (approved_label_id) {
-					if (selection.checkbox_checked) {
-						info(`[Manual Mode] Adding changeset:approved label`);
-						await client.add_label(pr_id, approved_label_id);
-						updated_has_approved_label = true;
-					} else {
-						info(`[Manual Mode] Removing changeset:approved label`);
-						await client.remove_label(pr_id, approved_label_id);
-						updated_has_approved_label = false;
-					}
-				} else {
-					warning(
-						`[Manual Mode] Could not find or create changeset:approved label`
-					);
-				}
-			}
 		}
 
 		const versions = get_frontmatter_versions(old_changeset_content) || [];
@@ -184,11 +159,6 @@ async function run() {
 			return;
 		}
 
-		const final_has_approved_label =
-			comment?.body && selection?.should_toggle_label
-				? updated_has_approved_label
-				: has_approved_label;
-
 		const { pr_comment_content, changes } = create_changeset_comment({
 			packages: versions,
 			changelog: !valid ? message : changelog_entry_message,
@@ -197,7 +167,8 @@ async function run() {
 			changeset_content: old_changeset_content,
 			changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 			previous_comment: comment?.body,
-			has_approved_label: final_has_approved_label,
+			approved,
+			approved_by: approved_by || undefined,
 			changelog_entry_type,
 		});
 
@@ -225,12 +196,8 @@ async function run() {
 	let packages_versions: undefined | [string, string | boolean][] = undefined;
 	let manual_package_selection = false;
 
-	const has_approved_label = labels.some(
-		(l) => l.name === "changeset:approved"
-	);
-
-	let updated_has_approved_label = has_approved_label;
-	let selection: any = null;
+	let approved = false;
+	let approved_by: string | null = null;
 
 	info(`[Normal Mode] Full context:`);
 	info(
@@ -238,7 +205,6 @@ async function run() {
 			{
 				pr_number: pull_request_number,
 				labels: labels.map((l) => l.name),
-				has_approved_label,
 				comment_exists: !!comment,
 				comment_id: comment?.id,
 				comment_author: comment?.author,
@@ -254,22 +220,23 @@ async function run() {
 	if (comment?.body) {
 		const wasEdited = comment.lastEditedAt !== null;
 
-		selection = check_for_manual_selection_and_approval(
+		const selection = check_for_manual_selection_and_approval(
 			comment.body,
 			wasEdited,
-			comment.editor,
-			has_approved_label
+			comment.editor
 		);
 
-		info(`[Normal Mode] Checkbox analysis:`);
+		approved = selection.approved;
+		approved_by = selection.approved_by || null;
+
+		info(`[Normal Mode] Approval analysis:`);
 		info(
 			JSON.stringify(
 				{
 					wasEdited,
 					editor: comment.editor,
-					checkbox_checked: selection.checkbox_checked,
-					has_approved_label,
-					should_toggle_label: selection.should_toggle_label,
+					approved,
+					approved_by,
 					manual_package_selection: selection.manual_package_selection,
 				},
 				null,
@@ -286,27 +253,6 @@ async function run() {
 		) {
 			packages_versions = selection.versions;
 			info(`[Normal Mode] Using manual package versions from comment`);
-		}
-
-		if (selection.should_toggle_label) {
-			const approved_label_id = await client.get_or_create_label(
-				"changeset:approved"
-			);
-			if (approved_label_id) {
-				if (selection.checkbox_checked) {
-					info(`[Normal Mode] Adding changeset:approved label`);
-					await client.add_label(pr_id, approved_label_id);
-					updated_has_approved_label = true;
-				} else {
-					info(`[Normal Mode] Removing changeset:approved label`);
-					await client.remove_label(pr_id, approved_label_id);
-					updated_has_approved_label = false;
-				}
-			} else {
-				warning(
-					`[Normal Mode] Could not find or create changeset:approved label`
-				);
-			}
 		}
 	}
 
@@ -372,11 +318,6 @@ async function run() {
 		await exec("git", ["push"]);
 	}
 
-	const final_has_approved_label =
-		comment?.body && selection?.should_toggle_label
-			? updated_has_approved_label
-			: has_approved_label;
-
 	const { pr_comment_content, changes } = create_changeset_comment({
 		packages: packages_versions,
 		changelog: title,
@@ -384,7 +325,8 @@ async function run() {
 		changeset_content,
 		changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 		previous_comment: comment?.body,
-		has_approved_label: final_has_approved_label,
+		approved,
+		approved_by: approved_by || undefined,
 		changelog_entry_type: type || "unknown",
 	});
 
@@ -404,7 +346,7 @@ async function run() {
 
 	// this always happens
 	setOutput("skipped", "false");
-	setOutput("approved", final_has_approved_label.toString());
+	setOutput("approved", approved.toString());
 }
 
 run();
