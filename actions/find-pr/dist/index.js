@@ -85283,7 +85283,7 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 getOctokit_1 = github.getOctokit = getOctokit;
 async function run() {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v;
   const octokit = getOctokit_1(coreExports.getInput("github_token"));
   const { repo, owner } = context.repo;
   const outputs = {
@@ -85294,7 +85294,8 @@ async function run() {
     mergeable: false,
     merge_sha: false,
     found_pr: false,
-    labels: []
+    labels: [],
+    actor: false
   };
   const open_pull_requests = await get_prs(octokit, repo, owner);
   if (context.eventName === "push") {
@@ -85395,6 +85396,7 @@ async function run() {
       merge_sha,
       labels
     } = get_pr_details_from_title(open_pull_requests, title);
+    console.log(JSON.stringify(context, null, 2));
     outputs.source_repo = source_repo || false;
     outputs.source_branch = source_branch || false;
     outputs.pr_number = pr_number ?? false;
@@ -85403,7 +85405,8 @@ async function run() {
     outputs.mergeable = mergeable === "MERGEABLE" ? true : false;
     outputs.merge_sha = merge_sha || sha || false;
     outputs.labels = labels;
-  } else if ((_t = (_s = context.payload) == null ? void 0 : _s.workflow_run) == null ? void 0 : _t.event) {
+    outputs.actor = ((_t = (_s = context.payload.workflow_run) == null ? void 0 : _s.actor) == null ? void 0 : _t.login) || false;
+  } else if ((_v = (_u = context.payload) == null ? void 0 : _u.workflow_run) == null ? void 0 : _v.event) {
     coreExports.setFailed(
       "This action can only be run on pull_request, push, or issue_comment events or workflow_run events triggered from those events."
     );
