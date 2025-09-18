@@ -1,7 +1,8 @@
-import { getInput, info, setFailed, warning } from "@actions/core";
+import { getInput, info, setFailed, warning, getBooleanInput } from "@actions/core";
 import { exec } from "@actions/exec";
 import { type Packages, Package, getPackagesSync } from "@manypkg/get-packages";
 import { context } from "@actions/github";
+import { getIDToken } from "@actions/core";
 import { request } from "undici";
 import { promises as fs } from "fs";
 import { join } from "path";
@@ -19,8 +20,21 @@ async function run() {
 		(p) => (p.packageJson as PythonPackageJson).python
 	);
 
+	const useOidc = getBooleanInput("use-oidc");
 	const user = getInput("user");
 	const passwords = getInput("passwords");
+	const repositoryUrl = getInput("repository-url") || "https://upload.pypi.org/legacy/";
+
+	// Check if OIDC is enabled but credentials are also provided
+	if (useOidc && (user || passwords)) {
+		warning("OIDC authentication is enabled; user and passwords inputs will be ignored.");
+	}
+
+	// Validate inputs based on authentication method
+	if (!useOidc && (!user || !passwords)) {
+		setFailed("When not using OIDC, both 'user' and 'passwords' inputs are required.");
+		return;
+	}
 
 	const packages_to_publish = (
 		await Promise.all(
@@ -51,7 +65,7 @@ async function run() {
 		return;
 	}
 
-	const pws = passwords
+	const pws = useOidc ? {} : passwords
 		.trim()
 		.split("\n")
 		.reduce((acc, next) => {
@@ -127,8 +141,12 @@ async function run() {
 	let publishes: boolean[] = [];
 	for await (const p of packages_to_publish_sorted) {
 		info(`Publishing ${p.packageJson.name}@${p.packageJson.version} to PyPI`);
-		//@ts-ignore
-		publishes.push(await publish_package(user, pws[p.packageJson.name], p.dir));
+		if (useOidc) {
+			publishes.push(await publish_package_oidc(p.dir, repositoryUrl));
+		} else {
+			//@ts-ignore
+			publishes.push(await publish_package(user, pws[p.packageJson.name], p.dir));
+		}
 	}
 
 	publishes.map((p, i) => {
@@ -179,6 +197,55 @@ async function publish_package(user: string, password: string, dir: string) {
 	} catch (e: any) {
 		setFailed(e.message);
 		throw new Error(e);
+	}
+}
+
+async function publish_package_oidc(dir: string, repositoryUrl: string) {
+	try {
+		// Get OIDC token from GitHub
+		const audience = repositoryUrl.includes("testpypi") ? "testpypi" : "pypi";
+		let oidcToken: string;
+		
+		try {
+			oidcToken = await getIDToken(audience);
+			info("Successfully obtained OIDC token for PyPI authentication");
+		} catch (e: any) {
+			setFailed(`Failed to get OIDC token. Make sure the job has 'id-token: write' permission. Error: ${e.message}`);
+			return false;
+		}
+
+		// Build the package
+		await exec("sh", [join(dir, "..", "build_pypi.sh")]);
+		
+		// Use twine with OIDC token
+		const twineArgs = [
+			"upload",
+			"--non-interactive",
+			"--verbose",
+			`${join(dir, "..")}/dist/*`
+		];
+		
+		if (repositoryUrl && repositoryUrl !== "https://upload.pypi.org/legacy/") {
+			twineArgs.push("--repository-url", repositoryUrl);
+		}
+		
+		// Set environment variables for twine to use OIDC
+		const env = {
+			...process.env,
+			TWINE_USERNAME: "__token__",
+			TWINE_PASSWORD: oidcToken
+		};
+		
+		await exec("twine", twineArgs, { env });
+		
+		// Clean up build artifacts
+		await exec("rm", ["-rf", `${join(dir, "..")}/dist/*`]);
+		await exec("rm", ["-rf", `${join(dir, "..")}/build/*`]);
+
+		return true;
+	} catch (e: any) {
+		setFailed(e.message);
+		return false;
 	}
 }
 
