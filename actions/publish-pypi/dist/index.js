@@ -34829,8 +34829,31 @@ urllib3==2.5.0
     #   tuf
     #   twine`
 ];
+const runtime_constraints_in = [
+  "runtime-constraints.in",
+  `###############################################################################
+#                                                                             #
+# This file is only meant to exclude broken dependency versions, not feature  #
+# dependencies.                                                               #
+#                                                                             #
+# GUIDELINES:                                                                 #
+#   1. Only list PyPI project versions that need to be excluded using \`!=\`    #
+#      and \`<\`.                                                               #
+#   2. It is allowed to have transitive dependency limitations in this file.  #
+#   3. Apply bare minimum constraints under narrow conditions, use            #
+#      environment markers if possible. E.g.  \`; python_version < "3.12"\`.    #
+#   4. Whenever there are no constraints, let the file and this header        #
+#      remain in Git.                                                         #
+#                                                                             #
+###############################################################################
+
+# NOTE: Twine 6.1 needs packaging 24.2 to support metadata 2.4
+# Ref: https://github.com/pypa/twine/pull/1180
+packaging >= 24.2`
+];
 const files = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
+  runtime_constraints_in,
   runtime_in,
   runtime_prerequisites_in,
   runtime_prerequisites_txt,

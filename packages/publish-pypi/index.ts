@@ -13,7 +13,11 @@ import { promises as fs } from "fs";
 import { join } from "path";
 
 import * as files from "./requirements";
-import { generateAttestations, installAttestationDependencies, verifyAttestations } from "./attestations";
+import {
+	generateAttestations,
+	installAttestationDependencies,
+	verifyAttestations,
+} from "./attestations";
 
 type PackageJson = Packages["packages"][0]["packageJson"];
 type PythonPackageJson = PackageJson & { python: boolean };
@@ -146,7 +150,7 @@ async function run() {
 	await exec("chmod", ["og-rw", "/home/runner/.netrc"]);
 	await exec("pip", ["install", "secretstorage", "dbus-next"]);
 	await exec("pip", ["install", "build"]);
-	
+
 	if (useOidc) {
 		await installAttestationDependencies();
 	}
@@ -221,7 +225,7 @@ async function publish_package(user: string, password: string, dir: string) {
 async function publish_package_oidc(dir: string, repositoryUrl: string) {
 	try {
 		await exec("sh", [join(dir, "..", "build_pypi.sh")]);
-		
+
 		const distDir = join(dir, "..", "dist");
 
 		if (
@@ -341,12 +345,12 @@ async function publish_package_oidc(dir: string, repositoryUrl: string) {
 			const pypiToken = responseData.token;
 
 			info("Successfully exchanged OIDC token for PyPI API token");
-			
+
 			const attestationSuccess = await generateAttestations({
 				distDir: distDir,
-				oidcToken: oidcToken
+				oidcToken: oidcToken,
 			});
-			
+
 			if (!attestationSuccess) {
 				warning("Failed to generate attestations. Continuing with upload...");
 			} else {
