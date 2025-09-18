@@ -34727,8 +34727,17 @@ async function run() {
   const python_packages = packages.filter(
     (p) => p.packageJson.python
   );
+  const useOidc = coreExports.getBooleanInput("use-oidc");
   const user = coreExports.getInput("user");
   const passwords = coreExports.getInput("passwords");
+  const repositoryUrl = coreExports.getInput("repository-url") || "https://upload.pypi.org/legacy/";
+  if (useOidc && (user || passwords)) {
+    coreExports.warning("OIDC authentication is enabled; user and passwords inputs will be ignored.");
+  }
+  if (!useOidc && (!user || !passwords)) {
+    coreExports.setFailed("When not using OIDC, both 'user' and 'passwords' inputs are required.");
+    return;
+  }
   const packages_to_publish = (await Promise.all(
     python_packages.map(async (p) => {
       const package_name = p.packageJson.name;
@@ -34749,7 +34758,7 @@ async function run() {
     coreExports.info("No packages to publish.");
     return;
   }
-  const pws = passwords.trim().split("\n").reduce((acc, next) => {
+  const pws = useOidc ? {} : passwords.trim().split("\n").reduce((acc, next) => {
     const [pkg, pwd] = next.split(":");
     return {
       ...acc,
@@ -34815,7 +34824,11 @@ async function run() {
   let publishes = [];
   for await (const p of packages_to_publish_sorted) {
     coreExports.info(`Publishing ${p.packageJson.name}@${p.packageJson.version} to PyPI`);
-    publishes.push(await publish_package(user, pws[p.packageJson.name], p.dir));
+    if (useOidc) {
+      publishes.push(await publish_package_oidc(p.dir, repositoryUrl));
+    } else {
+      publishes.push(await publish_package(user, pws[p.packageJson.name], p.dir));
+    }
   }
   publishes.map((p, i) => {
     if (p) {
@@ -34857,6 +34870,41 @@ async function publish_package(user, password, dir) {
   } catch (e) {
     coreExports.setFailed(e.message);
     throw new Error(e);
+  }
+}
+async function publish_package_oidc(dir, repositoryUrl) {
+  try {
+    const audience = repositoryUrl.includes("testpypi") ? "testpypi" : "pypi";
+    let oidcToken;
+    try {
+      oidcToken = await coreExports.getIDToken(audience);
+      coreExports.info("Successfully obtained OIDC token for PyPI authentication");
+    } catch (e) {
+      coreExports.setFailed(`Failed to get OIDC token. Make sure the job has 'id-token: write' permission. Error: ${e.message}`);
+      return false;
+    }
+    await exec_2("sh", [join(dir, "..", "build_pypi.sh")]);
+    const twineArgs = [
+      "upload",
+      "--non-interactive",
+      "--verbose",
+      `${join(dir, "..")}/dist/*`
+    ];
+    if (repositoryUrl && repositoryUrl !== "https://upload.pypi.org/legacy/") {
+      twineArgs.push("--repository-url", repositoryUrl);
+    }
+    const env = {
+      ...process.env,
+      TWINE_USERNAME: "__token__",
+      TWINE_PASSWORD: oidcToken
+    };
+    await exec_2("twine", twineArgs, { env });
+    await exec_2("rm", ["-rf", `${join(dir, "..")}/dist/*`]);
+    await exec_2("rm", ["-rf", `${join(dir, "..")}/build/*`]);
+    return true;
+  } catch (e) {
+    coreExports.setFailed(e.message);
+    return false;
   }
 }
 async function topological_sort(packages) {
