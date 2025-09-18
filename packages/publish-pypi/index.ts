@@ -11,6 +11,7 @@ import { getIDToken } from "@actions/core";
 import { request } from "undici";
 import { promises as fs } from "fs";
 import { join } from "path";
+import { glob } from "glob";
 
 import * as files from "./requirements";
 import {
@@ -362,8 +363,26 @@ async function publish_package_oidc(dir: string, repositoryUrl: string) {
 				"upload",
 				"--non-interactive",
 				"--verbose",
-				`${join(dir, "..")}/dist/*`,
 			];
+			
+			// Add attestations flag for twine 6.1+
+			const attestationFiles = await glob(join(distDir, "*.publish.attestation"), {
+				absolute: true
+			});
+			
+			if (attestationFiles.length > 0) {
+				twineArgs.push("--attestations");
+				attestationFiles.forEach(file => {
+					twineArgs.push(file);
+				});
+			}
+			
+			// Add the distribution files to upload
+			const distFiles = await glob(join(distDir, "*.whl"), { absolute: true });
+			const tarFiles = await glob(join(distDir, "*.tar.gz"), { absolute: true });
+			[...distFiles, ...tarFiles].forEach(file => {
+				twineArgs.push(file);
+			});
 
 			if (
 				repositoryUrl &&
