@@ -55,38 +55,42 @@ import json
 import os
 from pathlib import Path
 from pypi_attestations import Attestation, Distribution
-from sigstore.oidc import detect_credential
-from sigstore.sign import Signer, SigningContext
+from sigstore.oidc import IdentityError, detect_credential, get_identity_token
+from sigstore.sign import SigningContext
 
 def generate_attestations(dist_files):
     errors = []
     
     try:
-        identity = detect_credential()
-    except Exception as e:
-        print(f"Failed to detect OIDC credential: {e}", file=sys.stderr)
+        # Try to get the identity token (similar to get_identity_token in original)
+        try:
+            identity = get_identity_token()
+        except:
+            # Fallback to detect_credential if get_identity_token fails
+            identity = detect_credential()
+    except (IdentityError, Exception) as e:
+        print(f"Failed to get OIDC credential: {e}", file=sys.stderr)
         return False
     
-    context = SigningContext.production()
-    signer = Signer(identity, context, cache=False)
-    
-    for dist_file in dist_files:
-        dist_path = Path(dist_file)
-        
-        try:
-            print(f"Attesting {dist_path.name}...")
+    # Use SigningContext.production().signer() as a context manager
+    with SigningContext.production().signer(identity, cache=True) as signer:
+        for dist_file in dist_files:
+            dist_path = Path(dist_file)
             
-            dist = Distribution.from_file(dist_path)
-            attestation = Attestation.sign(signer, dist)
-            
-            attestation_path = dist_path.with_suffix(dist_path.suffix + ".publish.attestation")
-            attestation_path.write_text(attestation.model_dump_json())
-            
-            print(f"Created attestation: {attestation_path.name}")
-            
-        except Exception as e:
-            errors.append(f"Error attesting {dist_path.name}: {e}")
-            print(f"Error attesting {dist_path.name}: {e}", file=sys.stderr)
+            try:
+                print(f"Attesting {dist_path.name}...")
+                
+                dist = Distribution.from_file(dist_path)
+                attestation = Attestation.sign(signer, dist)
+                
+                attestation_path = dist_path.with_suffix(dist_path.suffix + ".publish.attestation")
+                attestation_path.write_text(attestation.model_dump_json())
+                
+                print(f"Created attestation: {attestation_path.name}")
+                
+            except Exception as e:
+                errors.append(f"Error attesting {dist_path.name}: {e}")
+                print(f"Error attesting {dist_path.name}: {e}", file=sys.stderr)
     
     if errors:
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")

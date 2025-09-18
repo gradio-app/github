@@ -352,10 +352,11 @@ async function publish_package_oidc(dir: string, repositoryUrl: string) {
 			});
 
 			if (!attestationSuccess) {
-				warning("Failed to generate attestations. Continuing with upload...");
-			} else {
-				await verifyAttestations(distDir);
+				setFailed("Failed to generate attestations.");
+				return false;
 			}
+			
+			await verifyAttestations(distDir);
 
 			const twineArgs = [
 				"upload",
