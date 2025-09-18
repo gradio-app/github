@@ -41691,27 +41691,26 @@ def generate_attestations(dist_files):
         print(f"Failed to detect OIDC credential: {e}", file=sys.stderr)
         return False
     
-    with SigningContext.production() as ctx:
-        for dist_file in dist_files:
-            dist_path = Path(dist_file)
+    context = SigningContext.production()
+    signer = Signer(identity, context, cache=False)
+    
+    for dist_file in dist_files:
+        dist_path = Path(dist_file)
+        
+        try:
+            print(f"Attesting {dist_path.name}...")
             
-            try:
-                print(f"Attesting {dist_path.name}...")
-                
-                dist = Distribution.from_file(dist_path)
-                attestation = Attestation.sign(
-                    ctx.signer(identity, cache=False),
-                    dist
-                )
-                
-                attestation_path = dist_path.with_suffix(dist_path.suffix + ".publish.attestation")
-                attestation_path.write_text(attestation.model_dump_json())
-                
-                print(f"Created attestation: {attestation_path.name}")
-                
-            except Exception as e:
-                errors.append(f"Error attesting {dist_path.name}: {e}")
-                print(f"Error attesting {dist_path.name}: {e}", file=sys.stderr)
+            dist = Distribution.from_file(dist_path)
+            attestation = Attestation.sign(signer, dist)
+            
+            attestation_path = dist_path.with_suffix(dist_path.suffix + ".publish.attestation")
+            attestation_path.write_text(attestation.model_dump_json())
+            
+            print(f"Created attestation: {attestation_path.name}")
+            
+        except Exception as e:
+            errors.append(f"Error attesting {dist_path.name}: {e}")
+            print(f"Error attesting {dist_path.name}: {e}", file=sys.stderr)
     
     if errors:
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
