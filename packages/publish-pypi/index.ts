@@ -1,13 +1,19 @@
-import { getInput, info, setFailed, warning, getBooleanInput } from "@actions/core";
+import {
+	getInput,
+	info,
+	setFailed,
+	warning,
+	getBooleanInput,
+} from "@actions/core";
 import { exec } from "@actions/exec";
 import { type Packages, Package, getPackagesSync } from "@manypkg/get-packages";
-import { context } from "@actions/github";
 import { getIDToken } from "@actions/core";
 import { request } from "undici";
 import { promises as fs } from "fs";
 import { join } from "path";
 
 import * as files from "./requirements";
+import { generateAttestations, installAttestationDependencies, verifyAttestations } from "./attestations";
 
 type PackageJson = Packages["packages"][0]["packageJson"];
 type PythonPackageJson = PackageJson & { python: boolean };
@@ -23,16 +29,19 @@ async function run() {
 	const useOidc = getBooleanInput("use-oidc");
 	const user = getInput("user");
 	const passwords = getInput("passwords");
-	const repositoryUrl = getInput("repository-url") || "https://upload.pypi.org/legacy/";
+	const repositoryUrl =
+		getInput("repository-url") || "https://upload.pypi.org/legacy/";
 
-	// Check if OIDC is enabled but credentials are also provided
-	if (useOidc && (user || passwords)) {
-		warning("OIDC authentication is enabled; user and passwords inputs will be ignored.");
+	if (useOidc && passwords) {
+		warning(
+			"OIDC authentication is enabled; user and passwords inputs will be ignored."
+		);
 	}
 
-	// Validate inputs based on authentication method
 	if (!useOidc && (!user || !passwords)) {
-		setFailed("When not using OIDC, both 'user' and 'passwords' inputs are required.");
+		setFailed(
+			"When not using OIDC, both 'user' and 'passwords' inputs are required."
+		);
 		return;
 	}
 
@@ -57,24 +66,27 @@ async function run() {
 		)
 	).filter(Boolean) as PythonPackage[];
 
-	const packages_to_publish_sorted =
-		await topological_sort(packages_to_publish);
+	const packages_to_publish_sorted = await topological_sort(
+		packages_to_publish
+	);
 
 	if (packages_to_publish_sorted.length === 0) {
 		info("No packages to publish.");
 		return;
 	}
 
-	const pws = useOidc ? {} : passwords
-		.trim()
-		.split("\n")
-		.reduce((acc, next) => {
-			const [pkg, pwd] = next.split(":");
-			return {
-				...acc,
-				[pkg]: pwd,
-			};
-		}, {});
+	const pws = useOidc
+		? {}
+		: passwords
+				.trim()
+				.split("\n")
+				.reduce((acc, next) => {
+					const [pkg, pwd] = next.split(":");
+					return {
+						...acc,
+						[pkg]: pwd,
+					};
+				}, {});
 
 	info("Installing prerequisites.");
 	await fs.mkdir("_action_temp/requirements", { recursive: true });
@@ -85,16 +97,13 @@ async function run() {
 		)
 	);
 
-	await exec(
-		"pip",
-		[
-			"install",
-			"--user",
-			"--upgrade",
-			"--no-cache-dir",
-			"pip>=23.3.1",
-		]
-	);
+	await exec("pip", [
+		"install",
+		"--user",
+		"--upgrade",
+		"--no-cache-dir",
+		"pip>=23.3.1",
+	]);
 
 	await exec(
 		"pip",
@@ -137,6 +146,10 @@ async function run() {
 	await exec("chmod", ["og-rw", "/home/runner/.netrc"]);
 	await exec("pip", ["install", "secretstorage", "dbus-next"]);
 	await exec("pip", ["install", "build"]);
+	
+	if (useOidc) {
+		await installAttestationDependencies();
+	}
 
 	let publishes: boolean[] = [];
 	for await (const p of packages_to_publish_sorted) {
@@ -144,8 +157,13 @@ async function run() {
 		if (useOidc) {
 			publishes.push(await publish_package_oidc(p.dir, repositoryUrl));
 		} else {
-			//@ts-ignore
-			publishes.push(await publish_package(user, pws[p.packageJson.name], p.dir));
+			publishes.push(
+				await publish_package(
+					user,
+					(pws as Record<string, string>)[p.packageJson.name],
+					p.dir
+				)
+			);
 		}
 	}
 
@@ -202,39 +220,44 @@ async function publish_package(user: string, password: string, dir: string) {
 
 async function publish_package_oidc(dir: string, repositoryUrl: string) {
 	try {
-		// Build the package first
 		await exec("sh", [join(dir, "..", "build_pypi.sh")]);
 		
-		// Check if the required environment variables for OIDC are present
-		if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL || !process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN) {
+		const distDir = join(dir, "..", "dist");
+
+		if (
+			!process.env.ACTIONS_ID_TOKEN_REQUEST_URL ||
+			!process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
+		) {
 			setFailed(
 				"OIDC authentication environment variables not found.\n" +
-				"This usually means:\n" +
-				"1. The job doesn't have 'id-token: write' permission\n" +
-				"2. The action is not running in GitHub Actions environment\n" +
-				"3. You might be using a reusable workflow (OIDC doesn't work directly in reusable workflows)\n\n" +
-				"To fix this, ensure your job has:\n" +
-				"permissions:\n" +
-				"  id-token: write"
+					"This usually means:\n" +
+					"1. The job doesn't have 'id-token: write' permission\n" +
+					"2. The action is not running in GitHub Actions environment\n" +
+					"3. You might be using a reusable workflow (OIDC doesn't work directly in reusable workflows)\n\n" +
+					"To fix this, ensure your job has:\n" +
+					"permissions:\n" +
+					"  id-token: write"
 			);
 			return false;
 		}
 
-		// Determine the PyPI instance we're targeting
 		const isTestPyPI = repositoryUrl.includes("test.pypi.org");
-		const pypiBaseUrl = isTestPyPI ? "https://test.pypi.org" : "https://pypi.org";
-		
-		// Get the audience URL from PyPI
+		const pypiBaseUrl = isTestPyPI
+			? "https://test.pypi.org"
+			: "https://pypi.org";
+
 		let audience: string;
 		try {
 			const audienceUrl = `${pypiBaseUrl}/_/oidc/audience`;
 			const { statusCode, body } = await request(audienceUrl);
-			
+
 			if (statusCode !== 200) {
-				throw new Error(`Failed to get OIDC audience from PyPI. Status: ${statusCode}`);
+				throw new Error(
+					`Failed to get OIDC audience from PyPI. Status: ${statusCode}`
+				);
 			}
-			
-			const audienceData = await body.json() as { audience: string };
+
+			const audienceData = (await body.json()) as { audience: string };
 			audience = audienceData.audience;
 			info(`Retrieved OIDC audience from PyPI: ${audience}`);
 		} catch (e: any) {
@@ -242,41 +265,41 @@ async function publish_package_oidc(dir: string, repositoryUrl: string) {
 			return false;
 		}
 
-		// Get the OIDC token from GitHub
 		let oidcToken: string;
 		try {
-			// Use the getIDToken function which handles the token request internally
 			oidcToken = await getIDToken(audience);
 			info("Successfully obtained OIDC token from GitHub Actions");
 		} catch (e: any) {
-			// If getIDToken fails, try manual approach as fallback
 			try {
 				info("Attempting manual OIDC token retrieval...");
-				
-				const tokenRequestUrl = `${process.env.ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encodeURIComponent(audience)}`;
+
+				const tokenRequestUrl = `${
+					process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+				}&audience=${encodeURIComponent(audience)}`;
 				const { statusCode, body } = await request(tokenRequestUrl, {
 					headers: {
-						'Authorization': `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}`,
-						'Accept': 'application/json',
+						Authorization: `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}`,
+						Accept: "application/json",
 					},
 				});
-				
+
 				if (statusCode !== 200) {
 					throw new Error(`Failed to get OIDC token. Status: ${statusCode}`);
 				}
-				
-				const tokenData = await body.json() as { value: string };
+
+				const tokenData = (await body.json()) as { value: string };
 				oidcToken = tokenData.value;
 				info("Successfully obtained OIDC token via manual request");
 			} catch (manualError: any) {
-				setFailed(`Failed to get OIDC token from GitHub Actions: ${e.message}\nManual attempt also failed: ${manualError.message}`);
+				setFailed(
+					`Failed to get OIDC token from GitHub Actions: ${e.message}\nManual attempt also failed: ${manualError.message}`
+				);
 				return false;
 			}
 		}
 
-		// Exchange the OIDC token for a PyPI API token
 		const mintTokenUrl = `${pypiBaseUrl}/_/oidc/mint-token`;
-		
+
 		try {
 			info("Exchanging OIDC token for PyPI API token...");
 			const { statusCode, body } = await request(mintTokenUrl, {
@@ -292,8 +315,7 @@ async function publish_package_oidc(dir: string, repositoryUrl: string) {
 			if (statusCode !== 200) {
 				const errorBody = await body.text();
 				let errorMessage = `Failed to exchange OIDC token with PyPI. Status: ${statusCode}`;
-				
-				// Parse error details if available
+
 				try {
 					const errorData = JSON.parse(errorBody);
 					if (errorData.message) {
@@ -305,46 +327,58 @@ async function publish_package_oidc(dir: string, repositoryUrl: string) {
 				} catch {
 					errorMessage += `\nResponse: ${errorBody}`;
 				}
-				
-				errorMessage += "\n\nMake sure you have configured a trusted publisher for this package on PyPI.";
-				errorMessage += "\nSee: https://docs.pypi.org/trusted-publishers/adding-a-publisher/";
-				
+
+				errorMessage +=
+					"\n\nMake sure you have configured a trusted publisher for this package on PyPI.";
+				errorMessage +=
+					"\nSee: https://docs.pypi.org/trusted-publishers/adding-a-publisher/";
+
 				setFailed(errorMessage);
 				return false;
 			}
 
-			const responseData = await body.json() as { token: string };
+			const responseData = (await body.json()) as { token: string };
 			const pypiToken = responseData.token;
-			
+
 			info("Successfully exchanged OIDC token for PyPI API token");
 			
-			// Use twine with the PyPI token
+			const attestationSuccess = await generateAttestations({
+				distDir: distDir,
+				oidcToken: oidcToken
+			});
+			
+			if (!attestationSuccess) {
+				warning("Failed to generate attestations. Continuing with upload...");
+			} else {
+				await verifyAttestations(distDir);
+			}
+
 			const twineArgs = [
 				"upload",
 				"--non-interactive",
 				"--verbose",
-				`${join(dir, "..")}/dist/*`
+				`${join(dir, "..")}/dist/*`,
 			];
-			
-			if (repositoryUrl && repositoryUrl !== "https://upload.pypi.org/legacy/") {
+
+			if (
+				repositoryUrl &&
+				repositoryUrl !== "https://upload.pypi.org/legacy/"
+			) {
 				twineArgs.push("--repository-url", repositoryUrl);
 			}
-			
-			// Set environment variables for twine
+
 			const env = {
 				...process.env,
 				TWINE_USERNAME: "__token__",
-				TWINE_PASSWORD: pypiToken
+				TWINE_PASSWORD: pypiToken,
 			};
-			
+
 			await exec("twine", twineArgs, { env });
-			
 		} catch (e: any) {
 			setFailed(`Error during PyPI token exchange or upload: ${e.message}`);
 			return false;
 		}
-		
-		// Clean up build artifacts
+
 		await exec("rm", ["-rf", `${join(dir, "..")}/dist/*`]);
 		await exec("rm", ["-rf", `${join(dir, "..")}/build/*`]);
 
@@ -380,7 +414,6 @@ async function topological_sort(packages: PythonPackage[]) {
 		await visit(pkg);
 	}
 
-	// Reverse the result to get the correct order
 	result.reverse();
 
 	return result;

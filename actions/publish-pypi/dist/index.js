@@ -29,7 +29,7 @@ var __privateMethod = (obj, member, method) => {
 import require$$0 from "os";
 import require$$0$1, { promises } from "fs";
 import crypto from "crypto";
-import require$$0$4, { join } from "path";
+import require$$0$4, { join, basename } from "path";
 import require$$2$1 from "http";
 import require$$3 from "https";
 import require$$0$9 from "net";
@@ -53,6 +53,7 @@ import "console";
 import "url";
 import require$$3$1 from "zlib";
 import require$$1$3 from "diagnostics_channel";
+import { glob } from "glob";
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
@@ -8009,7 +8010,7 @@ function requireScan() {
     }
     let base = str2;
     let prefix = "";
-    let glob = "";
+    let glob2 = "";
     if (start > 0) {
       prefix = str2.slice(0, start);
       str2 = str2.slice(start);
@@ -8017,10 +8018,10 @@ function requireScan() {
     }
     if (base && isGlob2 === true && lastIndex > 0) {
       base = str2.slice(0, lastIndex);
-      glob = str2.slice(lastIndex);
+      glob2 = str2.slice(lastIndex);
     } else if (isGlob2 === true) {
       base = "";
-      glob = str2;
+      glob2 = str2;
     } else {
       base = str2;
     }
@@ -8030,8 +8031,8 @@ function requireScan() {
       }
     }
     if (opts.unescape === true) {
-      if (glob)
-        glob = utils2.removeBackslashes(glob);
+      if (glob2)
+        glob2 = utils2.removeBackslashes(glob2);
       if (base && backslashes === true) {
         base = utils2.removeBackslashes(base);
       }
@@ -8041,7 +8042,7 @@ function requireScan() {
       input,
       start,
       base,
-      glob,
+      glob: glob2,
       isBrace,
       isBracket,
       isGlob: isGlob2,
@@ -8889,9 +8890,9 @@ function requirePicomatch$1() {
   const utils2 = requireUtils$5();
   const constants2 = requireConstants$5();
   const isObject = (val) => val && typeof val === "object" && !Array.isArray(val);
-  const picomatch2 = (glob, options, returnState = false) => {
-    if (Array.isArray(glob)) {
-      const fns = glob.map((input) => picomatch2(input, options, returnState));
+  const picomatch2 = (glob2, options, returnState = false) => {
+    if (Array.isArray(glob2)) {
+      const fns = glob2.map((input) => picomatch2(input, options, returnState));
       const arrayMatcher = (str2) => {
         for (const isMatch of fns) {
           const state2 = isMatch(str2);
@@ -8902,13 +8903,13 @@ function requirePicomatch$1() {
       };
       return arrayMatcher;
     }
-    const isState = isObject(glob) && glob.tokens && glob.input;
-    if (glob === "" || typeof glob !== "string" && !isState) {
+    const isState = isObject(glob2) && glob2.tokens && glob2.input;
+    if (glob2 === "" || typeof glob2 !== "string" && !isState) {
       throw new TypeError("Expected pattern to be a non-empty string");
     }
     const opts = options || {};
     const posix = utils2.isWindows(options);
-    const regex = isState ? picomatch2.compileRe(glob, options) : picomatch2.makeRe(glob, options, false, true);
+    const regex = isState ? picomatch2.compileRe(glob2, options) : picomatch2.makeRe(glob2, options, false, true);
     const state = regex.state;
     delete regex.state;
     let isIgnored = () => false;
@@ -8917,8 +8918,8 @@ function requirePicomatch$1() {
       isIgnored = picomatch2(opts.ignore, ignoreOpts, returnState);
     }
     const matcher2 = (input, returnObject = false) => {
-      const { isMatch, match, output: output2 } = picomatch2.test(input, regex, options, { glob, posix });
-      const result = { glob, state, regex, posix, input, output: output2, match, isMatch };
+      const { isMatch, match, output: output2 } = picomatch2.test(input, regex, options, { glob: glob2, posix });
+      const result = { glob: glob2, state, regex, posix, input, output: output2, match, isMatch };
       if (typeof opts.onResult === "function") {
         opts.onResult(result);
       }
@@ -8943,7 +8944,7 @@ function requirePicomatch$1() {
     }
     return matcher2;
   };
-  picomatch2.test = (input, regex, options, { glob, posix } = {}) => {
+  picomatch2.test = (input, regex, options, { glob: glob2, posix } = {}) => {
     if (typeof input !== "string") {
       throw new TypeError("Expected input to be a string");
     }
@@ -8952,11 +8953,11 @@ function requirePicomatch$1() {
     }
     const opts = options || {};
     const format = opts.format || (posix ? utils2.toPosixSlashes : null);
-    let match = input === glob;
+    let match = input === glob2;
     let output2 = match && format ? format(input) : input;
     if (match === false) {
       output2 = format ? format(input) : input;
-      match = output2 === glob;
+      match = output2 === glob2;
     }
     if (match === false || opts.capture === true) {
       if (opts.matchBase === true || opts.basename === true) {
@@ -8967,8 +8968,8 @@ function requirePicomatch$1() {
     }
     return { isMatch: Boolean(match), match, output: output2 };
   };
-  picomatch2.matchBase = (input, glob, options, posix = utils2.isWindows(options)) => {
-    const regex = glob instanceof RegExp ? glob : picomatch2.makeRe(glob, options);
+  picomatch2.matchBase = (input, glob2, options, posix = utils2.isWindows(options)) => {
+    const regex = glob2 instanceof RegExp ? glob2 : picomatch2.makeRe(glob2, options);
     return regex.test(path2.basename(input));
   };
   picomatch2.isMatch = (str2, patterns, options) => picomatch2(patterns, options)(str2);
@@ -9159,9 +9160,9 @@ function requireMicromatch() {
     }
     return [].concat(patterns).every((p) => picomatch2(p, options)(str2));
   };
-  micromatch.capture = (glob, input, options) => {
+  micromatch.capture = (glob2, input, options) => {
     let posix = utils2.isWindows(options);
-    let regex = picomatch2.makeRe(String(glob), { ...options, capture: true });
+    let regex = picomatch2.makeRe(String(glob2), { ...options, capture: true });
     let match = regex.exec(posix ? utils2.toPosixSlashes(input) : input);
     if (match) {
       return match.slice(1).map((v) => v === void 0 ? "" : v);
@@ -9296,8 +9297,8 @@ function requirePattern() {
   }
   pattern.endsWithSlashGlobStar = endsWithSlashGlobStar;
   function isAffectDepthOfReadingPattern(pattern2) {
-    const basename = path2.basename(pattern2);
-    return endsWithSlashGlobStar(pattern2) || isStaticPattern(basename);
+    const basename2 = path2.basename(pattern2);
+    return endsWithSlashGlobStar(pattern2) || isStaticPattern(basename2);
   }
   pattern.isAffectDepthOfReadingPattern = isAffectDepthOfReadingPattern;
   function expandPatternsWithBraceExpansion(patterns) {
@@ -12232,13 +12233,13 @@ function requireGlobby() {
   const getFilterSync = (options) => {
     return options && options.gitignore ? gitignore2.sync({ cwd: options.cwd, ignore: options.ignore }) : DEFAULT_FILTER;
   };
-  const globToTask = (task) => (glob) => {
+  const globToTask = (task) => (glob2) => {
     const { options } = task;
     if (options.ignore && Array.isArray(options.ignore) && options.expandDirectories) {
       options.ignore = dirGlob2.sync(options.ignore);
     }
     return {
-      pattern: glob,
+      pattern: glob2,
       options
     };
   };
@@ -18989,7 +18990,7 @@ function requireUtils$1() {
     if (decode)
       return decode(data, hint);
   }
-  function basename(path2) {
+  function basename2(path2) {
     if (typeof path2 !== "string")
       return "";
     for (let i = path2.length - 1; i >= 0; --i) {
@@ -20293,7 +20294,7 @@ function requireUtils$1() {
     -1
   ];
   utils$1 = {
-    basename,
+    basename: basename2,
     convertToUTF8,
     getDecoder,
     parseContentType,
@@ -20708,7 +20709,7 @@ function requireMultipart() {
   const { Readable: Readable2, Writable } = require$$0$8;
   const StreamSearch = requireSbmh();
   const {
-    basename,
+    basename: basename2,
     convertToUTF8,
     getDecoder,
     parseContentType,
@@ -20972,7 +20973,7 @@ function requireMultipart() {
           else if (disp.params.filename)
             filename = disp.params.filename;
           if (filename !== void 0 && !preservePath)
-            filename = basename(filename);
+            filename = basename2(filename);
         }
         if (header["content-type"]) {
           const conType = parseContentType(header["content-type"][0]);
@@ -34722,6 +34723,164 @@ const files = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePropert
   runtime_prerequisites_txt,
   runtime_txt
 }, Symbol.toStringTag, { value: "Module" }));
+async function generateAttestations(options) {
+  const { distDir, oidcToken } = options;
+  try {
+    coreExports.info("Generating attestations for distributions...");
+    const distFiles = await glob(join(distDir, "*"), {
+      absolute: true
+    });
+    const distributions = distFiles.filter((file2) => {
+      const name = basename(file2);
+      return (name.endsWith(".whl") || name.endsWith(".tar.gz")) && !name.endsWith(".publish.attestation");
+    });
+    if (distributions.length === 0) {
+      coreExports.warning("No distribution files found to attest.");
+      return false;
+    }
+    coreExports.info(`Found ${distributions.length} distribution(s) to attest.`);
+    const existingAttestations = distFiles.filter(
+      (file2) => file2.endsWith(".publish.attestation")
+    );
+    if (existingAttestations.length > 0) {
+      coreExports.setFailed(
+        "Attestation files already exist in the dist directory: " + existingAttestations.map((f) => basename(f)).join(", ") + "\nRemove them before continuing."
+      );
+      return false;
+    }
+    const attestScript = `
+import sys
+import json
+import os
+from pathlib import Path
+from pypi_attestations import Attestation, Distribution
+from sigstore.oidc import detect_credential
+from sigstore.sign import Signer, SigningContext
+
+def generate_attestations(dist_files):
+    errors = []
+    
+    try:
+        identity = detect_credential()
+    except Exception as e:
+        print(f"Failed to detect OIDC credential: {e}", file=sys.stderr)
+        return False
+    
+    with SigningContext.production() as ctx:
+        for dist_file in dist_files:
+            dist_path = Path(dist_file)
+            
+            try:
+                print(f"Attesting {dist_path.name}...")
+                
+                dist = Distribution.from_file(dist_path)
+                attestation = Attestation.sign(
+                    ctx.signer(identity, cache=False),
+                    dist
+                )
+                
+                attestation_path = dist_path.with_suffix(dist_path.suffix + ".publish.attestation")
+                attestation_path.write_text(attestation.model_dump_json())
+                
+                print(f"Created attestation: {attestation_path.name}")
+                
+            except Exception as e:
+                errors.append(f"Error attesting {dist_path.name}: {e}")
+                print(f"Error attesting {dist_path.name}: {e}", file=sys.stderr)
+    
+    if errors:
+        summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary_path:
+            with open(summary_path, "a") as f:
+                f.write("## Attestation Errors\\n\\n")
+                for error in errors:
+                    f.write(f"- {error}\\n")
+        return False
+    
+    return True
+
+if __name__ == "__main__":
+    import json
+    dist_files = json.loads(sys.argv[1])
+    success = generate_attestations(dist_files)
+    sys.exit(0 if success else 1)
+`;
+    await promises.writeFile("_action_temp/generate_attestations.py", attestScript);
+    const env = {
+      ...process.env
+    };
+    if (oidcToken) {
+      env.PYPI_ATTESTATIONS_TOKEN = oidcToken;
+    }
+    const result = await exec_2(
+      "python",
+      ["_action_temp/generate_attestations.py", JSON.stringify(distributions)],
+      {
+        env,
+        ignoreReturnCode: true
+      }
+    );
+    if (result !== 0) {
+      coreExports.setFailed("Failed to generate attestations.");
+      return false;
+    }
+    const attestationFiles = await glob(
+      join(distDir, "*.publish.attestation"),
+      {
+        absolute: true
+      }
+    );
+    coreExports.info(`Successfully generated ${attestationFiles.length} attestation(s).`);
+    for (const file2 of attestationFiles) {
+      coreExports.info(`  - ${basename(file2)}`);
+    }
+    return true;
+  } catch (e) {
+    coreExports.setFailed(`Error during attestation generation: ${e.message}`);
+    return false;
+  }
+}
+async function installAttestationDependencies() {
+  coreExports.info("Installing attestation dependencies...");
+  await exec_2("pip", [
+    "install",
+    "--user",
+    "--upgrade",
+    "--no-cache-dir",
+    "pypi-attestations>=1.0.0",
+    "sigstore>=3.5.1"
+  ]);
+}
+async function verifyAttestations(distDir) {
+  try {
+    const distFiles = await glob(join(distDir, "*"), {
+      absolute: true
+    });
+    const distributions = distFiles.filter((file2) => {
+      const name = basename(file2);
+      return (name.endsWith(".whl") || name.endsWith(".tar.gz")) && !name.endsWith(".publish.attestation");
+    });
+    const attestations = distFiles.filter(
+      (file2) => file2.endsWith(".publish.attestation")
+    );
+    if (distributions.length !== attestations.length) {
+      coreExports.warning(
+        `Mismatch between distributions (${distributions.length}) and attestations (${attestations.length}). Some distributions may not have attestations.`
+      );
+    }
+    for (const dist of distributions) {
+      const attestationPath = `${dist}.publish.attestation`;
+      const hasAttestation = attestations.includes(attestationPath);
+      if (!hasAttestation) {
+        coreExports.warning(`Missing attestation for: ${basename(dist)}`);
+      }
+    }
+    return true;
+  } catch (e) {
+    coreExports.warning(`Failed to verify attestations: ${e.message}`);
+    return false;
+  }
+}
 async function run() {
   const { packages } = manypkgGetPackages_cjsExports.getPackagesSync(process.cwd());
   const python_packages = packages.filter(
@@ -34731,11 +34890,15 @@ async function run() {
   const user = coreExports.getInput("user");
   const passwords = coreExports.getInput("passwords");
   const repositoryUrl = coreExports.getInput("repository-url") || "https://upload.pypi.org/legacy/";
-  if (useOidc && (user || passwords)) {
-    coreExports.warning("OIDC authentication is enabled; user and passwords inputs will be ignored.");
+  if (useOidc && passwords) {
+    coreExports.warning(
+      "OIDC authentication is enabled; user and passwords inputs will be ignored."
+    );
   }
   if (!useOidc && (!user || !passwords)) {
-    coreExports.setFailed("When not using OIDC, both 'user' and 'passwords' inputs are required.");
+    coreExports.setFailed(
+      "When not using OIDC, both 'user' and 'passwords' inputs are required."
+    );
     return;
   }
   const packages_to_publish = (await Promise.all(
@@ -34753,7 +34916,9 @@ async function run() {
       return p;
     })
   )).filter(Boolean);
-  const packages_to_publish_sorted = await topological_sort(packages_to_publish);
+  const packages_to_publish_sorted = await topological_sort(
+    packages_to_publish
+  );
   if (packages_to_publish_sorted.length === 0) {
     coreExports.info("No packages to publish.");
     return;
@@ -34772,16 +34937,13 @@ async function run() {
       ([name, content]) => promises.writeFile(`_action_temp/requirements/${name}`, content)
     )
   );
-  await exec_2(
-    "pip",
-    [
-      "install",
-      "--user",
-      "--upgrade",
-      "--no-cache-dir",
-      "pip>=23.3.1"
-    ]
-  );
+  await exec_2("pip", [
+    "install",
+    "--user",
+    "--upgrade",
+    "--no-cache-dir",
+    "pip>=23.3.1"
+  ]);
   await exec_2(
     "pip",
     [
@@ -34821,13 +34983,22 @@ async function run() {
   await exec_2("chmod", ["og-rw", "/home/runner/.netrc"]);
   await exec_2("pip", ["install", "secretstorage", "dbus-next"]);
   await exec_2("pip", ["install", "build"]);
+  if (useOidc) {
+    await installAttestationDependencies();
+  }
   let publishes = [];
   for await (const p of packages_to_publish_sorted) {
     coreExports.info(`Publishing ${p.packageJson.name}@${p.packageJson.version} to PyPI`);
     if (useOidc) {
       publishes.push(await publish_package_oidc(p.dir, repositoryUrl));
     } else {
-      publishes.push(await publish_package(user, pws[p.packageJson.name], p.dir));
+      publishes.push(
+        await publish_package(
+          user,
+          pws[p.packageJson.name],
+          p.dir
+        )
+      );
     }
   }
   publishes.map((p, i) => {
@@ -34875,6 +35046,7 @@ async function publish_package(user, password, dir) {
 async function publish_package_oidc(dir, repositoryUrl) {
   try {
     await exec_2("sh", [join(dir, "..", "build_pypi.sh")]);
+    const distDir = join(dir, "..", "dist");
     if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL || !process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN) {
       coreExports.setFailed(
         "OIDC authentication environment variables not found.\nThis usually means:\n1. The job doesn't have 'id-token: write' permission\n2. The action is not running in GitHub Actions environment\n3. You might be using a reusable workflow (OIDC doesn't work directly in reusable workflows)\n\nTo fix this, ensure your job has:\npermissions:\n  id-token: write"
@@ -34888,7 +35060,9 @@ async function publish_package_oidc(dir, repositoryUrl) {
       const audienceUrl = `${pypiBaseUrl}/_/oidc/audience`;
       const { statusCode, body: body2 } = await request(audienceUrl);
       if (statusCode !== 200) {
-        throw new Error(`Failed to get OIDC audience from PyPI. Status: ${statusCode}`);
+        throw new Error(
+          `Failed to get OIDC audience from PyPI. Status: ${statusCode}`
+        );
       }
       const audienceData = await body2.json();
       audience = audienceData.audience;
@@ -34907,8 +35081,8 @@ async function publish_package_oidc(dir, repositoryUrl) {
         const tokenRequestUrl = `${process.env.ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encodeURIComponent(audience)}`;
         const { statusCode, body: body2 } = await request(tokenRequestUrl, {
           headers: {
-            "Authorization": `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}`,
-            "Accept": "application/json"
+            Authorization: `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}`,
+            Accept: "application/json"
           }
         });
         if (statusCode !== 200) {
@@ -34918,8 +35092,10 @@ async function publish_package_oidc(dir, repositoryUrl) {
         oidcToken = tokenData.value;
         coreExports.info("Successfully obtained OIDC token via manual request");
       } catch (manualError) {
-        coreExports.setFailed(`Failed to get OIDC token from GitHub Actions: ${e.message}
-Manual attempt also failed: ${manualError.message}`);
+        coreExports.setFailed(
+          `Failed to get OIDC token from GitHub Actions: ${e.message}
+Manual attempt also failed: ${manualError.message}`
+        );
         return false;
       }
     }
@@ -34960,6 +35136,15 @@ Response: ${errorBody}`;
       const responseData = await body2.json();
       const pypiToken = responseData.token;
       coreExports.info("Successfully exchanged OIDC token for PyPI API token");
+      const attestationSuccess = await generateAttestations({
+        distDir,
+        oidcToken
+      });
+      if (!attestationSuccess) {
+        coreExports.warning("Failed to generate attestations. Continuing with upload...");
+      } else {
+        await verifyAttestations(distDir);
+      }
       const twineArgs = [
         "upload",
         "--non-interactive",
