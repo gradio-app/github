@@ -205,44 +205,81 @@ async function publish_package_oidc(dir: string, repositoryUrl: string) {
 		// Build the package first
 		await exec("sh", [join(dir, "..", "build_pypi.sh")]);
 		
-		// For OIDC trusted publishing, we need to get the token and exchange it with PyPI
-		// The proper audience URL for PyPI
-		const audience = repositoryUrl.includes("test.pypi.org") 
-			? "https://test.pypi.org/_/oidc/audience" 
-			: "https://pypi.org/_/oidc/audience";
-		
-		let oidcToken: string;
-		
-		try {
-			// Get the OIDC token from GitHub with the correct audience
-			oidcToken = await getIDToken(audience);
-			info("Successfully obtained OIDC token for PyPI trusted publishing");
-		} catch (e: any) {
-			// Check if the environment variables are set
-			if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL || !process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN) {
-				setFailed(
-					"OIDC token request failed. This usually means:\n" +
-					"1. The job doesn't have 'id-token: write' permission\n" +
-					"2. The action is not running in GitHub Actions environment\n" +
-					"3. You might be using a reusable workflow (OIDC doesn't work directly in reusable workflows)\n\n" +
-					"To fix this, ensure your job has:\n" +
-					"permissions:\n" +
-					"  id-token: write\n\n" +
-					`Error details: ${e.message}`
-				);
-			} else {
-				setFailed(`Failed to get OIDC token: ${e.message}`);
-			}
+		// Check if the required environment variables for OIDC are present
+		if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL || !process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN) {
+			setFailed(
+				"OIDC authentication environment variables not found.\n" +
+				"This usually means:\n" +
+				"1. The job doesn't have 'id-token: write' permission\n" +
+				"2. The action is not running in GitHub Actions environment\n" +
+				"3. You might be using a reusable workflow (OIDC doesn't work directly in reusable workflows)\n\n" +
+				"To fix this, ensure your job has:\n" +
+				"permissions:\n" +
+				"  id-token: write"
+			);
 			return false;
 		}
 
-		// Exchange the OIDC token for a PyPI API token
-		const tokenExchangeUrl = repositoryUrl.includes("test.pypi.org")
-			? "https://test.pypi.org/_/oidc/mint-token"
-			: "https://pypi.org/_/oidc/mint-token";
-
+		// Determine the PyPI instance we're targeting
+		const isTestPyPI = repositoryUrl.includes("test.pypi.org");
+		const pypiBaseUrl = isTestPyPI ? "https://test.pypi.org" : "https://pypi.org";
+		
+		// Get the audience URL from PyPI
+		let audience: string;
 		try {
-			const { statusCode, body } = await request(tokenExchangeUrl, {
+			const audienceUrl = `${pypiBaseUrl}/_/oidc/audience`;
+			const { statusCode, body } = await request(audienceUrl);
+			
+			if (statusCode !== 200) {
+				throw new Error(`Failed to get OIDC audience from PyPI. Status: ${statusCode}`);
+			}
+			
+			const audienceData = await body.json() as { audience: string };
+			audience = audienceData.audience;
+			info(`Retrieved OIDC audience from PyPI: ${audience}`);
+		} catch (e: any) {
+			setFailed(`Failed to get OIDC audience from PyPI: ${e.message}`);
+			return false;
+		}
+
+		// Get the OIDC token from GitHub
+		let oidcToken: string;
+		try {
+			// Use the getIDToken function which handles the token request internally
+			oidcToken = await getIDToken(audience);
+			info("Successfully obtained OIDC token from GitHub Actions");
+		} catch (e: any) {
+			// If getIDToken fails, try manual approach as fallback
+			try {
+				info("Attempting manual OIDC token retrieval...");
+				
+				const tokenRequestUrl = `${process.env.ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encodeURIComponent(audience)}`;
+				const { statusCode, body } = await request(tokenRequestUrl, {
+					headers: {
+						'Authorization': `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}`,
+						'Accept': 'application/json',
+					},
+				});
+				
+				if (statusCode !== 200) {
+					throw new Error(`Failed to get OIDC token. Status: ${statusCode}`);
+				}
+				
+				const tokenData = await body.json() as { value: string };
+				oidcToken = tokenData.value;
+				info("Successfully obtained OIDC token via manual request");
+			} catch (manualError: any) {
+				setFailed(`Failed to get OIDC token from GitHub Actions: ${e.message}\nManual attempt also failed: ${manualError.message}`);
+				return false;
+			}
+		}
+
+		// Exchange the OIDC token for a PyPI API token
+		const mintTokenUrl = `${pypiBaseUrl}/_/oidc/mint-token`;
+		
+		try {
+			info("Exchanging OIDC token for PyPI API token...");
+			const { statusCode, body } = await request(mintTokenUrl, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -254,7 +291,25 @@ async function publish_package_oidc(dir: string, repositoryUrl: string) {
 
 			if (statusCode !== 200) {
 				const errorBody = await body.text();
-				setFailed(`Failed to exchange OIDC token with PyPI. Status: ${statusCode}, Body: ${errorBody}`);
+				let errorMessage = `Failed to exchange OIDC token with PyPI. Status: ${statusCode}`;
+				
+				// Parse error details if available
+				try {
+					const errorData = JSON.parse(errorBody);
+					if (errorData.message) {
+						errorMessage += `\nPyPI error: ${errorData.message}`;
+					}
+					if (errorData.errors) {
+						errorMessage += `\nDetails: ${JSON.stringify(errorData.errors)}`;
+					}
+				} catch {
+					errorMessage += `\nResponse: ${errorBody}`;
+				}
+				
+				errorMessage += "\n\nMake sure you have configured a trusted publisher for this package on PyPI.";
+				errorMessage += "\nSee: https://docs.pypi.org/trusted-publishers/adding-a-publisher/";
+				
+				setFailed(errorMessage);
 				return false;
 			}
 
