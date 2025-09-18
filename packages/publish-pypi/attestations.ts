@@ -161,7 +161,7 @@ export async function installAttestationDependencies(): Promise<void> {
 		"--upgrade",
 		"--no-cache-dir",
 		"pypi-attestations>=0.0.27",
-		"sigstore>=3.5.1",
+		"sigstore>=3.6.5",
 	]);
 }
 
