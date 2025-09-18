@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(find:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm install:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(pip index versions:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

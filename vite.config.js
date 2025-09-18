@@ -49,6 +49,7 @@ export default defineConfig({
 			"node-fetch",
 			"undici",
 			"picomatch",
+			"glob",
 		],
 	},
 });

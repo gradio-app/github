@@ -4,12 +4,20 @@ description: "Publish packages to PyPI"
 
 inputs:
   user:
-    description: "the username for PyPI"
-    required: true
+    description: "the username for PyPI (optional when using OIDC)"
+    required: false
     default: "__token__"
   passwords:
-    description: "the passwords for each package. Each package should be on a new line. Passwords should be in the format `package_name:password`"
-    required: true
+    description: "the passwords for each package. Each package should be on a new line. Passwords should be in the format `package_name:password` (optional when using OIDC)"
+    required: false
+  use-oidc:
+    description: "Use OIDC trusted publishing for authentication"
+    required: false
+    default: "false"
+  repository-url:
+    description: "Repository URL (defaults to https://upload.pypi.org/legacy/)"
+    required: false
+    default: ""
 
 runs:
   using: "node20"
