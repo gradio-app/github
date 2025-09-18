@@ -55,19 +55,23 @@ import json
 import os
 from pathlib import Path
 from pypi_attestations import Attestation, Distribution
-from sigstore.oidc import IdentityError, detect_credential, get_identity_token
+from sigstore.oidc import IdentityError, IdentityToken, detect_credential
 from sigstore.sign import SigningContext
+
+def get_identity_token() -> IdentityToken:
+    # Will raise sigstore.oidc.IdentityError if it fails to get the token
+    # from the environment or if the token is malformed.
+    # NOTE: audience is always sigstore.
+    oidc_token = detect_credential()
+    if oidc_token is None:
+        raise IdentityError('Attempted to discover OIDC in broken environment')
+    return IdentityToken(oidc_token)
 
 def generate_attestations(dist_files):
     errors = []
     
     try:
-        # Try to get the identity token (similar to get_identity_token in original)
-        try:
-            identity = get_identity_token()
-        except:
-            # Fallback to detect_credential if get_identity_token fails
-            identity = detect_credential()
+        identity = get_identity_token()
     except (IdentityError, Exception) as e:
         print(f"Failed to get OIDC credential: {e}", file=sys.stderr)
         return False
