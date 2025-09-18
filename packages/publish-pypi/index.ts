@@ -202,41 +202,92 @@ async function publish_package(user: string, password: string, dir: string) {
 
 async function publish_package_oidc(dir: string, repositoryUrl: string) {
 	try {
-		// Get OIDC token from GitHub
-		const audience = repositoryUrl.includes("testpypi") ? "testpypi" : "pypi";
+		// Build the package first
+		await exec("sh", [join(dir, "..", "build_pypi.sh")]);
+		
+		// For OIDC trusted publishing, we need to get the token and exchange it with PyPI
+		// The proper audience URL for PyPI
+		const audience = repositoryUrl.includes("test.pypi.org") 
+			? "https://test.pypi.org/_/oidc/audience" 
+			: "https://pypi.org/_/oidc/audience";
+		
 		let oidcToken: string;
 		
 		try {
+			// Get the OIDC token from GitHub with the correct audience
 			oidcToken = await getIDToken(audience);
-			info("Successfully obtained OIDC token for PyPI authentication");
+			info("Successfully obtained OIDC token for PyPI trusted publishing");
 		} catch (e: any) {
-			setFailed(`Failed to get OIDC token. Make sure the job has 'id-token: write' permission. Error: ${e.message}`);
+			// Check if the environment variables are set
+			if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL || !process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN) {
+				setFailed(
+					"OIDC token request failed. This usually means:\n" +
+					"1. The job doesn't have 'id-token: write' permission\n" +
+					"2. The action is not running in GitHub Actions environment\n" +
+					"3. You might be using a reusable workflow (OIDC doesn't work directly in reusable workflows)\n\n" +
+					"To fix this, ensure your job has:\n" +
+					"permissions:\n" +
+					"  id-token: write\n\n" +
+					`Error details: ${e.message}`
+				);
+			} else {
+				setFailed(`Failed to get OIDC token: ${e.message}`);
+			}
 			return false;
 		}
 
-		// Build the package
-		await exec("sh", [join(dir, "..", "build_pypi.sh")]);
-		
-		// Use twine with OIDC token
-		const twineArgs = [
-			"upload",
-			"--non-interactive",
-			"--verbose",
-			`${join(dir, "..")}/dist/*`
-		];
-		
-		if (repositoryUrl && repositoryUrl !== "https://upload.pypi.org/legacy/") {
-			twineArgs.push("--repository-url", repositoryUrl);
+		// Exchange the OIDC token for a PyPI API token
+		const tokenExchangeUrl = repositoryUrl.includes("test.pypi.org")
+			? "https://test.pypi.org/_/oidc/mint-token"
+			: "https://pypi.org/_/oidc/mint-token";
+
+		try {
+			const { statusCode, body } = await request(tokenExchangeUrl, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					token: oidcToken,
+				}),
+			});
+
+			if (statusCode !== 200) {
+				const errorBody = await body.text();
+				setFailed(`Failed to exchange OIDC token with PyPI. Status: ${statusCode}, Body: ${errorBody}`);
+				return false;
+			}
+
+			const responseData = await body.json() as { token: string };
+			const pypiToken = responseData.token;
+			
+			info("Successfully exchanged OIDC token for PyPI API token");
+			
+			// Use twine with the PyPI token
+			const twineArgs = [
+				"upload",
+				"--non-interactive",
+				"--verbose",
+				`${join(dir, "..")}/dist/*`
+			];
+			
+			if (repositoryUrl && repositoryUrl !== "https://upload.pypi.org/legacy/") {
+				twineArgs.push("--repository-url", repositoryUrl);
+			}
+			
+			// Set environment variables for twine
+			const env = {
+				...process.env,
+				TWINE_USERNAME: "__token__",
+				TWINE_PASSWORD: pypiToken
+			};
+			
+			await exec("twine", twineArgs, { env });
+			
+		} catch (e: any) {
+			setFailed(`Error during PyPI token exchange or upload: ${e.message}`);
+			return false;
 		}
-		
-		// Set environment variables for twine to use OIDC
-		const env = {
-			...process.env,
-			TWINE_USERNAME: "__token__",
-			TWINE_PASSWORD: oidcToken
-		};
-		
-		await exec("twine", twineArgs, { env });
 		
 		// Clean up build artifacts
 		await exec("rm", ["-rf", `${join(dir, "..")}/dist/*`]);

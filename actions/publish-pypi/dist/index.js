@@ -34874,31 +34874,69 @@ async function publish_package(user, password, dir) {
 }
 async function publish_package_oidc(dir, repositoryUrl) {
   try {
-    const audience = repositoryUrl.includes("testpypi") ? "testpypi" : "pypi";
+    await exec_2("sh", [join(dir, "..", "build_pypi.sh")]);
+    const audience = repositoryUrl.includes("test.pypi.org") ? "https://test.pypi.org/_/oidc/audience" : "https://pypi.org/_/oidc/audience";
     let oidcToken;
     try {
       oidcToken = await coreExports.getIDToken(audience);
-      coreExports.info("Successfully obtained OIDC token for PyPI authentication");
+      coreExports.info("Successfully obtained OIDC token for PyPI trusted publishing");
     } catch (e) {
-      coreExports.setFailed(`Failed to get OIDC token. Make sure the job has 'id-token: write' permission. Error: ${e.message}`);
+      if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL || !process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN) {
+        coreExports.setFailed(
+          `OIDC token request failed. This usually means:
+1. The job doesn't have 'id-token: write' permission
+2. The action is not running in GitHub Actions environment
+3. You might be using a reusable workflow (OIDC doesn't work directly in reusable workflows)
+
+To fix this, ensure your job has:
+permissions:
+  id-token: write
+
+Error details: ${e.message}`
+        );
+      } else {
+        coreExports.setFailed(`Failed to get OIDC token: ${e.message}`);
+      }
       return false;
     }
-    await exec_2("sh", [join(dir, "..", "build_pypi.sh")]);
-    const twineArgs = [
-      "upload",
-      "--non-interactive",
-      "--verbose",
-      `${join(dir, "..")}/dist/*`
-    ];
-    if (repositoryUrl && repositoryUrl !== "https://upload.pypi.org/legacy/") {
-      twineArgs.push("--repository-url", repositoryUrl);
+    const tokenExchangeUrl = repositoryUrl.includes("test.pypi.org") ? "https://test.pypi.org/_/oidc/mint-token" : "https://pypi.org/_/oidc/mint-token";
+    try {
+      const { statusCode, body: body2 } = await request(tokenExchangeUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          token: oidcToken
+        })
+      });
+      if (statusCode !== 200) {
+        const errorBody = await body2.text();
+        coreExports.setFailed(`Failed to exchange OIDC token with PyPI. Status: ${statusCode}, Body: ${errorBody}`);
+        return false;
+      }
+      const responseData = await body2.json();
+      const pypiToken = responseData.token;
+      coreExports.info("Successfully exchanged OIDC token for PyPI API token");
+      const twineArgs = [
+        "upload",
+        "--non-interactive",
+        "--verbose",
+        `${join(dir, "..")}/dist/*`
+      ];
+      if (repositoryUrl && repositoryUrl !== "https://upload.pypi.org/legacy/") {
+        twineArgs.push("--repository-url", repositoryUrl);
+      }
+      const env = {
+        ...process.env,
+        TWINE_USERNAME: "__token__",
+        TWINE_PASSWORD: pypiToken
+      };
+      await exec_2("twine", twineArgs, { env });
+    } catch (e) {
+      coreExports.setFailed(`Error during PyPI token exchange or upload: ${e.message}`);
+      return false;
     }
-    const env = {
-      ...process.env,
-      TWINE_USERNAME: "__token__",
-      TWINE_PASSWORD: oidcToken
-    };
-    await exec_2("twine", twineArgs, { env });
     await exec_2("rm", ["-rf", `${join(dir, "..")}/dist/*`]);
     await exec_2("rm", ["-rf", `${join(dir, "..")}/build/*`]);
     return true;
