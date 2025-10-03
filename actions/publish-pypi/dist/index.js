@@ -42077,14 +42077,13 @@ Response: ${errorBody}`;
         return false;
       }
       await verifyAttestations(distDir);
-      const twineArgs = [
-        "upload",
-        "--non-interactive",
-        "--verbose"
-      ];
-      const attestationFiles = await glob(join(distDir, "*.publish.attestation"), {
-        absolute: true
-      });
+      const twineArgs = ["upload", "--non-interactive", "--verbose"];
+      const attestationFiles = await glob(
+        join(distDir, "*.publish.attestation"),
+        {
+          absolute: true
+        }
+      );
       if (attestationFiles.length > 0) {
         twineArgs.push("--attestations");
         attestationFiles.forEach((file2) => {
@@ -42092,7 +42091,9 @@ Response: ${errorBody}`;
         });
       }
       const distFiles = await glob(join(distDir, "*.whl"), { absolute: true });
-      const tarFiles = await glob(join(distDir, "*.tar.gz"), { absolute: true });
+      const tarFiles = await glob(join(distDir, "*.tar.gz"), {
+        absolute: true
+      });
       [...distFiles, ...tarFiles].forEach((file2) => {
         twineArgs.push(file2);
       });
@@ -42143,6 +42144,11 @@ async function topological_sort(packages) {
 const RE_PKG_NAME = /^[\w-]+\b/;
 async function get_package_dependencies(pkg) {
   const requirements = join(pkg.dir, "..", "requirements.txt");
+  try {
+    await promises.access(requirements);
+  } catch {
+    return [];
+  }
   return (await promises.readFile(requirements, "utf-8")).split("\n").map((line) => {
     const match2 = line.match(RE_PKG_NAME);
     return match2 ? match2[0] : null;
