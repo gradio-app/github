@@ -356,31 +356,32 @@ async function publish_package_oidc(dir: string, repositoryUrl: string) {
 				setFailed("Failed to generate attestations.");
 				return false;
 			}
-			
+
 			await verifyAttestations(distDir);
 
-			const twineArgs = [
-				"upload",
-				"--non-interactive",
-				"--verbose",
-			];
-			
+			const twineArgs = ["upload", "--non-interactive", "--verbose"];
+
 			// Add attestations flag for twine 6.1+
-			const attestationFiles = await glob(join(distDir, "*.publish.attestation"), {
-				absolute: true
-			});
-			
+			const attestationFiles = await glob(
+				join(distDir, "*.publish.attestation"),
+				{
+					absolute: true,
+				}
+			);
+
 			if (attestationFiles.length > 0) {
 				twineArgs.push("--attestations");
-				attestationFiles.forEach(file => {
+				attestationFiles.forEach((file) => {
 					twineArgs.push(file);
 				});
 			}
-			
+
 			// Add the distribution files to upload
 			const distFiles = await glob(join(distDir, "*.whl"), { absolute: true });
-			const tarFiles = await glob(join(distDir, "*.tar.gz"), { absolute: true });
-			[...distFiles, ...tarFiles].forEach(file => {
+			const tarFiles = await glob(join(distDir, "*.tar.gz"), {
+				absolute: true,
+			});
+			[...distFiles, ...tarFiles].forEach((file) => {
 				twineArgs.push(file);
 			});
 
@@ -447,6 +448,11 @@ const RE_PKG_NAME = /^[\w-]+\b/;
 
 async function get_package_dependencies(pkg: PythonPackage): Promise<string[]> {
 	const requirements = join(pkg.dir, "..", "requirements.txt");
+	try {
+		await fs.access(requirements);
+	} catch {
+		return [];
+	}
 	return (await fs.readFile(requirements, "utf-8"))
 		.split("\n")
 		.map((line) => {
