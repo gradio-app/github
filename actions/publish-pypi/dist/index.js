@@ -41666,7 +41666,7 @@ from sigstore.sign import SigningContext
 def generate_attestations(dist_files):
     errors = []
 
-		def get_identity_token() -> IdentityToken:
+    def get_identity_token() -> IdentityToken:
         # Will raise sigstore.oidc.IdentityError if it fails to get the token
         # from the environment or if the token is malformed.
         # NOTE: audience is always sigstore.
