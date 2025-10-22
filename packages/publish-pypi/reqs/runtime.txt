@@ -65,7 +65,7 @@ pyasn1==0.6.1
     #   sigstore
 pycparser==2.23
     # via cffi
-pydantic[email]==2.12.3
+pydantic==2.12.3
     # via
     #   pypi-attestations
     #   sigstore
