@@ -41660,16 +41660,24 @@ import os
 from pathlib import Path
 from pypi_attestations import Attestation, Distribution
 from sigstore.models import ClientTrustConfig
-from sigstore.oidc import Issuer
+from sigstore.oidc import IdentityError, IdentityToken, detect_credential
 from sigstore.sign import SigningContext
 
 def generate_attestations(dist_files):
     errors = []
 
+		def get_identity_token() -> IdentityToken:
+        # Will raise sigstore.oidc.IdentityError if it fails to get the token
+        # from the environment or if the token is malformed.
+        # NOTE: audience is always sigstore.
+        oidc_token = detect_credential()
+        if oidc_token is None:
+            raise IdentityError('Attempted to discover OIDC in broken environment')
+        return IdentityToken(oidc_token)
+
     trust = ClientTrustConfig.production()
-    issuer = Issuer(trust.signing_config.get_oidc_url())
     signing_ctx = SigningContext.from_trust_config(trust)
-    identity = issuer.identity_token()
+    identity = get_identity_token()
 
 
     with signing_ctx.signer(identity, cache=True) as signer:
