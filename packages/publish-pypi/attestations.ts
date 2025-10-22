@@ -84,8 +84,7 @@ def generate_attestations(dist_files):
                 print(f"Attesting {dist_path.name}...")
 
                 dist = Distribution.from_file(Path(dist_file))
-                att = Attestation.sign(signer, dist)
-                print(att.model_dump_json())
+                attestation = Attestation.sign(signer, dist)
                 
                 attestation_path = dist_path.with_suffix(dist_path.suffix + ".publish.attestation")
                 attestation_path.write_text(attestation.model_dump_json())
