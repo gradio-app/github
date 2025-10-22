@@ -41687,7 +41687,7 @@ def generate_attestations(dist_files):
             try:
                 print(f"Attesting {dist_path.name}...")
 
-                dist = Distribution.from_file(Path(path))
+                dist = Distribution.from_file(Path(dist_file))
                 att = Attestation.sign(signer, dist)
                 print(att.model_dump_json())
                 
