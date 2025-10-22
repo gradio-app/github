@@ -14,11 +14,7 @@ import { join } from "path";
 import { glob } from "glob";
 
 import * as files from "./requirements";
-import {
-	generateAttestations,
-	installAttestationDependencies,
-	verifyAttestations,
-} from "./attestations";
+import { generateAttestations, verifyAttestations } from "./attestations";
 
 type PackageJson = Packages["packages"][0]["packageJson"];
 type PythonPackageJson = PackageJson & { python: boolean };
@@ -151,10 +147,6 @@ async function run() {
 	await exec("chmod", ["og-rw", "/home/runner/.netrc"]);
 	await exec("pip", ["install", "secretstorage", "dbus-next"]);
 	await exec("pip", ["install", "build"]);
-
-	if (useOidc) {
-		await installAttestationDependencies();
-	}
 
 	let publishes: boolean[] = [];
 	for await (const p of packages_to_publish_sorted) {

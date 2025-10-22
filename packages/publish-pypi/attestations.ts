@@ -55,47 +55,39 @@ import json
 import os
 from pathlib import Path
 from pypi_attestations import Attestation, Distribution
-from sigstore.oidc import IdentityError, IdentityToken, detect_credential
+from sigstore.models import ClientTrustConfig
+from sigstore.oidc import Issuer
 from sigstore.sign import SigningContext
-
-def get_identity_token() -> IdentityToken:
-    # Will raise sigstore.oidc.IdentityError if it fails to get the token
-    # from the environment or if the token is malformed.
-    # NOTE: audience is always sigstore.
-    oidc_token = detect_credential()
-    if oidc_token is None:
-        raise IdentityError('Attempted to discover OIDC in broken environment')
-    return IdentityToken(oidc_token)
 
 def generate_attestations(dist_files):
     errors = []
-    
-    try:
-        identity = get_identity_token()
-    except (IdentityError, Exception) as e:
-        print(f"Failed to get OIDC credential: {e}", file=sys.stderr)
-        return False
-    
-    # Use SigningContext.production().signer() as a context manager
-    with SigningContext.production().signer(identity, cache=True) as signer:
+
+    trust = ClientTrustConfig.production()
+    issuer = Issuer(trust.signing_config.get_oidc_url())
+    signing_ctx = SigningContext.from_trust_config(trust)
+    identity = issuer.identity_token()
+
+
+    with signing_ctx.signer(identity, cache=True) as signer:
         for dist_file in dist_files:
             dist_path = Path(dist_file)
             
             try:
                 print(f"Attesting {dist_path.name}...")
-                
-                dist = Distribution.from_file(dist_path)
-                attestation = Attestation.sign(signer, dist)
+
+                dist = Distribution.from_file(Path(path))
+                att = Attestation.sign(signer, dist)
+                print(att.model_dump_json())
                 
                 attestation_path = dist_path.with_suffix(dist_path.suffix + ".publish.attestation")
                 attestation_path.write_text(attestation.model_dump_json())
-                
+
                 print(f"Created attestation: {attestation_path.name}")
-                
+
             except Exception as e:
                 errors.append(f"Error attesting {dist_path.name}: {e}")
                 print(f"Error attesting {dist_path.name}: {e}", file=sys.stderr)
-    
+
     if errors:
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary_path:
@@ -104,7 +96,7 @@ def generate_attestations(dist_files):
                 for error in errors:
                     f.write(f"- {error}\\n")
         return False
-    
+
     return True
 
 if __name__ == "__main__":
@@ -157,19 +149,6 @@ if __name__ == "__main__":
 		setFailed(`Error during attestation generation: ${e.message}`);
 		return false;
 	}
-}
-
-export async function installAttestationDependencies(): Promise<void> {
-	info("Installing attestation dependencies...");
-
-	await exec("pip", [
-		"install",
-		"--user",
-		"--upgrade",
-		"--no-cache-dir",
-		"pypi-attestations>=0.0.27",
-		"sigstore>=3.6.5",
-	]);
 }
 
 export async function verifyAttestations(distDir: string): Promise<boolean> {
