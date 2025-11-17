@@ -2074,7 +2074,6 @@ pypistats==1.1.0
 plotly
 matplotlib
 altair
-gradio_pdf
 vega_datasets
 	`.trim();
   fs$1.writeFileSync(reqs_file_path, requirements);
