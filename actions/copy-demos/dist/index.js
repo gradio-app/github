@@ -2075,7 +2075,6 @@ plotly
 matplotlib
 altair
 vega_datasets
-gradio_pdf
 	`.trim();
   fs$1.writeFileSync(reqs_file_path, requirements);
   console.log("Demos copied and requirements updated successfully.");
