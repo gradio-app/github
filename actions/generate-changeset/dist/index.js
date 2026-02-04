@@ -119481,8 +119481,16 @@ function create_changeset_comment({
   previous_comment,
   approved,
   approved_by,
-  changelog_entry_type
+  changelog_entry_type,
+  skip_approval = false
 }) {
+  const approval_section = skip_approval ? "" : `
+${approved ? `✅ Changeset approved${approved_by ? ` by @${approved_by}` : ""}` : "‼️ Changeset not approved. Ensure the version bump is appropriate for all packages before approving."}
+
+${approved ? "- [x] Maintainers can remove approval by unchecking this checkbox." : "- [ ] Maintainers can approve the changeset by checking this checkbox."}
+
+<!-- approval_state:${JSON.stringify({ approved, approved_by: approved_by || null })} -->
+`;
   const new_comment = `<!-- tag=changesets_gradio -->
 
 ###  🦄 ${get_title(packages)}
@@ -119496,13 +119504,7 @@ ${create_version_table(packages)}
 ${format_changelog_preview(changelog, packages, changelog_entry_type)}
 
 ---
-
-${approved ? `✅ Changeset approved${approved_by ? ` by @${approved_by}` : ""}` : "‼️ Changeset not approved. Ensure the version bump is appropriate for all packages before approving."}
-
-${approved ? "- [x] Maintainers can remove approval by unchecking this checkbox." : "- [ ] Maintainers can approve the changeset by checking this checkbox."}
-
-<!-- approval_state:${JSON.stringify({ approved, approved_by: approved_by || null })} -->
-
+${approval_section}
 <details><summary>
 
 #### Something isn't right?</summary>
@@ -119832,6 +119834,7 @@ async function run() {
   }
   const token = coreExports.getInput("github_token");
   const main_pkg = coreExports.getInput("main_pkg");
+  const skip_approval = coreExports.getInput("skip_approval") === "true";
   const client = get_client(token, context.repo.owner, context.repo.repo);
   const pr_input = coreExports.getInput("pr_number");
   console.log(pr_input);
@@ -119916,9 +119919,10 @@ async function run() {
       changeset_content: old_changeset_content,
       changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
       previous_comment: comment == null ? void 0 : comment.body,
-      approved: approved2,
+      approved: skip_approval || approved2,
       approved_by: approved_by2 || void 0,
-      changelog_entry_type
+      changelog_entry_type,
+      skip_approval
     });
     if (changes2) {
       coreExports.info("[Manual Mode] Changeset comment has changes, updating...");
@@ -120042,9 +120046,10 @@ async function run() {
     changeset_content,
     changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
     previous_comment: comment == null ? void 0 : comment.body,
-    approved,
+    approved: skip_approval || approved,
     approved_by: approved_by || void 0,
-    changelog_entry_type: type2 || "unknown"
+    changelog_entry_type: type2 || "unknown",
+    skip_approval
   });
   if (changes) {
     coreExports.info("[Normal Mode] Changeset comment has changes, updating...");
@@ -120060,7 +120065,7 @@ async function run() {
     coreExports.setOutput("comment_url", comment == null ? void 0 : comment.url);
   }
   coreExports.setOutput("skipped", "false");
-  coreExports.setOutput("approved", approved.toString());
+  coreExports.setOutput("approved", (skip_approval || approved).toString());
 }
 run();
 async function get_changed_files(base_sha) {

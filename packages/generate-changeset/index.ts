@@ -60,6 +60,7 @@ async function run() {
 
 	const token = getInput("github_token");
 	const main_pkg = getInput("main_pkg");
+	const skip_approval = getInput("skip_approval") === "true";
 	const client = get_client(token, context.repo.owner, context.repo.repo);
 	const pr_input = getInput("pr_number");
 	console.log(pr_input);
@@ -167,9 +168,10 @@ async function run() {
 			changeset_content: old_changeset_content,
 			changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 			previous_comment: comment?.body,
-			approved,
+			approved: skip_approval || approved,
 			approved_by: approved_by || undefined,
 			changelog_entry_type,
+			skip_approval,
 		});
 
 		if (changes) {
@@ -325,9 +327,10 @@ async function run() {
 		changeset_content,
 		changeset_url: `https://github.com/${source_repo_name}/edit/${source_branch_name}/${changeset_path}`,
 		previous_comment: comment?.body,
-		approved,
+		approved: skip_approval || approved,
 		approved_by: approved_by || undefined,
 		changelog_entry_type: type || "unknown",
+		skip_approval,
 	});
 
 	if (changes) {
@@ -346,7 +349,7 @@ async function run() {
 
 	// this always happens
 	setOutput("skipped", "false");
-	setOutput("approved", approved.toString());
+	setOutput("approved", (skip_approval || approved).toString());
 }
 
 run();
