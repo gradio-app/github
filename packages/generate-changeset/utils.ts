@@ -184,6 +184,7 @@ export function create_changeset_comment({
 	approved,
 	approved_by,
 	changelog_entry_type,
+	skip_approval = false,
 }: {
 	packages: [string, string | boolean][];
 	changelog: string;
@@ -195,7 +196,24 @@ export function create_changeset_comment({
 	approved: boolean;
 	approved_by?: string;
 	changelog_entry_type: string;
+	skip_approval?: boolean;
 }) {
+	const approval_section = skip_approval ? "" : `
+${
+	approved
+		? `✅ Changeset approved${approved_by ? ` by @${approved_by}` : ''}`
+		: "‼️ Changeset not approved. Ensure the version bump is appropriate for all packages before approving."
+}
+
+${
+	approved
+		? "- [x] Maintainers can remove approval by unchecking this checkbox."
+		: "- [ ] Maintainers can approve the changeset by checking this checkbox."
+}
+
+<!-- approval_state:${JSON.stringify({ approved, approved_by: approved_by || null })} -->
+`;
+
 	const new_comment = `<!-- tag=changesets_gradio -->
 
 ###  🦄 ${get_title(packages)}
@@ -213,21 +231,7 @@ ${create_version_table(packages)}
 ${format_changelog_preview(changelog, packages, changelog_entry_type)}
 
 ---
-
-${
-	approved
-		? `✅ Changeset approved${approved_by ? ` by @${approved_by}` : ''}`
-		: "‼️ Changeset not approved. Ensure the version bump is appropriate for all packages before approving."
-}
-
-${
-	approved
-		? "- [x] Maintainers can remove approval by unchecking this checkbox."
-		: "- [ ] Maintainers can approve the changeset by checking this checkbox."
-}
-
-<!-- approval_state:${JSON.stringify({ approved, approved_by: approved_by || null })} -->
-
+${approval_section}
 <details><summary>
 
 #### Something isn't right?</summary>

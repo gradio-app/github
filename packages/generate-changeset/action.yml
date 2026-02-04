@@ -18,6 +18,10 @@ inputs:
   actor:
     description: "The actor that triggered the workflow."
     required: true
+  skip_approval:
+    description: "If true, skip the approval checkbox requirement and always mark the changeset as approved"
+    required: false
+    default: "false"
 outpus:
   skipped:
     description: "Whether the changeset was skipped or not"
