@@ -119483,6 +119483,8 @@ function create_changeset_comment({
   approved_by,
   changelog_entry_type
 }) {
+  const approval_status = "";
+  const approval_checkbox = "";
   const new_comment = `<!-- tag=changesets_gradio -->
 
 ###  🦄 ${get_title(packages)}
@@ -119497,9 +119499,9 @@ ${format_changelog_preview(changelog, packages, changelog_entry_type)}
 
 ---
 
-${approved ? `✅ Changeset approved${approved_by ? ` by @${approved_by}` : ""}` : "‼️ Changeset not approved. Ensure the version bump is appropriate for all packages before approving."}
+${approval_status}
 
-${approved ? "- [x] Maintainers can remove approval by unchecking this checkbox." : "- [ ] Maintainers can approve the changeset by checking this checkbox."}
+${approval_checkbox}
 
 <!-- approval_state:${JSON.stringify({ approved, approved_by: approved_by || null })} -->
 
