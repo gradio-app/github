@@ -196,6 +196,19 @@ export function create_changeset_comment({
 	approved_by?: string;
 	changelog_entry_type: string;
 }) {
+	// Changeset approval messaging temporarily disabled (see gradio-app/gradio#13433).
+	// The "Changeset not approved" notice and the approval checkbox were more hassle
+	// than value, and the "Changeset Results" check no longer enforces approval. To
+	// restore the gate, swap these back to the commented-out expressions below.
+	const approval_status = "";
+	// const approval_status = approved
+	// 	? `✅ Changeset approved${approved_by ? ` by @${approved_by}` : ""}`
+	// 	: "‼️ Changeset not approved. Ensure the version bump is appropriate for all packages before approving.";
+	const approval_checkbox = "";
+	// const approval_checkbox = approved
+	// 	? "- [x] Maintainers can remove approval by unchecking this checkbox."
+	// 	: "- [ ] Maintainers can approve the changeset by checking this checkbox.";
+
 	const new_comment = `<!-- tag=changesets_gradio -->
 
 ###  🦄 ${get_title(packages)}
@@ -214,17 +227,9 @@ ${format_changelog_preview(changelog, packages, changelog_entry_type)}
 
 ---
 
-${
-	approved
-		? `✅ Changeset approved${approved_by ? ` by @${approved_by}` : ''}`
-		: "‼️ Changeset not approved. Ensure the version bump is appropriate for all packages before approving."
-}
+${approval_status}
 
-${
-	approved
-		? "- [x] Maintainers can remove approval by unchecking this checkbox."
-		: "- [ ] Maintainers can approve the changeset by checking this checkbox."
-}
+${approval_checkbox}
 
 <!-- approval_state:${JSON.stringify({ approved, approved_by: approved_by || null })} -->
 
