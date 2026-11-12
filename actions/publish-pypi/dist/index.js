@@ -41837,7 +41837,9 @@ async function run() {
       ([name, content]) => promises.writeFile(`_action_temp/requirements/${name}`, content)
     )
   );
-  await exec_2("pip", [
+  await exec_2("python", [
+    "-m",
+    "pip",
     "install",
     "--user",
     "--upgrade",
@@ -41845,8 +41847,10 @@ async function run() {
     "pip>=23.3.1"
   ]);
   await exec_2(
-    "pip",
+    "python",
     [
+      "-m",
+      "pip",
       "install",
       "twine==6",
       "--user",
@@ -41863,8 +41867,10 @@ async function run() {
     }
   );
   await exec_2(
-    "pip",
+    "python",
     [
+      "-m",
+      "pip",
       "install",
       "--user",
       "--upgrade",
@@ -41881,8 +41887,8 @@ async function run() {
     }
   );
   await exec_2("chmod", ["og-rw", "/home/runner/.netrc"]);
-  await exec_2("pip", ["install", "secretstorage", "dbus-next"]);
-  await exec_2("pip", ["install", "build"]);
+  await exec_2("python", ["-m", "pip", "install", "secretstorage", "dbus-next"]);
+  await exec_2("python", ["-m", "pip", "install", "build"]);
   let publishes = [];
   for await (const p of packages_to_publish_sorted) {
     coreExports.info(`Publishing ${p.packageJson.name}@${p.packageJson.version} to PyPI`);
