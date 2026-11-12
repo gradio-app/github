@@ -98,7 +98,9 @@ async function run() {
 		)
 	);
 
-	await exec("pip", [
+	await exec("python", [
+		"-m",
+		"pip",
 		"install",
 		"--user",
 		"--upgrade",
@@ -107,8 +109,10 @@ async function run() {
 	]);
 
 	await exec(
-		"pip",
+		"python",
 		[
+			"-m",
+			"pip",
 			"install",
 			"twine==6",
 			"--user",
@@ -126,8 +130,10 @@ async function run() {
 	);
 
 	await exec(
-		"pip",
+		"python",
 		[
+			"-m",
+			"pip",
 			"install",
 			"--user",
 			"--upgrade",
@@ -145,8 +151,8 @@ async function run() {
 	);
 
 	await exec("chmod", ["og-rw", "/home/runner/.netrc"]);
-	await exec("pip", ["install", "secretstorage", "dbus-next"]);
-	await exec("pip", ["install", "build"]);
+	await exec("python", ["-m", "pip", "install", "secretstorage", "dbus-next"]);
+	await exec("python", ["-m", "pip", "install", "build"]);
 
 	let publishes: boolean[] = [];
 	for await (const p of packages_to_publish_sorted) {
